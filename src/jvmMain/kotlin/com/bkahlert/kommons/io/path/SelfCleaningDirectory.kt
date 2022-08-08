@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Program
-import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.cleanUp
 import com.bkahlert.kommons.io.path.PosixFilePermissions.OWNER_ALL_PERMISSIONS
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode
 import com.bkahlert.kommons.requireTempSubPath
+import com.bkahlert.kommons.text.asString
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists

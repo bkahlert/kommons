@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.test.AnsiRequiring
 import org.junit.jupiter.api.Test
 import strikt.api.Assertion

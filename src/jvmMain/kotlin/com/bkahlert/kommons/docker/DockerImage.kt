@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.builder.StatelessBuilder
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed
 import com.bkahlert.kommons.docker.DockerImage.Companion.parse
@@ -16,8 +15,9 @@ import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.fold
 import com.bkahlert.kommons.head
 import com.bkahlert.kommons.tail
-import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.takeUnlessBlank
 
 /**
  * Descriptor of a [DockerImage] identified by the specified [repository],

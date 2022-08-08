@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.exception
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.isSingleLine
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IOSequence
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.withTempDir
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.isSingleLine
+import com.bkahlert.kommons.text.ansiRemoved
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldMatch

@@ -1,8 +1,6 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.lines
-import com.bkahlert.kommons.asString
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.exception.persistDump
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
@@ -10,6 +8,7 @@ import com.bkahlert.kommons.exec.IO.Output
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.text.INTERMEDIARY_LINE_PATTERN
 import com.bkahlert.kommons.text.Semantics.Symbols
+import com.bkahlert.kommons.text.asString
 import com.bkahlert.kommons.text.truncateOld
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantLock

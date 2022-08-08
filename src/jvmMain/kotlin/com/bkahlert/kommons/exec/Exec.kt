@@ -3,7 +3,7 @@ package com.bkahlert.kommons.exec
 import com.bkahlert.kommons.Either
 import com.bkahlert.kommons.Either.Left
 import com.bkahlert.kommons.Either.Right
-import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.docker.Docker

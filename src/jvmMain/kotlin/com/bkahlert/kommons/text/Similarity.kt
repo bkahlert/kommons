@@ -9,7 +9,7 @@ public fun CharSequence.levenshteinDistance(other: CharSequence): Int {
     (0..length).forEach { i -> cost[i][0] = i }
     (0..other.length).forEach { i -> cost[0][i] = i }
 
-    val thisInOtherIndex: MutableMap<Char, Int> = mutableMapOf()
+    val thisInOtherIndex: MutableMap<kotlin.Char, Int> = mutableMapOf()
     (1..length).forEach { thisIndex ->
         var prevMatchingOtherIndex = 0
         (1..other.length).forEach { otherIndex ->

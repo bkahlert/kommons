@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.kaomoji
 
-import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.junit.testEach
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.columns
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldContain
@@ -25,7 +25,7 @@ import java.util.stream.Stream
 @Isolated
 class KaomojiTest {
 
-    @Test fun fishing() = test {
+    @Test fun fishing() = testAll {
         Kaomoji.random().fishing(Kaomoji.Fish.`❮°«⠶＞˝`) shouldEndWith "o/￣￣￣❮°«⠶＞˝"
         Kaomoji.Shrugging.first().fishing() shouldStartWith "┐(´д｀)o/￣￣￣"
     }
@@ -34,7 +34,7 @@ class KaomojiTest {
     inner class Thinking {
 
         private val kaomoji = Kaomoji.Bears.first()
-        private val blank = " ".repeat(kaomoji.toString().columns)
+        private val blank = " ".repeat(kaomoji.columns)
 
         @TestFactory fun `should render empty`() = testEach(null, "", "   ") {
             kaomoji.thinking(it) shouldBe """
@@ -43,14 +43,14 @@ class KaomojiTest {
                 """.trimIndent()
         }
 
-        @Test fun `should render single line`() = test {
+        @Test fun `should render single line`() = testAll {
             kaomoji.thinking("oh no") shouldBe """
                     $blank  ̣ ˱ ❨ ( oh no )
                     ・㉨・
                 """.trimIndent()
         }
 
-        @Test fun `should render two lines`() = test {
+        @Test fun `should render two lines`() = testAll {
             kaomoji.thinking("oh no 1${LF}oh no 2") shouldBe """
                     $blank       ⎛ oh no 1 ⎞
                     $blank  ̣ ˱ ❨ ⎝ oh no 2 ⎠
@@ -58,7 +58,7 @@ class KaomojiTest {
                 """.trimIndent()
         }
 
-        @Test fun `should render multi line`() = test {
+        @Test fun `should render multi line`() = testAll {
             kaomoji.thinking("oh no 1${LF}oh no 2${LF}oh no 3") shouldBe """
                     $blank       ⎛ oh no 1 ⎞
                     $blank       ⎜ oh no 2 ⎟
@@ -67,7 +67,7 @@ class KaomojiTest {
                 """.trimIndent()
         }
 
-        @Test fun `should render lines of different length`() = test {
+        @Test fun `should render lines of different length`() = testAll {
             kaomoji.thinking("123${LF}${LF}1234567890${LF}1234") shouldBe """
                     $blank       ⎛ 123        ⎞
                     $blank       ⎜            ⎟
@@ -78,12 +78,12 @@ class KaomojiTest {
         }
 
         @AnsiRequiring @Test
-        fun `should render ANSI`() = test {
+        fun `should render ANSI`() = testAll {
             kaomoji.thinking("${"123".ansi.brightBlue}${LF}${"".ansi.yellow.bold}${LF}1234567890${LF}1234".ansi.underline.done) shouldBe """
-                                ⎛ [4m[94m123[24;39m        ⎞
-                                ⎜ [4m[24m           ⎟
-                                ⎜ [4m1234567890[24m ⎟
-                           ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
+                    $blank       ⎛ [4m[94m123[24;39m        ⎞
+                    $blank       ⎜ [4m[24m           ⎟
+                    $blank       ⎜ [4m1234567890[24m ⎟
+                    $blank  ̣ ˱ ❨ ⎝ [4m1234[24m       ⎠
                     ・㉨・
                 """.trimIndent()
         }
@@ -117,12 +117,12 @@ class KaomojiTest {
     @Nested
     inner class CompanionObject {
 
-        @Test fun empty() = test {
+        @Test fun empty() = testAll {
             Kaomoji.EMPTY.toString().shouldBeEmpty()
             Kaomoji.Shrugging.first().fishing(Kaomoji.EMPTY).toString() shouldBe "┐(´д｀)o/￣￣￣"
         }
 
-        @Test fun random() = test {
+        @Test fun random() = testAll {
             Kaomoji.random().toString().shouldNotBeEmpty()
         }
 

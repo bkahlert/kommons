@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.nio
 
-import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.exception.dump
 import com.bkahlert.kommons.exec.mock.SlowInputStream.Companion.slowInputStream
 import com.bkahlert.kommons.io.ByteArrayOutputStream

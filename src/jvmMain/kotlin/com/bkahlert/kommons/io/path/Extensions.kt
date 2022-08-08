@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.head
-import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.text.takeUnlessBlank
 import java.nio.file.Path
 import java.util.Locale
 import kotlin.io.path.extension

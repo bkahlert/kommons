@@ -1,9 +1,6 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.TextLength.Companion.chars
-import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.builder.StatelessBuilder
-import com.bkahlert.kommons.capitalize
 import com.bkahlert.kommons.docker.DockerContainer.Companion.ContainerContext
 import com.bkahlert.kommons.docker.DockerContainer.State.Error
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Created
@@ -19,16 +16,19 @@ import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
 import com.bkahlert.kommons.exec.parse
 import com.bkahlert.kommons.getLeftOrElse
-import com.bkahlert.kommons.groupValue
 import com.bkahlert.kommons.mapLeft
-import com.bkahlert.kommons.randomString
-import com.bkahlert.kommons.simpleTitleCasedName
+import com.bkahlert.kommons.text.Char.characters
 import com.bkahlert.kommons.text.CharRanges.Alphanumeric
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.asString
+import com.bkahlert.kommons.text.capitalize
+import com.bkahlert.kommons.text.groupValue
+import com.bkahlert.kommons.text.randomString
+import com.bkahlert.kommons.text.simpleTitleCasedName
+import com.bkahlert.kommons.text.truncate
+import com.bkahlert.kommons.text.withRandomSuffix
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
-import com.bkahlert.kommons.truncate
-import com.bkahlert.kommons.withRandomSuffix
 import java.nio.file.Path
 import kotlin.io.path.pathString
 import kotlin.time.Duration
@@ -179,7 +179,7 @@ public class DockerContainer(public val name: String) {
                 }.mapLeft { it.singleOrNull() ?: NotExistent } getLeftOrElse { error(it) }
 
         /**
-         * Lists locally available instances this containers.
+         * Lists locally available containers.
          */
         public fun list(): List<DockerContainer> =
             DockerPsCommandLine(true)
@@ -294,7 +294,7 @@ public class DockerContainer(public val name: String) {
          * name and if not transforms it to a valid one.
          */
         private fun sanitize(name: String, suffix: String = ""): String {
-            val nameWithSuffix = name.truncate((LENGTH_RANGE.last - suffix.length).coerceAtLeast(0).chars, "...") + suffix
+            val nameWithSuffix = name.truncate((LENGTH_RANGE.last - suffix.length).coerceAtLeast(0).characters, "...") + suffix
             if (isValid(nameWithSuffix)) return nameWithSuffix
             var replaceWithXToGuaranteeAValidName = true
             return nameWithSuffix.map { c ->

@@ -1,14 +1,7 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.AnsiSupport
-import com.bkahlert.kommons.LineSeparators.mapLines
-import com.bkahlert.kommons.Platform
 import com.bkahlert.kommons.Program
-import com.bkahlert.kommons.Unicode
-import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.asCodePointSequence
-import com.bkahlert.kommons.groupValue
-import com.bkahlert.kommons.string
+import com.bkahlert.kommons.debug.trace
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.ColoredText
@@ -19,7 +12,11 @@ import com.bkahlert.kommons.text.AnsiCodeHelper.controlSequence
 import com.bkahlert.kommons.text.AnsiCodeHelper.parseAnsiCodes
 import com.bkahlert.kommons.text.AnsiCodeHelper.unclosedCodes
 import com.bkahlert.kommons.text.AnsiString.Companion.tokenize
+import com.bkahlert.kommons.text.LineSeparators.mapLines
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.github.ajalt.mordant.rendering.AnsiLevel.TRUECOLOR
+import com.github.ajalt.mordant.table.row
+import com.github.ajalt.mordant.terminal.Terminal
 import kotlin.jvm.JvmInline
 import kotlin.math.PI
 import kotlin.math.abs
@@ -28,12 +25,16 @@ import kotlin.math.roundToInt
 import kotlin.random.Random.Default.nextDouble
 import kotlin.text.contains as containsNonAnsiAware
 
+public val CharSequence.columns: Int get() = row { cell(this@columns.toString()) }.measure(ANSI.terminal).max
+
 /**
  * All around [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
  */
 public object ANSI {
 
-    private val level by lazy { if (Program.isDebugging && false) AnsiSupport.NONE else Platform.Current.ansiSupport }
+    public val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.info.trace { it.updateTerminalSize() }.trace } }
+
+    private val level by lazy { if (Program.isDebugging) AnsiSupport.NONE else AnsiSupport.ANSI24 }
 
     /**
      * Returns this character sequence as a string with all lines terminated with
@@ -107,7 +108,7 @@ public object ANSI {
         }
     }
 
-    public fun CharSequence.colorize(): String = safeString.asCodePointSequence().map { Colors.random()(it.string) }.joinToString("")
+    public fun CharSequence.colorize(): String = toString().asCodePointSequence().map { Colors.random()(it) }.joinToString("")
 
     public interface Colorizer : Formatter<CharSequence> {
         public val bg: Formatter<CharSequence>
@@ -260,6 +261,7 @@ public object ANSI {
             AnsiSupport.ANSI8 ->
                 if (color is Ansi16) Ansi16ColorCode(color.code)
                 else Ansi256ColorCode(color.toAnsi256().code)
+
             AnsiSupport.ANSI24 -> when (color) {
                 is Ansi16 -> Ansi16ColorCode(color.code)
                 is Ansi256 -> Ansi256ColorCode(color.code)
@@ -993,9 +995,8 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
     public val ansiLength: Int get():Int = tokens.sumOf { it.logicalLength }
 
     /**
-     * Contains this [safeString] with all ANSI escape sequences removed.
+     * Contains this [string] with all ANSI escape sequences removed.
      */
-    @Suppress("SpellCheckingInspection")
     public val ansiRemoved: String by lazy { tokens.filter { !it.isEscapeSequence }.joinToString("") { it.content } }
 
     /**
@@ -1008,7 +1009,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      *
      * Due to the limitation of a [Char] to two byte no formatted [Char] can be returned.
      */
-    override fun get(index: Int): Char = ansiRemoved[index]
+    override fun get(index: Int): kotlin.Char = ansiRemoved[index]
 
     /**
      * Returns the same character sequence as an unformatted [String.subSequence] would do.
@@ -1081,7 +1082,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      * @return Returns an ANSI string of length at least [length] consisting of this ANSI string prepended with [padChar] as many times
      * as are necessary to reach that length.
      */
-    public fun CharSequence.padStart(length: Int, padChar: Char = ' '): CharSequence {
+    public fun CharSequence.padStart(length: Int, padChar: kotlin.Char = ' '): CharSequence {
         require(length >= 0) { "Desired length $length is less than zero." }
         return if (length <= this.length) this.subSequence(0, this.length)
         else "$padChar".repeat(length - this.length) + this
@@ -1096,7 +1097,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
      * @return Returns an ANSI string of length at least [length] consisting of this ANSI string appended with [padChar] as many times
      * as are necessary to reach that length.
      */
-    public fun padEnd(length: Int, padChar: Char = ' '): AnsiString {
+    public fun padEnd(length: Int, padChar: kotlin.Char = ' '): AnsiString {
         require(length >= 0) { "Desired length $length is less than zero." }
         return if (length <= this.length) this.subSequence(0, this.length)
         else this + "$padChar".repeat(length - this.length)
@@ -1133,7 +1134,7 @@ public open class AnsiString(internal val tokens: Array<out Token> = emptyArray(
     }
 
     public fun chunkedByColumnsSequence(columns: Int): Sequence<AnsiString> =
-        chunkedByColumnsSequence(columns) { it.toAnsiString() }
+        TODO()
 
     public operator fun plus(other: CharSequence): AnsiString {
         val otherTokens = if (other is AnsiString) other.tokens else other.toString().tokenize().tokens
@@ -1377,11 +1378,13 @@ private object AnsiCodeHelper {
                             add(it)
                             checkingColorType = false
                         }
+
                         2 -> {
                             groupMissingCodes = 3 // 1x color byte
                             add(it)
                             checkingColorType = false
                         }
+
                         else -> error("unknown color type $it")
                     }
                 }

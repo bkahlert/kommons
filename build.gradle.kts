@@ -9,7 +9,7 @@ val baseUrl: String get() = "https://github.com/bkahlert/kommons"
 
 plugins {
     kotlin("multiplatform") version "1.7.10"
-    id("org.jetbrains.dokka") version "1.7.0"
+    id("org.jetbrains.dokka") version "1.7.10"
     id("maven-publish")
     signing
     id("nebula.release") version "16.0.0"
@@ -76,7 +76,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("com.bkahlert.kommons:kommons-debug:0.13.0-SNAPSHOT") { because("require, string, and time functions; trace") }
+                implementation("com.github.ajalt.mordant:mordant:2.0.0-beta7")
+                api("com.bkahlert.kommons:kommons-debug:0.15.0-SNAPSHOT") { because("require, string, and time functions; trace") }
             }
         }
         val commonTest by getting {

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing
 
-import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.SystemIOExclusive
 import com.bkahlert.kommons.test.junit.DisplayName

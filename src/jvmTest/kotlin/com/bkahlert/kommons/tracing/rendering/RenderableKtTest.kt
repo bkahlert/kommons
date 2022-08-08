@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.test.AnsiRequiring
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
@@ -66,7 +66,7 @@ class RenderableKtTest {
         }
 
         @AnsiRequiring @Test
-        fun `should support ANSI`() = test {
+        fun `should support ANSI`() = testAll {
             Renderable.of("blue-blue".ansi.blue).render(7, 1) shouldBe "${"bl".ansi.blue} … ${"ue".ansi.blue}"
             Renderable.of("blue-blue".ansi.blue).render(100, 1) shouldBe "blue-blue".ansi.blue.done
             Renderable.of("blue-blue".ansi.blue).render(null, 1) shouldBe "blue-blue".ansi.blue.done

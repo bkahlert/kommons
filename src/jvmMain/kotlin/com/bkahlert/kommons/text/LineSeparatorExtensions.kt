@@ -1,8 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.AnyCharacterRegex
-import com.bkahlert.kommons.LineSeparators
-
 /**
  * [Regex] that matches only strings that contain no line separators, e.g. the last line of a multi-line text.
  */

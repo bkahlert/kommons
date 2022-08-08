@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.SystemLocations
-import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.string
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
+import com.bkahlert.kommons.text.quoted
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

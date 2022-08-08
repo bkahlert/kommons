@@ -1,17 +1,17 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.docker.DockerContainer.State
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Exited
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Running
 import com.bkahlert.kommons.docker.DockerContainer.State.NotExistent
-import com.bkahlert.kommons.spaced
 import com.bkahlert.kommons.test.junit.testEach
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters.FIELD
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.Symbols.OK
+import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.spaced
 import com.bkahlert.kommons.tracing.TestSpanScope
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -61,7 +61,7 @@ class DockerContainerTest {
     inner class ToString {
 
         @ContainersTest
-        fun `should contain actual state`(testContainers: TestContainers) = test {
+        fun `should contain actual state`(testContainers: TestContainers) = testAll {
             testContainers.newNotExistentContainer().apply { containerState }
                 .toString() shouldMatch """DockerContainer \{[\s\S]*name[ =|:] .*,[\s\S]*state[ =|:] not existent[\s\S]*}""".toRegex()
             testContainers.newRunningTestContainer().apply { containerState }
@@ -316,7 +316,7 @@ class DockerContainerTest {
 
                 @ContainersTest
                 fun TestSpanScope.`should stop multiple and log`(testContainers: TestContainers) {
-                    val containers = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
+                    val containers: List<DockerContainer> = listOf(testContainers.newNotExistentContainer(), testContainers.newRunningTestContainer())
                     DockerContainer.stop(*containers.toTypedArray()).successful shouldBe false
                     rendered()
                         .shouldContain("Stopping ${containers[0].name} ${FIELD.ansiRemoved} ${containers[1].name} ${Negative.ansiRemoved} no such container")
@@ -444,5 +444,3 @@ inline fun <reified T : State> Builder<DockerContainer>.hasState(): Builder<Dock
     compose("status") {
         get { containerState }.isA<T>()
     }.then { if (allPassed) pass() else fail() }
-
-val Builder<DockerContainer>.name get(): Builder<String> = get("name") { name }

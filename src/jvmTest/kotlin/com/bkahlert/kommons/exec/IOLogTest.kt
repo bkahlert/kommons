@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.exec.IO.Meta
 import com.bkahlert.kommons.io.path.textContent
 import com.bkahlert.kommons.io.path.writeText
@@ -10,8 +9,9 @@ import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.containsAnsi
+import com.bkahlert.kommons.text.removeAnsi
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
@@ -81,7 +81,7 @@ class IOLogTest {
             val dumps: Map<String, Path> = ioLog.dump(this, 123)
             expectThat(dumps.values) {
                 hasSize(2)
-                all { textContent.ansiRemoved.startsWith("processing") }
+                all { textContent.removeAnsi.startsWith("processing") }
             }
         }
 

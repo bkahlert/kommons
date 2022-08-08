@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.CodePoint
+import com.bkahlert.kommons.text.CodePoint
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -15,7 +15,7 @@ class NonPrintableKtTest {
 
     @Test
     fun `should replace control characters`() {
-        expectThat((0 until 32).map { i -> CodePoint(i) }.joinToString(" ").replaceNonPrintableCharacters())
+        expectThat((0 until 32).joinToString(" ", transform = ::CodePoint).replaceNonPrintableCharacters())
             .isEqualTo("␀ ␁ ␂ ␃ ␄ ␅ ␆ ␇ ␈ ␉ ⏎␊ ␋ ␌ ⏎␍ ␎ ␏ ␐ ␑ ␒ ␓ ␔ ␕ ␖ ␗ ␘ ␙ ␚ ␛ ␜ ␝ ␞ ␟")
     }
 

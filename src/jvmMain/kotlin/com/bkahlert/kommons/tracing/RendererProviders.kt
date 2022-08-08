@@ -1,8 +1,9 @@
 package com.bkahlert.kommons.tracing
 
-import com.bkahlert.kommons.TextLength.Companion.chars
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Meta
+import com.bkahlert.kommons.text.Char.characters
+import com.bkahlert.kommons.text.truncate
 import com.bkahlert.kommons.tracing.rendering.BlockRenderer
 import com.bkahlert.kommons.tracing.rendering.CompactRenderer
 import com.bkahlert.kommons.tracing.rendering.OneLineRenderer
@@ -12,7 +13,6 @@ import com.bkahlert.kommons.tracing.rendering.RendererFactory
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.rendering.Settings
 import com.bkahlert.kommons.tracing.rendering.Styles.None
-import com.bkahlert.kommons.truncate
 
 public object RendererProviders {
 
@@ -57,7 +57,7 @@ public object RendererProviders {
                     if (it is Meta) ""
                     else it.toString().run {
                         substringAfter(":").trim().run {
-                            takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength.chars)
+                            takeIf { length < maxMessageLength } ?: split(Regex("\\s+")).last().truncate(maxMessageLength.characters)
                         }
                     })
             }

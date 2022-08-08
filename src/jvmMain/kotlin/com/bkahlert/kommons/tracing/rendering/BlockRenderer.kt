@@ -1,16 +1,22 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators.lineSequence
-import com.bkahlert.kommons.UriRegex
-import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.debug.renderType
-import com.bkahlert.kommons.takeUnlessEmpty
+import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.formatColumns
-import com.bkahlert.kommons.text.maxColumns
+import com.bkahlert.kommons.text.LineSeparators.lineSequence
+import com.bkahlert.kommons.text.UriRegex
+import com.bkahlert.kommons.text.asString
+import com.bkahlert.kommons.text.graphemeCount
+import com.bkahlert.kommons.text.takeUnlessEmpty
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId
+import com.github.ajalt.mordant.rendering.OverflowWrap.BREAK_WORD
+import com.github.ajalt.mordant.rendering.VerticalAlign.TOP
+import com.github.ajalt.mordant.rendering.Whitespace.PRE_LINE
+import com.github.ajalt.mordant.table.Borders.NONE
+import com.github.ajalt.mordant.table.ColumnWidth
+import com.github.ajalt.mordant.table.grid
 
 /**
  * Renderer that renders events along one or more columns,
@@ -35,7 +41,31 @@ public class BlockRenderer(
         extractedColumns
             .map { (text, maxColumns) -> text?.let { settings.contentFormatter(it) } to maxColumns }
             .takeIf { it.any { (text, _) -> text != null } }
-            ?.let { formatColumns(*it.toTypedArray(), paddingColumns = style.layout.gap, wrapLines = ::wrapNonUriLines) }
+            ?.let {
+                ANSI.terminal.render(
+                    grid {
+                        cellBorders = NONE
+                        padding(0, 0, 0, 0)
+                        it.forEachIndexed { i, (_, maxWidth) ->
+                            column(i) {
+                                if (i == 0) {
+                                    width = ColumnWidth.Fixed(maxWidth)
+                                    padding(0)
+                                } else {
+                                    width = ColumnWidth.Fixed(maxWidth + this@BlockRenderer.style.layout.gap)
+                                    padding(0, this@BlockRenderer.style.layout.gap)
+                                }
+                            }
+                        }
+                        row {
+                            whitespace = PRE_LINE
+                            verticalAlign = TOP
+                            overflowWrap = BREAK_WORD
+                            cellsFrom(it.map { it.first })
+                        }
+                    }
+                )
+            }
             ?.lineSequence()
             ?.map { it.trimEnd() }
             ?.mapNotNull { style.content(it, settings.decorationFormatter) }
@@ -45,7 +75,7 @@ public class BlockRenderer(
     override fun exception(exception: Throwable, attributes: RenderableAttributes) {
         val formatted = exception.stackTraceToString()
         if (attributes.isEmpty()) {
-            (if (formatted.maxColumns() > style.layout.totalWidth) wrapNonUriLines(formatted, style.layout.totalWidth) else formatted)
+            (if (formatted.graphemeCount() > style.layout.totalWidth) wrapNonUriLines(formatted, style.layout.totalWidth) else formatted)
                 .lineSequence()
                 .map { it.trimEnd() }
                 .mapNotNull { style.content(it, settings.decorationFormatter) }
@@ -63,7 +93,7 @@ public class BlockRenderer(
         val returnValue = ReturnValue.of(result)
         val formatted = style.end(returnValue, settings.returnValueTransform, settings.decorationFormatter)
         formatted?.takeUnlessEmpty()
-            ?.let { if (it.maxColumns() > style.layout.totalWidth) wrapNonUriLines(it, style.layout.totalWidth) else formatted }
+            ?.let { if (it.toString().graphemeCount() > style.layout.totalWidth) wrapNonUriLines(it, style.layout.totalWidth) else formatted }
             ?.lineSequence()
             ?.map { it.trimEnd() }
             ?.forEach(settings.printer)

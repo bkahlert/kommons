@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.CannotKillContainer
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.CannotRemoveRunningContainer
@@ -12,7 +11,6 @@ import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest.Path
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.UnknownError
 import com.bkahlert.kommons.docker.DockerExitStateHandler.ParseException
-import com.bkahlert.kommons.endSpaced
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Output
@@ -20,15 +18,19 @@ import com.bkahlert.kommons.exec.IOSequence
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.mock.ExecMock
 import com.bkahlert.kommons.exec.status
-import com.bkahlert.kommons.spaced
 import com.bkahlert.kommons.test.shouldMatchGlob
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testOld
-import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.endSpaced
+import com.bkahlert.kommons.text.removeAnsi
+import com.bkahlert.kommons.text.spaced
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import strikt.api.Assertion.Builder
@@ -47,17 +49,17 @@ class DockerExitStateHandlerTest {
     private fun handleTermination(errorMessage: String) = with(DockerExitStateHandler) { exec.handle(12345L, 42, IOSequence(Error typed errorMessage)) }
     private fun handleTermination(vararg messages: IO) = with(DockerExitStateHandler) { exec.handle(12345L, 42, IOSequence(*messages)) }
 
-    @TestFactory
-    fun `should match docker engine not running error message`() = testsOld {
+    @Test
+    fun `should match docker engine not running error message`() = testAll {
         val connectivityProblemState = handleTermination("Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?")
 
         val delimiter = Semantics.FieldDelimiters.FIELD.spaced.ansiRemoved
 
-        expecting { connectivityProblemState } that { isA<ConnectivityProblem>() }
-        expecting { connectivityProblemState.status.ansiRemoved } that { isEqualTo("Is the docker daemon running?") }
-        expecting { connectivityProblemState.textRepresentation!!.ansiRemoved } that { isEqualTo("connectivity problem${delimiter}Is the docker daemon running?") }
-        expecting { connectivityProblemState.format().ansiRemoved } that { isEqualTo("connectivity problem${delimiter}Is the docker daemon running?") }
-        expecting { connectivityProblemState } that { get { toString() shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?" } }
+        connectivityProblemState.shouldBeInstanceOf<ConnectivityProblem>()
+        connectivityProblemState.status.ansiRemoved shouldBe "Is the docker daemon running?"
+        connectivityProblemState.textRepresentation.ansiRemoved shouldBe "connectivity problem${delimiter}Is the docker daemon running?"
+        connectivityProblemState.format().ansiRemoved shouldBe "connectivity problem${delimiter}Is the docker daemon running?"
+        connectivityProblemState.toString() shouldMatchGlob "connectivity problem${delimiter}Is the docker daemon running?"
     }
 
     @Test
@@ -127,8 +129,8 @@ class DockerExitStateHandlerTest {
     fun `should return unknown state for unknown error`() {
         val unknownError = handleTermination("Error: Nothing I know of: status")
         expectThat(unknownError).isA<UnknownError>().and {
-            status.ansiRemoved.isEqualTo("Unknown error from Docker daemon: Nothing I know of: status")
-            get { format() }.ansiRemoved.isEqualTo("ϟ Unknown error from Docker daemon: Nothing I know of: status")
+            status.removeAnsi.isEqualTo("Unknown error from Docker daemon: Nothing I know of: status")
+            get { format() }.removeAnsi.isEqualTo("ϟ Unknown error from Docker daemon: Nothing I know of: status")
             get { toString() shouldMatchGlob "Unknown error from Docker daemon: Nothing I know of: status" }
         }
     }
@@ -136,14 +138,14 @@ class DockerExitStateHandlerTest {
     @Test
     fun `should throw on error-like message without error prefix`() {
         expectCatching { handleTermination("No Error: No such container: AFFECTED") }.isFailure().isA<ParseException>().and {
-            message.isNotNull().ansiRemoved.isEqualTo("Error parsing response from Docker daemon: No Error: No such container: AFFECTED")
+            message.isNotNull().removeAnsi.isEqualTo("Error parsing response from Docker daemon: No Error: No such container: AFFECTED")
         }
     }
 
     @Test
     fun `should throw if exception is caught`() {
         expectCatching { handleTermination("Not the typical error") }.isFailure().isA<ParseException>().and {
-            message.isNotNull().ansiRemoved.isEqualTo("Error parsing response from Docker daemon: Not the typical error")
+            message.isNotNull().removeAnsi.isEqualTo("Error parsing response from Docker daemon: Not the typical error")
         }
     }
 }

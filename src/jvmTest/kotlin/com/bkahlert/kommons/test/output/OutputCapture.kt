@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.test.output
 
-import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
+import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Output

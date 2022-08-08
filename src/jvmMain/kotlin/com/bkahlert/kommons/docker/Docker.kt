@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.CaseStyle
 import com.bkahlert.kommons.Exceptions
 import com.bkahlert.kommons.createTempDirectory
 import com.bkahlert.kommons.deleteRecursively
@@ -28,6 +27,7 @@ import com.bkahlert.kommons.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.mapLeft
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
+import com.bkahlert.kommons.text.CaseStyle
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
 import com.bkahlert.kommons.tracing.runSpanning
@@ -561,6 +561,7 @@ public fun Path.download(
                     val target = parent.resolve(it.cleanFileName()).apply { log("Moving download to $uriString") }
                     it.moveTo(target)
                 }
+
                 else -> throw Exceptions.ISE("More than one file found:", *downloaded.map { it.uriString }.toTypedArray())
             }
         }.also {

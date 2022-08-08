@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.ansiContained
 import com.bkahlert.kommons.docker.Docker.AwesomeCliBinaries
 import com.bkahlert.kommons.docker.Docker.LibRSvg
 import com.bkahlert.kommons.docker.TestImages.BusyBox
@@ -15,6 +14,7 @@ import com.bkahlert.kommons.test.inputStream
 import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.junit.testEach
 import com.bkahlert.kommons.test.withTempDir
+import com.bkahlert.kommons.text.ansiContained
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.paths.shouldExist
 import io.kotest.matchers.should

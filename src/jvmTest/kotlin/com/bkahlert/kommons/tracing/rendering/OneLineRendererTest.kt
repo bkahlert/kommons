@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators.isSingleLine
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.ExecAttributes
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.junit.testEach
 import com.bkahlert.kommons.test.junit.testing
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.text.LineSeparators.isSingleLine
 import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.removeAnsi
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout.Companion.columns
@@ -119,7 +119,7 @@ class OneLineRendererTest {
                 end(Result.success(true))
             }
         }
-        expectThat(rendered).ansiRemoved.contains("╶─╴event")
+        expectThat(rendered).removeAnsi.contains("╶─╴event")
     }
 
     @Test

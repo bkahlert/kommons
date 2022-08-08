@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.testEachOld
@@ -21,7 +20,6 @@ class SimilarityKtTest {
     @Nested
     inner class LevenshteinDistance {
 
-        @Suppress("SpellCheckingInspection")
         @TestFactory
         fun `should return 0`() = testEachOld(
             "h1" to "h1",
@@ -95,9 +93,11 @@ fun <T : CharSequence> Assertion.Builder<T>.fuzzyLevenshteinDistance(other: Char
         when {
             thisString.length == otherString.length && thisString == otherString ->
                 0.0
+
             thisString.length > 1000 && otherString.length > 1000 ->
                 (thisString.take(500).levenshteinDistance(otherString.take(500)) +
                     thisString.takeLast(500).levenshteinDistance(otherString.takeLast(500))) / 1000.0
+
             else ->
                 this.levenshteinDistance(other).toDouble() / maxOf(thisString.length, otherString.length).toDouble()
         }

@@ -1,19 +1,18 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Exceptions.ISE
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.CRLF
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.exception.toCompactString
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Excepted
 import com.bkahlert.kommons.exec.Process.State.Exited
 import com.bkahlert.kommons.exec.Process.State.Running
-import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.text.LineSeparators.CRLF
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.text.withSuffix
 import com.bkahlert.kommons.tracing.rendering.ReturnValue
-import com.bkahlert.kommons.withSuffix
 import java.io.BufferedWriter
 import java.io.InputStream
 import java.io.OutputStream

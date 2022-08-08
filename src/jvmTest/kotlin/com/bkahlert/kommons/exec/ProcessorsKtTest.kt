@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.collections.synchronizedListOf
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.test.hasElements

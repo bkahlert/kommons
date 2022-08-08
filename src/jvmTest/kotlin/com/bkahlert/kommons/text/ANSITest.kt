@@ -1,9 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.LineSeparators.CRLF
-import com.bkahlert.kommons.Unicode
-import com.bkahlert.kommons.ansiContained
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
@@ -11,6 +7,7 @@ import com.bkahlert.kommons.text.ANSI.Style
 import com.bkahlert.kommons.text.ANSI.Style.bold
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.ANSI.colorize
+import com.bkahlert.kommons.text.LineSeparators.CRLF
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
@@ -230,8 +227,8 @@ fun <T : CharSequence> Assertion.Builder<T>.containsAnsi(): Assertion.Builder<T>
         }
     }
 
-inline val <reified T : CharSequence> Assertion.Builder<T>.ansiRemoved: DescribeableBuilder<String>
+inline val <reified T : CharSequence> Assertion.Builder<T>.removeAnsi: DescribeableBuilder<String>
     get() = get("escape sequences removed") { this.toString().ansiRemoved }
 
-inline fun <reified T : CharSequence> Builder<T>.ansiRemoved(noinline assertions: Builder<String>.() -> Unit): Builder<T> =
+inline fun <reified T : CharSequence> Builder<T>.removeAnsi(noinline assertions: Builder<String>.() -> Unit): Builder<T> =
     with("escape sequences removed", { toString().ansiRemoved }, assertions)

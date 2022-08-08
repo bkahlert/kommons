@@ -1,15 +1,15 @@
 package com.bkahlert.kommons.kaomoji
 
-import com.bkahlert.kommons.CodePoint
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.lines
-import com.bkahlert.kommons.asCodePointSequence
-import com.bkahlert.kommons.codePointCount
-import com.bkahlert.kommons.takeIfNotBlank
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
+import com.bkahlert.kommons.text.CodePoint
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.lines
+import com.bkahlert.kommons.text.asCodePointSequence
+import com.bkahlert.kommons.text.codePointCount
 import com.bkahlert.kommons.text.columns
 import com.bkahlert.kommons.text.maxLength
 import com.bkahlert.kommons.text.padEnd
+import com.bkahlert.kommons.text.takeIfNotBlank
 import kotlin.random.Random
 
 /**
@@ -88,7 +88,7 @@ public data class Kaomoji(
         return Kaomoji(leftArm, leftEye, mouth, rightEye, fishingArm, "$fishingRod$fish")
     }
 
-    private val blank: String by lazy { " ".repeat(toString().columns) }
+    private val blank: String by lazy { " ".repeat(columns) }
 
     /**
      * Returns a thinking [Kaomoji] of the form:
@@ -115,12 +115,14 @@ public data class Kaomoji(
                     $this
                 """.trimIndent()
             }
+
             1 -> {
                 """
                     $blank  ̣ ˱ ❨ ( $subject )
                     $this
                 """.trimIndent()
             }
+
             2 -> {
                 val max = lines.maxLength()
                 """
@@ -129,6 +131,7 @@ public data class Kaomoji(
                     $this
                 """.trimIndent()
             }
+
             else -> {
                 val max = lines.maxLength()
                 "$blank       ⎛ ${lines.first().padEnd(max)} ⎞$LF" +
@@ -184,6 +187,7 @@ public data class Kaomoji(
                     rightArmRange = IntRange.EMPTY,
                     accessoryRange = IntRange.EMPTY,
                 )
+
                 4 -> Kaomoji(
                     kaomojiString,
                     leftArmRange = IntRange.EMPTY,
@@ -193,6 +197,7 @@ public data class Kaomoji(
                     rightArmRange = ranges[3],
                     accessoryRange = IntRange.EMPTY,
                 )
+
                 5 -> Kaomoji(
                     kaomojiString,
                     leftArmRange = ranges[0],
@@ -202,6 +207,7 @@ public data class Kaomoji(
                     rightArmRange = ranges[4],
                     accessoryRange = IntRange.EMPTY,
                 )
+
                 else -> Kaomoji(
                     kaomojiString,
                     leftArmRange = ranges[0],

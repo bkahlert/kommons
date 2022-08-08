@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.exec.mock
 
-import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.exec.mock.SlowInputStream.Companion.slowInputStream
 import com.bkahlert.kommons.io.ByteArrayOutputStream

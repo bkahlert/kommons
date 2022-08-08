@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.takeUnlessEmpty
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Formatter.Companion.ToCharSequence
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.takeUnlessEmpty
 
 /**
  * A style is a simple generalization attempt

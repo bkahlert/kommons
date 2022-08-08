@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.rendering.RenderingAttributes.Keys.rendering
 import io.kotest.matchers.shouldBe
@@ -20,7 +20,7 @@ class RenderingAttributesTest {
     ).rendering
 
     @Test
-    fun `should read attributes`() = test {
+    fun `should read attributes`() = testAll {
         renderingAttributes.description shouldBe "custom description"
         renderingAttributes.renderer shouldBe "custom renderer"
     }

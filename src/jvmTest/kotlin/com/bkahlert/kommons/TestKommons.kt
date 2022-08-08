@@ -3,6 +3,7 @@ package com.bkahlert.kommons
 import com.bkahlert.kommons.io.path.SelfCleaningDirectory.CleanUpMode.OnStart
 import com.bkahlert.kommons.io.path.selfCleaning
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
+import com.bkahlert.kommons.text.LineSeparators
 import io.ktor.application.call
 import io.ktor.response.respondText
 import io.ktor.routing.get

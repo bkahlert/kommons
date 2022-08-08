@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.test.expecting
 import org.junit.jupiter.api.Test
 import strikt.assertions.isEqualTo

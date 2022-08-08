@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.withNegativeIndices
 
 /**

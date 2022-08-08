@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.exception.toCompactString
-import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters
 import com.bkahlert.kommons.text.Semantics.Symbolizable
 import com.bkahlert.kommons.text.Semantics.Symbols
+import com.bkahlert.kommons.text.takeUnlessBlank
 import com.bkahlert.kommons.tracing.SpanScope
 import io.opentelemetry.api.trace.Span
 

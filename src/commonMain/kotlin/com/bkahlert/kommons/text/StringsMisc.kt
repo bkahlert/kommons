@@ -1,9 +1,7 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.Exceptions
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.takeIfNotBlank
+import com.bkahlert.kommons.text.LineSeparators.LF
 
 public object CharRanges {
     public val Numeric: CharRange = '0'..'9'
@@ -32,7 +30,7 @@ public fun CharSequence.length(ansi: Boolean = true): Int =
  * @return Returns a character sequence of length at least [length] consisting of this character sequence prepended with [padChar] as many times
  * as are necessary to reach that length.
  */
-public fun CharSequence.padStart(length: Int, padChar: Char = ' ', ansi: Boolean = true): CharSequence {
+public fun CharSequence.padStart(length: Int, padChar: kotlin.Char = ' ', ansi: Boolean = true): CharSequence {
     if (length < 0)
         throw IllegalArgumentException("Desired length $length is less than zero.")
     val actualLength = length(ansi)
@@ -53,7 +51,7 @@ public fun CharSequence.padStart(length: Int, padChar: Char = ' ', ansi: Boolean
  * @return Returns a string of length at least [length] consisting of this string prepended with [padChar] as many times
  * as are necessary to reach that length.
  */
-public fun String.padStart(length: Int, padChar: Char = ' ', ansi: Boolean = true): String =
+public fun String.padStart(length: Int, padChar: kotlin.Char = ' ', ansi: Boolean = true): String =
     (this as CharSequence).padStart(length, padChar, ansi).toString()
 
 /**
@@ -66,7 +64,7 @@ public fun String.padStart(length: Int, padChar: Char = ' ', ansi: Boolean = tru
  * @return Returns a character sequence of length at least [length] consisting of this character sequence appended with [padChar] as many times
  * as are necessary to reach that length.
  */
-public fun CharSequence.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean = true): CharSequence {
+public fun CharSequence.padEnd(length: Int, padChar: kotlin.Char = ' ', ansi: Boolean = true): CharSequence {
     if (length < 0)
         throw IllegalArgumentException("Desired length $length is less than zero.")
     val actualLength = length(ansi)
@@ -86,7 +84,7 @@ public fun CharSequence.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean =
  * @return Returns a string of length at least [length] consisting of this string appended with [padChar] as many times
  * as are necessary to reach that length.
  */
-public fun String.padEnd(length: Int, padChar: Char = ' ', ansi: Boolean = true): String =
+public fun String.padEnd(length: Int, padChar: kotlin.Char = ' ', ansi: Boolean = true): String =
     (this as CharSequence).padEnd(length, padChar, ansi).toString()
 
 /**

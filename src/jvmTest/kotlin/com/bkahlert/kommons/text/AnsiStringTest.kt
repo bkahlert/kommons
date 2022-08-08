@@ -1,17 +1,13 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.CRLF
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.mapLines
-import com.bkahlert.kommons.Unicode
-import com.bkahlert.kommons.ansiRemoved
-import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.AnsiString.Companion.tokenize
+import com.bkahlert.kommons.text.LineSeparators.CRLF
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.mapLines
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -489,14 +485,6 @@ class AnsiStringTest {
 
     @Nested
     inner class ChunkedSequence {
-        @Test
-        fun `should chunk non-ANSI string`() {
-            expectThat(ansiString.ansiRemoved.chunkedByColumnsSequence(26).toList()).containsExactly(
-                "Important: This line has n",
-                "o ANSI escapes.\nThis one's ",
-                "bold!${CRLF}Last one is clean.",
-            )
-        }
 
         @Test
         fun `should chunk ANSI string`() {

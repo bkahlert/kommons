@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.startSpaced
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.startSpaced
 
 /**
  * [DockerCommandLine] that pulls the specified [image].

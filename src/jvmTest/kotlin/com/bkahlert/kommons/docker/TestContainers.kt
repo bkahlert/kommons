@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.collections.synchronizedListOf
 import com.bkahlert.kommons.collections.synchronizedMapOf
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Exited
@@ -10,13 +9,14 @@ import com.bkahlert.kommons.docker.TestImages.HelloWorld
 import com.bkahlert.kommons.docker.TestImages.Ubuntu
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.RendererProviders.noDetails
-import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.junit.SimpleIdResolver.Companion.simpleId
 import com.bkahlert.kommons.test.junit.getTestStore
 import com.bkahlert.kommons.test.junit.getTyped
 import com.bkahlert.kommons.test.withAnnotation
+import com.bkahlert.kommons.text.asString
+import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
 import com.bkahlert.kommons.tracing.rendering.ReturnValues
@@ -208,7 +208,7 @@ class TestContainers(
     /**
      * Returns a container that does not exist on this system.
      */
-    internal fun newNotExistentContainer() =
+    internal fun newNotExistentContainer(): DockerContainer =
         runSpanning("Providing non-existent container", style = None, printer = BackgroundPrinter) {
             DockerContainer.from(randomString())
         }

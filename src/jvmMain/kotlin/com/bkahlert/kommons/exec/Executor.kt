@@ -2,7 +2,7 @@ package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
-import com.bkahlert.kommons.text.columns
+import com.bkahlert.kommons.text.graphemeCount
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout
 import com.bkahlert.kommons.tracing.rendering.Printer
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
@@ -107,26 +107,28 @@ public data class Executor<E : Exec>(
                 ExecAttributes.EXECUTABLE to executable,
             ).toTypedArray(),
             renderer = { default ->
-                renderer(copy(
-                    nameFormatter = {
-                        val replacedSpanName = buildString {
-                            executable.name?.also { append("$it: ") }
-                            val contentLines = executable.content.lines()
-                            if ((contentLines.size <= 1) && (contentLines.all { it.columns <= 60 })) {
-                                append(executable.content)
-                            } else {
-                                append(executable.toLink())
+                renderer(
+                    copy(
+                        nameFormatter = {
+                            val replacedSpanName = buildString {
+                                executable.name?.also { append("$it: ") }
+                                val contentLines = executable.content.lines()
+                                if ((contentLines.size <= 1) && (contentLines.all { it.graphemeCount() <= 60 })) { // TODO columns
+                                    append(executable.content)
+                                } else {
+                                    append(executable.toLink())
+                                }
                             }
-                        }
-                        (nameFormatter ?: this.nameFormatter)(replacedSpanName)
-                    },
-                    contentFormatter = contentFormatter ?: this.contentFormatter,
-                    decorationFormatter = decorationFormatter ?: this.decorationFormatter,
-                    returnValueTransform = returnValueTransform ?: this.returnValueTransform,
-                    layout = layout ?: this.layout,
-                    style = style ?: this.style,
-                    printer = printer ?: this.printer,
-                ), default)
+                            (nameFormatter ?: this.nameFormatter)(replacedSpanName)
+                        },
+                        contentFormatter = contentFormatter ?: this.contentFormatter,
+                        decorationFormatter = decorationFormatter ?: this.decorationFormatter,
+                        returnValueTransform = returnValueTransform ?: this.returnValueTransform,
+                        layout = layout ?: this.layout,
+                        style = style ?: this.style,
+                        printer = printer ?: this.printer,
+                    ), default
+                )
             },
         ),
     ).invoke(workingDirectory, execTerminationCallback)

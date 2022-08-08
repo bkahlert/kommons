@@ -1,9 +1,8 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.isSingleLine
-import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.test.testAll
+import com.bkahlert.kommons.text.LineSeparators.isSingleLine
+import com.bkahlert.kommons.text.LineSeparators.lines
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -11,14 +10,14 @@ import strikt.api.Assertion.Builder
 
 class LineSeparatorExtensionsKtTest {
 
-    @Test fun last_line_regex() = testAll(*LineSeparators.Common) { sep ->
+    @Test fun last_line_regex() = LineSeparators.Common.testAll { sep ->
         LAST_LINE_REGEX.matchEntire("") shouldBe null
         LAST_LINE_REGEX.matchEntire("line")?.groupValues.shouldContainExactly("line")
         LAST_LINE_REGEX.matchEntire("line${sep}") shouldBe null
         LAST_LINE_REGEX.matchEntire("line${sep}line") shouldBe null
     }
 
-    @Test fun intermediary_line_pattern() = testAll(*LineSeparators.Common) { sep ->
+    @Test fun intermediary_line_pattern() = LineSeparators.Common.testAll { sep ->
         INTERMEDIARY_LINE_PATTERN.matchEntire("") shouldBe null
         INTERMEDIARY_LINE_PATTERN.matchEntire(sep)?.groupValues?.shouldContainExactly(sep, sep)
         INTERMEDIARY_LINE_PATTERN.matchEntire("line") shouldBe null
@@ -26,7 +25,7 @@ class LineSeparatorExtensionsKtTest {
         INTERMEDIARY_LINE_PATTERN.matchEntire("line${sep}line") shouldBe null
     }
 
-    @Test fun line_pattern() = testAll(*LineSeparators.Common) { sep ->
+    @Test fun line_pattern() = LineSeparators.Common.testAll { sep ->
         LINE_PATTERN.matchEntire("") shouldBe null
         LINE_PATTERN.matchEntire(sep)?.groupValues?.shouldContainExactly(sep, sep)
         LINE_PATTERN.matchEntire("line")?.groupValues?.get(0) shouldBe "line"

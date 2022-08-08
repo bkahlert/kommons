@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.nio
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.endsWithLineSeparator
-import com.bkahlert.kommons.LineSeparators.lines
-import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
-import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.io.ByteArrayOutputStream
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.endsWithLineSeparator
+import com.bkahlert.kommons.text.LineSeparators.lines
+import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
+import com.bkahlert.kommons.text.asString
 import java.io.InputStream
 
 /**

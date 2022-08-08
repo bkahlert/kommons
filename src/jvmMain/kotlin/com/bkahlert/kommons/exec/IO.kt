@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.exec.IO.Companion.ERASE_MARKER
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input

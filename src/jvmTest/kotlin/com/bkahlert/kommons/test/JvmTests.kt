@@ -3,9 +3,6 @@ package com.bkahlert.kommons.test
 import com.bkahlert.kommons.Exceptions.ISE
 import com.bkahlert.kommons.TestKommons
 import com.bkahlert.kommons.debug.renderType
-import com.bkahlert.kommons.decapitalize
-import com.bkahlert.kommons.groupValue
-import com.bkahlert.kommons.takeUnlessBlank
 import com.bkahlert.kommons.test.DynamicTestBuilder.InCompleteExpectationBuilder
 import com.bkahlert.kommons.test.TestFlattener.flatten
 import com.bkahlert.kommons.test.Tester.assertingDisplayName
@@ -16,8 +13,11 @@ import com.bkahlert.kommons.test.junit.PathSource
 import com.bkahlert.kommons.test.junit.PathSource.Companion.sourceUri
 import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.text.decapitalize
+import com.bkahlert.kommons.text.groupValue
+import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.text.withRandomSuffix
 import com.bkahlert.kommons.toIdentifier
-import com.bkahlert.kommons.withRandomSuffix
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode

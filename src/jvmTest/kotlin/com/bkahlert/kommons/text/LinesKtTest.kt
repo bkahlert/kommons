@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import org.junit.jupiter.api.Nested

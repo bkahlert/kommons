@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.tracing.TestSpanScope

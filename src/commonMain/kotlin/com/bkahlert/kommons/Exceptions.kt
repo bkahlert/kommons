@@ -1,5 +1,7 @@
 package com.bkahlert.kommons
 
+import com.bkahlert.kommons.text.LineSeparators
+
 private fun <T : Throwable> Array<out String>.letMessage(init: (String) -> T): T? =
     if (isNotEmpty()) init(joinToString(LineSeparators.Default)) else null
 

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.tracing.rendering
 
 import com.bkahlert.kommons.exec.IOAttributes
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.tracing.Key
 import io.kotest.assertions.withClue
 import io.kotest.matchers.maps.shouldContainKey
@@ -23,13 +23,13 @@ class RenderableAttributesTest {
         Key.stringKey("irrelevant-key") to "irrelevant value",
     )
 
-    @Test fun `should check for attributes`() = test {
+    @Test fun `should check for attributes`() = testAll {
         withClue("resolving match") { renderableAttributes.shouldContainKey(RenderingAttributes.DESCRIPTION.renderingKey) }
         withClue("resolving rendering only") { renderableAttributes.shouldContainKey(RenderingAttributes.DESCRIPTION) }
         withClue("not resolving not-existent rendering only") { renderableAttributes.shouldNotContainKey(IOAttributes.TEXT.renderingKey) }
     }
 
-    @Test fun `should get attributes`() = test {
+    @Test fun `should get attributes`() = testAll {
         withClue("resolving match") {
             renderableAttributes.get(RenderingAttributes.DESCRIPTION.renderingKey).shouldNotBeNull()
                 .render(null, null) shouldBe "rendering only description"

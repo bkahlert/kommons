@@ -1,11 +1,10 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.AnsiSupport.NONE
-import com.bkahlert.kommons.Platform
 import com.bkahlert.kommons.printTestExecutionStatus
-import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.junit.displayName
 import com.bkahlert.kommons.text.ANSI
+import com.bkahlert.kommons.text.quoted
+import com.github.ajalt.mordant.rendering.AnsiLevel
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ExecutionCondition
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,8 +35,9 @@ class AnsiCondition : ExecutionCondition {
     companion object {
 
         private val ansiSupported: Boolean by lazy {
-            val support = Platform.Current.ansiSupport
-            (support != NONE).also {
+
+            val support = ANSI.terminal.info.ansiLevel
+            (support != AnsiLevel.NONE).also {
                 printTestExecutionStatus("ANSI support: $support")
             }
         }

@@ -1,10 +1,7 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.Program
-import com.bkahlert.kommons.TextLength.Companion.graphemes
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.collections.synchronizedSetOf
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.exception.toCompactString
@@ -17,9 +14,12 @@ import com.bkahlert.kommons.exec.Process.State.Excepted
 import com.bkahlert.kommons.exec.Process.State.Running
 import com.bkahlert.kommons.io.TeeInputStream
 import com.bkahlert.kommons.io.TeeOutputStream
+import com.bkahlert.kommons.text.Grapheme.Companion.graphemes
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.Symbols.Computation
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.truncate
+import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.truncate
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Path

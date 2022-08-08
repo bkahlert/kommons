@@ -1,9 +1,7 @@
 package com.bkahlert.kommons.tracing
 
 import com.bkahlert.kommons.Instant
-import com.bkahlert.kommons.LineSeparators
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.orNull
@@ -16,7 +14,9 @@ import com.bkahlert.kommons.text.ANSI.Colors
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.padStartFixedLength
 import com.bkahlert.kommons.tracing.TestPrinter.TestIO
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter
@@ -222,6 +222,7 @@ class TestPrinter : Printer {
                 println(text)
                 println(headerLine)
             }
+
             is TestIO.Pass, is TestIO.Fail -> {
                 println(footerLine)
                 print(resultPrefix)
@@ -229,6 +230,7 @@ class TestPrinter : Printer {
                 print("   ")
                 println(text)
             }
+
             else -> {
                 val thread = Thread.currentThread().name.padStartFixedLength(31)
                 val time = timePassed.format()

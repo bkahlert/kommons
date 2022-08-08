@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.shell
 
-import com.bkahlert.kommons.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.io.path.appendText
 import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.test.junit.testEach

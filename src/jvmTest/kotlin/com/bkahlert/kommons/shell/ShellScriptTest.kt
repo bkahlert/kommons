@@ -1,10 +1,6 @@
 package com.bkahlert.kommons.shell
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.lines
 import com.bkahlert.kommons.SystemLocations
-import com.bkahlert.kommons.Unicode
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.docker.DockerContainer
 import com.bkahlert.kommons.docker.DockerImage
@@ -34,6 +30,10 @@ import com.bkahlert.kommons.test.testsOld
 import com.bkahlert.kommons.test.toStringIsEqualTo
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.Banner
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.lines
+import com.bkahlert.kommons.text.Unicode
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.time.sleep
 import io.kotest.matchers.paths.shouldExist

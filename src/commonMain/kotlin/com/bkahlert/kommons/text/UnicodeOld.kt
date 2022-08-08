@@ -1,10 +1,5 @@
 package com.bkahlert.kommons.text
 
-import com.bkahlert.kommons.CodePoint
-import com.bkahlert.kommons.CodePointRange
-import com.bkahlert.kommons.Unicode
-import com.bkahlert.kommons.toCodePointList
-
 /**
  * Named Unicode code points, like [UnicodeOld.LINE_FEED], [UnicodeOld.SYMBOL_FOR_START_OF_HEADING], [UnicodeOld.Emojis.BALLOT_BOX], etc.
  */
@@ -12,7 +7,7 @@ import com.bkahlert.kommons.toCodePointList
 public object UnicodeOld {
 
     /** Mapping of control characters to their respective symbols. */
-    public val controlCharacters: Map<Char, Char> = mapOf(
+    public val controlCharacters: Map<kotlin.Char, kotlin.Char> = mapOf(
         Unicode.NULL to Unicode.SYMBOL_FOR_NULL,
         Unicode.START_OF_HEADING to Unicode.SYMBOL_FOR_START_OF_HEADING,
         Unicode.START_OF_TEXT to Unicode.SYMBOL_FOR_START_OF_TEXT,
@@ -53,29 +48,29 @@ public object UnicodeOld {
      *
      * This only applies to the so called [controlCharacters].
      */
-    public val Char.replacementSymbol: Char? get() = controlCharacters[this]
+    public val kotlin.Char.replacementSymbol: kotlin.Char? get() = controlCharacters[this]
 
     /**
      * Contains this code point's replacement symbol if any.
      *
      * This only applies to the so called [controlCharacters].
      */
-    public val CodePoint.replacementSymbol: Char? get() = char?.replacementSymbol
+    public val CodePoint.replacementSymbol: kotlin.Char? get() = char?.replacementSymbol
 
     /** [ZERO WIDTH NO-BREAK SPACE](https://codepoints.net/U+FEFF) */
-    public const val ZERO_WIDTH_NO_BREAK_SPACE: Char = '\uFEFF'
+    public const val ZERO_WIDTH_NO_BREAK_SPACE: kotlin.Char = '\uFEFF'
 
     /** [REPLACEMENT CHARACTER](https://codepoints.net/U+FFFD) `�` */
-    public const val REPLACEMENT_CHARACTER: Char = '\uFFFD'
+    public const val REPLACEMENT_CHARACTER: kotlin.Char = '\uFFFD'
 
     /** [GREEK LETTER KOPPA](https://codepoints.net/U+03DE) `Ϟ` */
-    @Suppress("SpellCheckingInspection") public const val GREEK_LETTER_KOPPA: Char = 'Ϟ'
+    @Suppress("SpellCheckingInspection") public const val GREEK_LETTER_KOPPA: kotlin.Char = 'Ϟ'
 
     /** [GREEK SMALL LETTER KOPPA](https://codepoints.net/U+03DF) `ϟ` */
-    @Suppress("SpellCheckingInspection") public const val GREEK_SMALL_LETTER_KOPPA: Char = 'ϟ'
+    @Suppress("SpellCheckingInspection") public const val GREEK_SMALL_LETTER_KOPPA: kotlin.Char = 'ϟ'
 
     /** [TRIPLE VERTICAL BAR DELIMITER](https://codepoints.net/U+2980) `⦀` */
-    public const val TRIPLE_VERTICAL_BAR_DELIMITER: Char = '⦀'
+    public const val TRIPLE_VERTICAL_BAR_DELIMITER: kotlin.Char = '⦀'
 
     /**
      * Unicode emojis as specified by the [Unicode® Technical Standard #51](https://unicode.org/reports/tr51/)
@@ -87,7 +82,7 @@ public object UnicodeOld {
          */
         public class Emoji(private val emoji: String) :
             CharSequence by emoji.removeSuffix(VARIATION_SELECTOR_15.toString()).removeSuffix(VARIATION_SELECTOR_16.toString()) {
-            public constructor(emoji: Char) : this(emoji.toString())
+            public constructor(emoji: kotlin.Char) : this(emoji.toString())
 
             /**
              * The monochrome variant of this emoji.
@@ -170,7 +165,7 @@ public object UnicodeOld {
          * If that is a symbol, dingbat or emoji, U+FE0E forces it to be rendered
          * in a textual fashion as compared to a colorful image.</cite>
          */
-        public const val VARIATION_SELECTOR_15: Char = '︎'
+        public const val VARIATION_SELECTOR_15: kotlin.Char = '︎'
 
         /**
          * [VARIATION SELECTOR-16](https://codepoints.net/U+FE0F)
@@ -179,7 +174,7 @@ public object UnicodeOld {
          * If that is a symbol, dingbat or emoji, U+FE0F forces it to be rendered
          * as a colorful image as compared to a monochrome text variant."</cite>
          */
-        public const val VARIATION_SELECTOR_16: Char = '️'
+        public const val VARIATION_SELECTOR_16: kotlin.Char = '️'
     }
 }
 

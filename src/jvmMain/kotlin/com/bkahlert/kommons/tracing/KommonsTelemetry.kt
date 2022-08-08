@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.tracing
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.withSuffix
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.KommonsTelemetry.NOOP
 import com.bkahlert.kommons.tracing.KommonsTelemetry.register
-import com.bkahlert.kommons.withSuffix
 import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
@@ -221,12 +221,15 @@ public fun Iterable<KeyValue<*, *>>.toAttributes(): Attributes =
                     STRING_ARRAY -> (it.value as? List<*>)?.let { value ->
                         put(AttributeKey.stringArrayKey(it.key.key), value.filterIsInstance<String>().map { element -> element.ansiRemoved })
                     }
+
                     BOOLEAN_ARRAY -> (it.value as? List<*>)?.let { value ->
                         put(AttributeKey.booleanArrayKey(it.key.key), value.filterIsInstance<Boolean>())
                     }
+
                     LONG_ARRAY -> (it.value as? List<*>)?.let { value ->
                         put(AttributeKey.longArrayKey(it.key.key), value.filterIsInstance<Long>())
                     }
+
                     DOUBLE_ARRAY -> (it.value as? List<*>)?.let { value ->
                         put(AttributeKey.doubleArrayKey(it.key.key), value.filterIsInstance<Double>())
                     }

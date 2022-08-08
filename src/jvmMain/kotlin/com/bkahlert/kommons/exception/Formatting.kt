@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.exception
 
-import com.bkahlert.kommons.LineSeparators.lines
+import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.debug.Compression.Always
 import com.bkahlert.kommons.debug.render
 import com.bkahlert.kommons.exec.Process

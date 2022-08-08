@@ -1,11 +1,10 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.CodePoint
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.render
-import com.bkahlert.kommons.quoted
-import com.bkahlert.kommons.string
+import com.bkahlert.kommons.text.CodePoint
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.quoted
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.assertions.hasSize
@@ -40,10 +39,10 @@ fun <T> Builder<T>.toStringContainsAll(vararg expected: String): Builder<T> =
 
 
 @Deprecated("use toStringIsEqualTo")
-fun Builder<*>.asString(trim: Boolean = true): DescribeableBuilder<String> {
+fun Builder<*>.asStringDeprecated(trim: Boolean = true): DescribeableBuilder<String> {
     return this.get("asString") {
         val string = when (this) {
-            is CodePoint -> this.string
+            is CodePoint -> this.toString()
             else -> this.toString()
         }
         string.takeUnless { trim } ?: string.trim()

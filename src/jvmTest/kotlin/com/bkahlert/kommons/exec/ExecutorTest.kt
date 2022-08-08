@@ -1,21 +1,21 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.mapLines
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.exec.ExecTerminationTestCallback.Companion.expectThatProcessAppliesTerminationCallback
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
-import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.OldDynamicTestsWithSubjectBuilder
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.test.testsOld
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.mapLines
+import com.bkahlert.kommons.text.randomString
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.TraceId
 import com.bkahlert.kommons.tracing.rendering.Styles.None

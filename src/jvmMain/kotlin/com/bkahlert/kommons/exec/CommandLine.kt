@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.LineSeparators.lines
-import com.bkahlert.kommons.LineSeparators.removeTrailingLineSeparator
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.lines
+import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.ExitState.ExitStateHandler
 import org.codehaus.plexus.util.cli.shell.FormattingShell

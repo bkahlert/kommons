@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec.mock
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded

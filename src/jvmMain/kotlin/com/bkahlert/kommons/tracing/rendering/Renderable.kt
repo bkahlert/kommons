@@ -1,11 +1,14 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.isMultiline
-import com.bkahlert.kommons.UriRegex
+import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
-import com.bkahlert.kommons.text.truncateByColumns
-import com.bkahlert.kommons.text.wrapLines
+import com.bkahlert.kommons.text.Grapheme.Companion.graphemes
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.isMultiline
+import com.bkahlert.kommons.text.UriRegex
+import com.bkahlert.kommons.text.truncateEnd
+import com.github.ajalt.mordant.table.ColumnWidth
+import com.github.ajalt.mordant.table.column
 
 /**
  * Implementors of this interface gain control on
@@ -42,23 +45,28 @@ public interface Renderable : CharSequence {
             when (value) {
                 is Renderable -> value
                 is Any -> of(value.toAnsiString()) { columns, rows ->
+                    val ansiString = this
                     if (isMultiline()) {
                         lineSequence()
                             .let { if (rows != null) it.take(rows) else it }
                             .let {
                                 if (columns != null) it.map { line ->
                                     if (Regex.UriRegex.containsMatchIn(line)) line
-                                    else line.truncateByColumns(columns)
+                                    else line.truncateEnd(columns.graphemes)
                                 } else it
                             }
                             .joinToString(LineSeparators.Default) { it.toString() }
                     } else {
                         if (Regex.UriRegex.containsMatchIn(this)) this.toString()
-                        else if (columns != null && rows != null) truncateByColumns(columns).toString()
-                        else if (columns != null && rows == null) wrapLines(columns).toString()
+                        else if (columns != null && rows != null) toString().truncateEnd(columns.graphemes)
+                        else if (columns != null && rows == null) ANSI.terminal.render(column {
+                            width = ColumnWidth.Fixed(columns)
+                            cell(ansiString)
+                        })
                         else this.toString()
                     }
                 }
+
                 else -> NULL
             }
 

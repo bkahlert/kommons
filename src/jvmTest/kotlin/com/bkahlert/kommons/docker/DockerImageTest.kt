@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.junit.testEach
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.Semantics.Symbols
+import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.tracing.TestSpanScope
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -72,7 +72,7 @@ class DockerImageTest {
     }
 
     @Test
-    fun `should throw on illegal specifier`() = test {
+    fun `should throw on illegal specifier`() = testAll {
         shouldThrow<IllegalArgumentException> { DockerImage { "repo" / "path" tag "" } }
         shouldThrow<IllegalArgumentException> { DockerImage { "repo" / "path" digest "" } }
         shouldThrow<IllegalArgumentException> { DockerImage { "repo/path:" } }
@@ -80,7 +80,7 @@ class DockerImageTest {
     }
 
     @Test
-    fun equals() = test {
+    fun equals() = testAll {
         DockerImage { "repo/path" } should {
             it shouldBe DockerImage.parse("repo/path")
             it shouldBe DockerImage("repo", listOf("path"), null, null)

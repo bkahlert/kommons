@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.nio
 
-import com.bkahlert.kommons.asString
 import com.bkahlert.kommons.debug.asEmoji
+import com.bkahlert.kommons.text.asString
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -41,10 +41,12 @@ public open class NonBlockingPipe(
                         readChannelRead()
                         return
                     }
+
                     0 -> {
                         readChannelRead()
                         return
                     }
+
                     else -> {
                         readBuffer.flip()
                         writeChannel.write(readBuffer)

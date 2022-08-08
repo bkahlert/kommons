@@ -1,10 +1,9 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.asCodePointSequence
-import com.bkahlert.kommons.string
+import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.UnicodeOld
 import com.bkahlert.kommons.text.UnicodeOld.replacementSymbol
+import com.bkahlert.kommons.text.asCodePointSequence
 import com.bkahlert.kommons.toHexadecimalString
 
 /**
@@ -13,9 +12,9 @@ import com.bkahlert.kommons.toHexadecimalString
  */
 public fun String.replaceNonPrintableCharacters(): String =
     asCodePointSequence().map { codePoint ->
-        val codePointIndex = codePoint.index
+        val codePointIndex = codePoint.value
         val codePointChar: Char? = codePoint.char
-        val codePointString = codePoint.string
+        val codePointString = codePoint.toString()
 
         val prefix = if (codePointString in LineSeparators.Unicode) "⏎" else ""
         val suffix = if (codePointChar in UnicodeOld.controlCharacters.values) "ꜝ" else ""
@@ -28,6 +27,7 @@ public fun String.replaceNonPrintableCharacters(): String =
                 LineSeparators.LS -> "ₛᷞ"
                 else -> "⏎"
             }
+
             codePointChar in Char.MIN_HIGH_SURROGATE..Char.MAX_HIGH_SURROGATE -> codePointIndex.toHexadecimalString() + "▌﹍"
             codePointChar in Char.MIN_LOW_SURROGATE..Char.MAX_LOW_SURROGATE -> "﹍▐" + codePointIndex.toHexadecimalString()
             else -> codePointString

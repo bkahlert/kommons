@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.exception
 
-import com.bkahlert.kommons.LineSeparators
-import com.bkahlert.kommons.LineSeparators.LF
-import com.bkahlert.kommons.UrlRegex
 import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.findAllValues
 import com.bkahlert.kommons.io.path.writeText
-import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.UrlRegex
+import com.bkahlert.kommons.text.findAllValues
+import com.bkahlert.kommons.text.randomString
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAny

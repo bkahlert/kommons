@@ -1,13 +1,13 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.test.test
+import com.bkahlert.kommons.test.testAll
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class TeePrinterTest {
 
-    @Test fun `should delegate calls to printers`() = test {
+    @Test fun `should delegate calls to printers`() = testAll {
         val printers = listOf(InMemoryPrinter(), InMemoryPrinter())
         TeePrinter(*printers.toTypedArray()).apply {
             invoke("foo")

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import com.bkahlert.kommons.LineSeparators.isMultiline
+import com.bkahlert.kommons.text.LineSeparators.isMultiline
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId
 

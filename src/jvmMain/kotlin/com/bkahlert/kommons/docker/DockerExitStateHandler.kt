@@ -1,13 +1,10 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.CaseStyle
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.capitalize
 import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.UnknownError
-import com.bkahlert.kommons.endSpaced
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.exec.IOSequence
@@ -19,14 +16,17 @@ import com.bkahlert.kommons.exec.error
 import com.bkahlert.kommons.exec.output
 import com.bkahlert.kommons.exec.outputAndError
 import com.bkahlert.kommons.head
-import com.bkahlert.kommons.simpleTitleCasedName
-import com.bkahlert.kommons.spaced
 import com.bkahlert.kommons.tail
-import com.bkahlert.kommons.takeUnlessBlank
+import com.bkahlert.kommons.text.CaseStyle
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols
 import com.bkahlert.kommons.text.Semantics.formattedAs
+import com.bkahlert.kommons.text.capitalize
 import com.bkahlert.kommons.text.containsAll
+import com.bkahlert.kommons.text.endSpaced
+import com.bkahlert.kommons.text.simpleTitleCasedName
+import com.bkahlert.kommons.text.spaced
+import com.bkahlert.kommons.text.takeUnlessBlank
 import java.time.Instant
 import kotlin.reflect.KClass
 import kotlin.text.RegexOption.IGNORE_CASE
@@ -257,6 +257,7 @@ public object DockerExitStateHandler : ExitStateHandler {
                             io,
                             CannotKillContainer.parseWrapped(start, end, pid, exitCode, io, status)
                         )
+
                         else -> null
                     }
                 }
@@ -275,6 +276,7 @@ public object DockerExitStateHandler : ExitStateHandler {
                             "You cannot remove a running container. Stop the container before attempting removal or force remove."
                         )
                     }
+
                     else -> null
                 }
             }

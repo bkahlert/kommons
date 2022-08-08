@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.LineSeparators.LF
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.delete
@@ -15,7 +14,6 @@ import com.bkahlert.kommons.exec.Process.State.Exited
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
-import com.bkahlert.kommons.matchesCurly
 import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.runtime.wait
 import com.bkahlert.kommons.shell.ShellScript
@@ -27,8 +25,10 @@ import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.lines
+import com.bkahlert.kommons.text.matchesCurly
+import com.bkahlert.kommons.text.removeAnsi
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
@@ -379,13 +379,13 @@ class JavaExecTest {
             @Test
             fun `should fail on non-0 exit code by default`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
-                expectThat(exec.waitFor()).isA<Failed>().io.any { ansiRemoved.contains("terminated with exit code 42") }
+                expectThat(exec.waitFor()).isA<Failed>().io.any { removeAnsi.contains("terminated with exit code 42") }
             }
 
             @Test
             fun `should meta log on exit`(simpleId: SimpleId) = withTempDir(simpleId) {
                 val exec = createCompletingExec(42)
-                expectThat(exec.waitFor()).isA<Failed>().io.any { ansiRemoved.contains("terminated with exit code 42") }
+                expectThat(exec.waitFor()).isA<Failed>().io.any { removeAnsi.contains("terminated with exit code 42") }
             }
 
             @Test
@@ -468,7 +468,7 @@ class JavaExecTest {
                         end.timePassed.isLessThan(2.seconds)
                         runtime.isLessThan(2.seconds)
                         get { exception }.isNotNull().message.isEqualTo("handler error")
-                        status.ansiRemoved.isEqualTo("Unexpected error terminating process ${exec.pid} with exit code 42:$LF\thandler error")
+                        status.removeAnsi.isEqualTo("Unexpected error terminating process ${exec.pid} with exit code 42:$LF\thandler error")
                         io.any { contains("handler error") }
                     }
                 }
