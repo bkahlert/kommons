@@ -36,6 +36,11 @@ allprojects {
             }
         }
     }
+
+    // TODO snapshot publishToMavenLocal -x signKotlinMultiplatformPublication -x signJsPublication -x signJvmPublication -x check
+
+    // TODO -Prelease.useLastTag=true candidate publish -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository
+
 }
 
 subprojects {

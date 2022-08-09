@@ -49,8 +49,9 @@ public actual object Program {
         get() = runCatching { jvmJavaAgents.any { it.containsAny(intellijTraits, ignoreCase = true) } }.getOrElse { false }
 
     /** Whether this program is running in debug mode. */
+    @Suppress("SpellCheckingInspection")
     public actual val isDebugging: Boolean
-        get() = jvmArgs.any { it.startsWith("-agentlib:jdwp") } || jvmJavaAgents.any { it.contains("debugger") }
+        get() = jvmArgs.any { it.startsWith("-agentlib:jdwp") || it.startsWith("-Xrunjdwp") } || jvmJavaAgents.any { it.contains("debugger") }
 
     /** Registers the specified [handler] as a new virtual-machine shutdown hook. */
     public actual fun onExit(handler: () -> Unit): Unit = addShutDownHook(handler.toHook())

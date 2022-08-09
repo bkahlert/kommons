@@ -288,8 +288,8 @@ This library comes with a `junit-platform.properties` and the following settings
 # concise test names with no parameter list
 junit.jupiter.displayname.generator.default=\
   com.bkahlert.kommons.test.junit.MethodNameOnlyDisplayNameGenerator
-# default 10s timeout for each test
-junit.jupiter.execution.timeout.default=10s
+# default 10-seconds timeout for each test
+junit.jupiter.execution.timeout.default=10 s
 # disable timeout when debugging
 junit.jupiter.execution.timeout.mode=disabled_on_debug
 # run top-level test containers in parallel
@@ -299,9 +299,9 @@ junit.jupiter.execution.parallel.config.strategy=dynamic
 junit.jupiter.execution.parallel.config.dynamic.factor=5
 # run tests inside a test tree sequentially
 junit.jupiter.execution.parallel.mode.default=same_thread
-# auto-detect extensions located in META-INF/services
+# autodetect extensions located in META-INF/services
 junit.jupiter.extensions.autodetection.enabled=true
-# instantiate test classes only once for all tests
+# instantiate test classes once for all tests
 # same as annotating all test classes with @TestInstance(PER_CLASS)
 junit.jupiter.testinstance.lifecycle.default=per_class
 # enable constructor dependency injection for Spring tests
