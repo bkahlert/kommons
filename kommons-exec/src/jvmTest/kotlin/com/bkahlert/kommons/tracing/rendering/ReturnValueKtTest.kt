@@ -8,7 +8,7 @@ import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.junit.testEach
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.Semantics.Symbols
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.tracing.TestSpanScope
 import com.bkahlert.kommons.tracing.runSpanning
 import io.kotest.matchers.shouldBe

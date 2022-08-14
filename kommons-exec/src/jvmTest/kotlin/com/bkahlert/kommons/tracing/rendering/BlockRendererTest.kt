@@ -10,7 +10,7 @@ import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.NOOP
 import com.bkahlert.kommons.tracing.SpanId

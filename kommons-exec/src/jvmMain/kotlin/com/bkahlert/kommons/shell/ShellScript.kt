@@ -1,21 +1,21 @@
 package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.createParentDirectories
-import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.io.createParentDirectories
+import com.bkahlert.kommons.io.createTempFile
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.ExecTerminationCallback
 import com.bkahlert.kommons.exec.Executable
 import com.bkahlert.kommons.io.path.writeText
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext.Line
 import com.bkahlert.kommons.text.Banner.banner
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.LineSeparators.mapLines
-import com.bkahlert.kommons.text.quoted
-import com.bkahlert.kommons.toIdentifier
+import com.bkahlert.kommons.text.toIdentifier
 import org.codehaus.plexus.util.cli.Commandline
 import org.intellij.lang.annotations.Language
 import java.net.URI

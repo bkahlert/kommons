@@ -7,7 +7,7 @@ import com.bkahlert.kommons.test.junit.testing
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators.isSingleLine
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.removeAnsi
 import com.bkahlert.kommons.tracing.Key
 import com.bkahlert.kommons.tracing.TestSpanScope

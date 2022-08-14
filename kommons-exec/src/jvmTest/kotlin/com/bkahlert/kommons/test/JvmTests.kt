@@ -16,8 +16,8 @@ import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.decapitalize
 import com.bkahlert.kommons.text.groupValue
 import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.text.toIdentifier
 import com.bkahlert.kommons.text.withRandomSuffix
-import com.bkahlert.kommons.toIdentifier
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode

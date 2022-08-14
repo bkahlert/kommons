@@ -2,8 +2,9 @@ package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.Program
+import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.asEmoji
 import com.bkahlert.kommons.collections.synchronizedSetOf
-import com.bkahlert.kommons.debug.asEmoji
 import com.bkahlert.kommons.exception.toCompactString
 import com.bkahlert.kommons.exec.Exec.Companion.createDump
 import com.bkahlert.kommons.exec.Exec.Companion.fallbackExitStateHandler
@@ -18,7 +19,6 @@ import com.bkahlert.kommons.text.Grapheme.Companion.graphemes
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.Symbols.Computation
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.ansiRemoved
 import com.bkahlert.kommons.text.truncate
 import java.io.InputStream
 import java.io.OutputStream

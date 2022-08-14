@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec.mock
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.debug.asEmoji
+import com.bkahlert.kommons.asEmoji
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.JavaExec

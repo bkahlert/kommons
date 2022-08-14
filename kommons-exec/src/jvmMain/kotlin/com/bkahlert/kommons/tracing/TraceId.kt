@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing
 
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import io.opentelemetry.api.trace.Span
 
 /**

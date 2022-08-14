@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.debug.asEmoji
+import com.bkahlert.kommons.asEmoji
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.BadRequest
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.ConnectivityProblem
 import com.bkahlert.kommons.docker.DockerExitStateHandler.Failed.UnknownError

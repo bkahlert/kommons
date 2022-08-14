@@ -2,7 +2,7 @@ package com.bkahlert.kommons.tracing
 
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout
 import com.bkahlert.kommons.tracing.rendering.CompactRenderer

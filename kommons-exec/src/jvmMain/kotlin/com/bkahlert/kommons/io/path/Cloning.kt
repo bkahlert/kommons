@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.delete
+import com.bkahlert.kommons.io.createTempFile
+import com.bkahlert.kommons.io.delete
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.io.fileAlreadyExists
 import java.nio.file.Path

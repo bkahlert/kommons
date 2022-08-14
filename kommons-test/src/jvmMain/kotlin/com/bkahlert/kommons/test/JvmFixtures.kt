@@ -1,15 +1,15 @@
 package com.bkahlert.kommons.test
 
 import com.bkahlert.kommons.Program
-import com.bkahlert.kommons.createTempDirectory
+import com.bkahlert.kommons.io.createTempDirectory
 import com.bkahlert.kommons.test.fixtures.GifImageFixture
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.fixtures.ResourceFixture
 import com.bkahlert.kommons.test.fixtures.SvgImageFixture
 import com.bkahlert.kommons.test.fixtures.TextResourceFixture
 import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
-import com.bkahlert.kommons.useBufferedOutputStream
-import com.bkahlert.kommons.useBufferedWriter
+import com.bkahlert.kommons.io.useBufferedOutputStream
+import com.bkahlert.kommons.io.useBufferedWriter
 import java.io.InputStream
 import java.io.StringReader
 import java.net.URL

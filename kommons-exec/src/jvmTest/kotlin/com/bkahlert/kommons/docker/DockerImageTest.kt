@@ -3,7 +3,7 @@ package com.bkahlert.kommons.docker
 import com.bkahlert.kommons.test.junit.testEach
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.Semantics.Symbols
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.tracing.TestSpanScope
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty

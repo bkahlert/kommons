@@ -37,7 +37,10 @@ kotlin {
                 api(kotlin("test"))
                 api("io.kotest:kotest-assertions-core:5.4.1")
                 implementation("io.kotest:kotest-common:5.4.1")
+                implementation(project(":kommons-core"))
                 implementation(project(":kommons-debug"))
+                implementation(project(":kommons-io"))
+                implementation(project(":kommons-text"))
             }
         }
         val commonTest by getting

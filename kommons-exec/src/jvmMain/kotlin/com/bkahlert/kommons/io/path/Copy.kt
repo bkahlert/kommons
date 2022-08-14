@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.deleteRecursively
+import com.bkahlert.kommons.io.createTempFile
+import com.bkahlert.kommons.io.deleteRecursively
 import com.bkahlert.kommons.io.EOF
 import com.bkahlert.kommons.io.directoryNotEmpty
 import com.bkahlert.kommons.io.fileAlreadyExists
 import com.bkahlert.kommons.io.fileSystemException
 import com.bkahlert.kommons.io.noSuchFile
-import com.bkahlert.kommons.resolveBetweenFileSystems
+import com.bkahlert.kommons.io.resolveBetweenFileSystems
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.InputStream

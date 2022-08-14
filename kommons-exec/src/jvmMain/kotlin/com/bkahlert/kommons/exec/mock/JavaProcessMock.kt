@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.exec.mock
 
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.exec.mock.SlowInputStream.Companion.slowInputStream
 import com.bkahlert.kommons.io.ByteArrayOutputStream
 import com.bkahlert.kommons.io.TeeOutputStream
 import com.bkahlert.kommons.minus
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.time.busyWait
 import java.io.InputStream
 import java.io.InputStream.nullInputStream

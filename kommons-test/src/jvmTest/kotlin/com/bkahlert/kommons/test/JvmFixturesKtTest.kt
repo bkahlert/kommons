@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.deleteOnExit
-import com.bkahlert.kommons.listDirectoryEntriesRecursively
+import com.bkahlert.kommons.io.deleteOnExit
+import com.bkahlert.kommons.io.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.test.fixtures.EmojiTextDocumentFixture
 import com.bkahlert.kommons.test.fixtures.GifImageFixture
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture

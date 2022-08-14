@@ -25,7 +25,7 @@ import com.bkahlert.kommons.test.testOld
 import com.bkahlert.kommons.text.Semantics
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.endSpaced
 import com.bkahlert.kommons.text.removeAnsi
 import com.bkahlert.kommons.text.spaced

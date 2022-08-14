@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.isSubPathOf
+import com.bkahlert.kommons.io.isSubPathOf
 import strikt.api.Assertion.Builder
 import java.nio.file.Path
 

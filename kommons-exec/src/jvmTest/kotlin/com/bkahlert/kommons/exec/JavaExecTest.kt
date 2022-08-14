@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.delete
+import com.bkahlert.kommons.io.createTempFile
+import com.bkahlert.kommons.io.delete
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Meta
@@ -26,7 +26,7 @@ import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesGlob
 import com.bkahlert.kommons.text.removeAnsi

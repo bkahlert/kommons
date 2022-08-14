@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.SystemLocations
-import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.io.createTempFile
 import com.bkahlert.kommons.docker.DockerContainer
 import com.bkahlert.kommons.docker.DockerImage
 import com.bkahlert.kommons.docker.DockerRunCommandLine
@@ -16,7 +16,7 @@ import com.bkahlert.kommons.exec.io
 import com.bkahlert.kommons.http
 import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.io.path.writeBytes
-import com.bkahlert.kommons.isSubPathOf
+import com.bkahlert.kommons.io.isSubPathOf
 import com.bkahlert.kommons.shell.ShellScript.Companion.isScript
 import com.bkahlert.kommons.shell.ShellScript.ScriptContext
 import com.bkahlert.kommons.test.Slow

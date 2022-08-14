@@ -7,12 +7,12 @@ import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Exec.Companion.fallbackExitStateHandler
 import com.bkahlert.kommons.exec.ExecTerminationCallback
 import com.bkahlert.kommons.exec.Executable
-import com.bkahlert.kommons.resolveBetweenFileSystems
+import com.bkahlert.kommons.io.resolveBetweenFileSystems
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.text.splitMap
 import com.bkahlert.kommons.text.takeUnlessBlank
+import com.bkahlert.kommons.text.toIdentifier
 import com.bkahlert.kommons.text.withRandomSuffix
-import com.bkahlert.kommons.toIdentifier
 import org.codehaus.plexus.util.cli.shell.BourneShell
 import java.nio.file.Path
 import java.nio.file.Paths

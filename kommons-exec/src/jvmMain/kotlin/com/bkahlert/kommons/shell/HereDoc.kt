@@ -2,10 +2,10 @@ package com.bkahlert.kommons.shell
 
 import com.bkahlert.kommons.builder.Builder
 import com.bkahlert.kommons.builder.Init
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.shell.HereDoc.Companion.HereDocContext
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.groupValue
-import com.bkahlert.kommons.text.randomString
 
 /**
  * Creates a [here document](https://en.wikipedia.org/wiki/Here_document) consisting of the given [commands] and a customizable [delimiter].

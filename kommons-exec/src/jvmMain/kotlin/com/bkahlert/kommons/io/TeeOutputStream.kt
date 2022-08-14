@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.io
 
+import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.headOrNull
 import com.bkahlert.kommons.tail
-import com.bkahlert.kommons.text.asString
 import java.io.OutputStream
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock

@@ -75,7 +75,7 @@ subprojects {
                     // needed as subprojects aren't yet evaluated, see https://docs.gradle.org/current/userguide/publishing_maven.html
                     // otherwise description of Kotlin Multiplatform publication stays empty, and repo gets refused by Maven Central
                     afterEvaluate { pom.description.set(description) }
-                    url.set("https://github.com/bkahlert/kommons/${project.name}")
+                    url.set("https://github.com/bkahlert/kommons/tree/master/${project.name}")
                     licenses {
                         license {
                             name.set("MIT")

@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.age
-import com.bkahlert.kommons.createTempDirectory
-import com.bkahlert.kommons.createTempFile
-import com.bkahlert.kommons.createTempTextFile
-import com.bkahlert.kommons.lastModified
-import com.bkahlert.kommons.listDirectoryEntriesRecursively
+import com.bkahlert.kommons.io.age
+import com.bkahlert.kommons.io.createTempDirectory
+import com.bkahlert.kommons.io.createTempFile
+import com.bkahlert.kommons.io.createTempTextFile
+import com.bkahlert.kommons.io.lastModified
+import com.bkahlert.kommons.io.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.test.Fixtures.directoryWithTwoFiles
 import com.bkahlert.kommons.test.junit.SimpleId

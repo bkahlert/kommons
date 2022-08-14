@@ -16,7 +16,7 @@ import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.padStartFixedLength
 import com.bkahlert.kommons.tracing.TestPrinter.TestIO
 import com.bkahlert.kommons.tracing.rendering.BackgroundPrinter

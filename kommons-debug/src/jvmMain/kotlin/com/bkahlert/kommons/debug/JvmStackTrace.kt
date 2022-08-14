@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.text.EMPTY
+import com.bkahlert.kommons.EMPTY
 import com.bkahlert.kommons.Platform
 import java.lang.reflect.Method
 import java.util.Locale

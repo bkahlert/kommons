@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.docker
 
-import com.bkahlert.kommons.isSubPathOf
+import com.bkahlert.kommons.io.isSubPathOf
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import java.nio.file.Path
 import java.nio.file.Paths

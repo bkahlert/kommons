@@ -34,8 +34,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                @Suppress("SpellCheckingInspection")
+                implementation("io.github.microutils:kotlin-logging:2.1.23") { because("SLF4J logger API + Kotlin wrapper") }
                 implementation("com.github.ajalt.mordant:mordant:2.0.0-beta7")
+                implementation(project(":kommons-core"))
                 implementation(project(":kommons-debug"))
+                implementation(project(":kommons-io"))
+                implementation(project(":kommons-text"))
             }
         }
         val commonTest by getting {
@@ -45,6 +50,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                implementation("org.slf4j:slf4j-api:1.7.36") { because("logger API") }
                 implementation("org.apache.commons:commons-compress:1.21")
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.4.1")
@@ -59,6 +65,8 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
+                implementation("org.slf4j:slf4j-simple:1.7.36") { because("logger implementation for tests") }
+
                 // TODO delete
                 implementation("io.opentelemetry:opentelemetry-sdk:1.5.0")
                 // TODO delete
@@ -73,9 +81,6 @@ kotlin {
                 }
                 implementation("io.ktor:ktor-server-netty:1.6.3") {
                     because("tests needing a short-lived webserver")
-                }
-                implementation("org.slf4j:slf4j-nop:1.7.32") {
-                    because("suppress failed to load class StaticLoggerBinder")
                 }
 
                 // TODO delete

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.test.junit.launcher
 
 import com.bkahlert.kommons.test.testAll
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import io.kotest.matchers.string.shouldMatch
 import org.junit.jupiter.api.Test
 import org.junit.platform.engine.ConfigurationParameters

@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Program
-import com.bkahlert.kommons.createParentDirectories
-import com.bkahlert.kommons.deleteRecursively
+import com.bkahlert.kommons.io.createParentDirectories
+import com.bkahlert.kommons.io.deleteRecursively
 import com.bkahlert.kommons.docker.DockerRunCommandLine.Options
 import com.bkahlert.kommons.docker.MountOptionContext.Type.bind
 import com.bkahlert.kommons.docker.TestImages.Ubuntu

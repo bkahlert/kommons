@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.lastModified
+import com.bkahlert.kommons.io.lastModified
 import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.test.junit.SimpleId
 import com.bkahlert.kommons.test.withTempDir

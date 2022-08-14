@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.exec.IO
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.LineSeparators.mapLines
 import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.text.Semantics.formattedAs
-import com.bkahlert.kommons.text.ansiRemoved
-import com.bkahlert.kommons.text.asString
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.SpanScope
 import com.bkahlert.kommons.tracing.TracingDsl

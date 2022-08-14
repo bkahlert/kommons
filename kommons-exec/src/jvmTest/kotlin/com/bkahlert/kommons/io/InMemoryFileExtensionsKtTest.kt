@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.io
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.deleteOnExit
 import com.bkahlert.kommons.docker.DockerRequiring
 import com.bkahlert.kommons.io.path.hasContent
 import com.bkahlert.kommons.io.path.pathString
