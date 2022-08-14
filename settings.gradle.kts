@@ -5,8 +5,11 @@ pluginManagement {
     }
 }
 
+enableFeaturePreview("VERSION_CATALOGS")
+
 rootProject.name = "kommons"
 
+include("kommons")
 include("kommons-core")
 include("kommons-debug")
 include("kommons-io")

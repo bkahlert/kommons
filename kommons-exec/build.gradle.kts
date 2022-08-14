@@ -1,7 +1,3 @@
-plugins {
-    kotlin("multiplatform")
-}
-
 description = "Kommons Exec is a Kotlin Multiplatform Library to execute command lines and shell scripts—locally or in a Docker Container"
 
 kotlin {
@@ -34,9 +30,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                @Suppress("SpellCheckingInspection")
-                implementation("io.github.microutils:kotlin-logging:2.1.23") { because("SLF4J logger API + Kotlin wrapper") }
-                implementation("com.github.ajalt.mordant:mordant:2.0.0-beta7")
+                implementation(libs.kotlin.logging)
+                implementation(libs.mordant)
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-debug"))
                 implementation(project(":kommons-io"))
@@ -50,7 +45,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.slf4j:slf4j-api:1.7.36") { because("logger API") }
+                implementation(libs.slf4j.api)
                 implementation("org.apache.commons:commons-compress:1.21")
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.4.1")
@@ -65,7 +60,7 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.slf4j:slf4j-simple:1.7.36") { because("logger implementation for tests") }
+                implementation(libs.slf4j.simple)
 
                 // TODO delete
                 implementation("io.opentelemetry:opentelemetry-sdk:1.5.0")
@@ -76,12 +71,8 @@ kotlin {
                 // TODO delete
                 implementation("io.grpc:grpc-netty:1.40.1")
 
-                implementation("io.ktor:ktor-server-core:1.6.3") {
-                    because("tests needing a short-lived webserver")
-                }
-                implementation("io.ktor:ktor-server-netty:1.6.3") {
-                    because("tests needing a short-lived webserver")
-                }
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.server.netty)
 
                 // TODO delete
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.9.0"))

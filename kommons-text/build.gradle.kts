@@ -1,9 +1,5 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 
-plugins {
-    kotlin("multiplatform")
-}
-
 description = "Kommons Debug is a Kotlin Multiplatform Library to help you debug"
 
 kotlin {
@@ -11,7 +7,7 @@ kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = libs.versions.jvm.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -45,14 +41,14 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("com.ibm.icu:icu4j:71.1") { because("grapheme sequence") }
+                implementation(libs.icu4j)
             }
         }
         val jvmTest by getting
         val jsMain by getting {
             dependencies {
-                implementation(npm("xregexp", "5.1.0")) { because("code point sequence") }
-                implementation(npm("@stdlib/string-next-grapheme-cluster-break", "0.0.8")) { because("grapheme sequence") }
+                implementation(npm("xregexp", libs.versions.xregexp.get())) { because("regex classes for char meta data") }
+                implementation(npm("@stdlib/string-next-grapheme-cluster-break", libs.versions.stdlib.js.get())) { because("grapheme sequence") }
             }
         }
         val jsTest by getting

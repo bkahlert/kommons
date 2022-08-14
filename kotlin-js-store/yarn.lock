@@ -524,10 +524,10 @@
     "@stdlib/streams-node-stdin" "^0.0.x"
     "@stdlib/string-format" "^0.0.x"
 
-"@stdlib/string-next-grapheme-cluster-break@0.0.8":
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/@stdlib/string-next-grapheme-cluster-break/-/string-next-grapheme-cluster-break-0.0.8.tgz#bcbc267e61f358ad9d48e2d3cbe8816c89d38917"
-  integrity sha512-o2JKas7HeUhfK7KBqgTvbLTwaW6MdzDy42q+F5sEpdEAC+1VWbVXZD9a65ua3yewRmsqkvc8B2asMIvgHFMEJg==
+"@stdlib/string-next-grapheme-cluster-break@0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@stdlib/string-next-grapheme-cluster-break/-/string-next-grapheme-cluster-break-0.0.9.tgz#cf8c6b57bc8e58986b04452b291da6e7ca3854c5"
+  integrity sha512-R30hWf/aaJUiDMlXNZdB3PIaNJYZ76czyrUN9+bBH5b7cqxcjbBndEVowqm9eNGqb4mTrgWgxkvVqSoXXamE5Q==
   dependencies:
     "@stdlib/assert-has-utf16-surrogate-pair-at" "^0.0.x"
     "@stdlib/assert-is-integer" "^0.0.x"
@@ -537,6 +537,7 @@
     "@stdlib/process-read-stdin" "^0.0.x"
     "@stdlib/streams-node-stdin" "^0.0.x"
     "@stdlib/string-code-point-at" "^0.0.x"
+    "@stdlib/string-format" "^0.0.x"
     "@stdlib/string-tools-grapheme-cluster-break" "^0.0.x"
 
 "@stdlib/string-replace@^0.0.x":

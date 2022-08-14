@@ -1,9 +1,5 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 
-plugins {
-    kotlin("multiplatform")
-}
-
 description = "Kommons Test is a Kotlin Multiplatform Library to ease testing"
 
 kotlin {
@@ -11,12 +7,13 @@ kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = libs.versions.jvm.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
     }
+
     js(IR) {
         browser {
             testTask {
@@ -35,8 +32,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(kotlin("test"))
-                api("io.kotest:kotest-assertions-core:5.4.1")
-                implementation("io.kotest:kotest-common:5.4.1")
+                api(libs.kotest.assertions.core)
+                implementation(libs.kotest.common)
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-debug"))
                 implementation(project(":kommons-io"))
@@ -48,9 +45,8 @@ kotlin {
             dependencies {
                 implementation(kotlin("reflect"))
                 api(kotlin("test-junit5"))
-                implementation(project.dependencies.platform("org.junit:junit-bom:5.9.0"))
-                listOf("api", "engine").forEach { api("org.junit.jupiter:junit-jupiter-$it") }
-                listOf("commons", "launcher").forEach { implementation("org.junit.platform:junit-platform-$it") }
+                api(libs.bundles.junit.jupiter)
+                implementation(libs.bundles.junit.platform)
             }
         }
         val jvmTest by getting

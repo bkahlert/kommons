@@ -1,7 +1,8 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    kotlin("multiplatform") version "1.7.10" apply false
-    id("org.jetbrains.dokka") version "1.7.10" apply false
-    id("nebula.release") version "16.0.0" apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.nebula.release) apply false
     id("maven-publish")
     signing
 }
