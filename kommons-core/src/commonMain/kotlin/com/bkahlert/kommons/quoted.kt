@@ -1,7 +1,7 @@
 package com.bkahlert.kommons
 
 /** This string escaped and wrapped with double quotes. */
-public val kotlin.Char.quoted: String get() = buildString { this@quoted.quoteTo(this) }
+public val Char.quoted: String get() = buildString { this@quoted.quoteTo(this) }
 
 /** This string escaped and wrapped with double quotes. */
 public val CharSequence.quoted: String get() = buildString { this@quoted.quoteTo(this) }
@@ -13,7 +13,7 @@ public val CharSequence.quoted: String get() = buildString { this@quoted.quoteTo
 public val Any?.quoted: String get() = this?.toString()?.quoted ?: "null"
 
 /** Appends this character escaped and wrapped with double quotes to the specified [out]. */
-private fun kotlin.Char.quoteTo(out: StringBuilder) {
+private fun Char.quoteTo(out: StringBuilder) {
     out.append("\"")
     escapeTo(out)
     out.append("\"")
@@ -28,7 +28,7 @@ private fun CharSequence.quoteTo(out: StringBuilder) {
 
 /** Appends this character escaped to the specified [out]. */
 @Suppress("NOTHING_TO_INLINE")
-private inline fun kotlin.Char.escapeTo(out: StringBuilder) {
+private inline fun Char.escapeTo(out: StringBuilder) {
     when (this) {
         '\\' -> out.append("\\\\")
         '\n' -> out.append("\\n")
