@@ -8,7 +8,7 @@
 
 ### Changed
 
-*none*
+- Set `junit.jupiter.execution.parallel.config.dynamic.factor` to 2.
 
 ### Deprecated
 
