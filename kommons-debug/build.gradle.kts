@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
+import java.time.Duration
 
 description = "Kommons Debug is a Kotlin Multiplatform Library to help you debug"
 
@@ -20,6 +21,7 @@ kotlin {
                 testLogging.showStandardStreams = true
                 useKarma {
                     useChromeHeadless()
+                    timeout.set(Duration.ofSeconds(10))
                 }
             }
         }

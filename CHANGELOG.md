@@ -20,9 +20,9 @@
 
 ### Fixed
 
-*none*
+- Set JS test timeout to same as JUnit tests.
 
-## [2.0.0] - 2022-08-09
+## [2.0.0] - 2022-08-15
 
 ### Changed
 
