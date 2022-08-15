@@ -1,0 +1,3 @@
+## This page moved ...
+
+**You can find the [documentation in the main README.md of the Kommons library](https://github.com/bkahlert/kommons).**
