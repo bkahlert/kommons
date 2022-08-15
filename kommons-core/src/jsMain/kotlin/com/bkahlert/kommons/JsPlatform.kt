@@ -23,5 +23,12 @@ public actual enum class Platform {
     public actual val ansiSupport: AnsiSupport = AnsiSupport.NONE
 
     /** The separator used to separate path segments. */
-    public actual val fileSeparator: String = "/"
+    public actual val fileSeparator: String by lazy {
+        val lineWithFileSeparator = try {
+            throw RuntimeException()
+        } catch (ex: Throwable) {
+            ex.stackTraceToString().removeSuffix("\n")
+        }.lineSequence().first { it.contains("/") || it.contains('\\') }
+        if (lineWithFileSeparator.contains('\\')) "\\" else "/"
+    }
 }
