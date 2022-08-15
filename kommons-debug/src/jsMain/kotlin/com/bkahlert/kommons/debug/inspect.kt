@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.text.EMPTY
+import com.bkahlert.kommons.EMPTY
 import kotlin.js.Json
 import kotlin.js.json
 

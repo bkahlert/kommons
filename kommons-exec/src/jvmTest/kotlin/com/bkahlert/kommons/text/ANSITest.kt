@@ -1,5 +1,7 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.ansiContained
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.AnsiRequiring
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringIsEqualTo

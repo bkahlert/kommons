@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.createJarAndResolve
 import com.bkahlert.kommons.test.createAnyFile
 import com.bkahlert.kommons.test.junit.SystemProperty
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
@@ -27,8 +27,8 @@ class DesktopKtTest {
         }
 
         shouldNotThrowAny { URL("https://example.com/path").open() }
-        shouldNotThrowAny { tempDir.createJarAndResolve().toUri().open() }
-        shouldNotThrowAny { tempDir.createJarAndResolve().open() }
+        shouldNotThrowAny { URI("jar:file:/archive.jar!/file").open() }
+        shouldNotThrowAny { URL("jar:file:/archive.jar!/file").open() }
     }
 
     @SystemProperty("java.awt.headless", "true")
@@ -45,7 +45,7 @@ class DesktopKtTest {
         }
 
         shouldNotThrowAny { URL("https://example.com/path").locate() }
-        shouldNotThrowAny { tempDir.createJarAndResolve().toUri().locate() }
-        shouldNotThrowAny { tempDir.createJarAndResolve().locate() }
+        shouldNotThrowAny { URI("jar:file:/archive.jar!/file").locate() }
+        shouldNotThrowAny { URL("jar:file:/archive.jar!/file").locate() }
     }
 }

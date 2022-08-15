@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.io.createTempFile
 import java.net.URI
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems

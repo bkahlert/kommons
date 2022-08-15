@@ -1,7 +1,8 @@
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    kotlin("multiplatform") version "1.7.10" apply false
-    id("org.jetbrains.dokka") version "1.7.10" apply false
-    id("nebula.release") version "16.0.0" apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.nebula.release) apply false
     id("maven-publish")
     signing
 }
@@ -36,6 +37,11 @@ allprojects {
             }
         }
     }
+
+    // TODO snapshot publishToMavenLocal -x signKotlinMultiplatformPublication -x signJsPublication -x signJvmPublication -x check
+
+    // TODO -Prelease.useLastTag=true candidate publish -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository
+
 }
 
 subprojects {
@@ -70,7 +76,7 @@ subprojects {
                     // needed as subprojects aren't yet evaluated, see https://docs.gradle.org/current/userguide/publishing_maven.html
                     // otherwise description of Kotlin Multiplatform publication stays empty, and repo gets refused by Maven Central
                     afterEvaluate { pom.description.set(description) }
-                    url.set("https://github.com/bkahlert/kommons/${project.name}")
+                    url.set("https://github.com/bkahlert/kommons/tree/master/${project.name}")
                     licenses {
                         license {
                             name.set("MIT")

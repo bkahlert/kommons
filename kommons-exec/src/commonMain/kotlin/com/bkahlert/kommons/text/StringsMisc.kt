@@ -1,6 +1,7 @@
 package com.bkahlert.kommons.text
 
 import com.bkahlert.kommons.Exceptions
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.LineSeparators.LF
 
 public object CharRanges {

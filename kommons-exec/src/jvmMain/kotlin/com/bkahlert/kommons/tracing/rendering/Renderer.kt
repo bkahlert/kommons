@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.tracing.rendering
 
-import io.opentelemetry.api.trace.Span
-import com.bkahlert.kommons.toIdentifier
+import com.bkahlert.kommons.text.toIdentifier
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.SpanId
 import com.bkahlert.kommons.tracing.TraceId
+import io.opentelemetry.api.trace.Span
 
 /**
  * Component to render events of a [Span].

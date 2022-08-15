@@ -1,5 +1,6 @@
 package com.bkahlert.kommons
 
+import com.bkahlert.kommons.io.isSubPathOf
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain

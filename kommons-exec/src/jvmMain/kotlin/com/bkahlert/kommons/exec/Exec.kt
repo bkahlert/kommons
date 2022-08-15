@@ -3,7 +3,6 @@ package com.bkahlert.kommons.exec
 import com.bkahlert.kommons.Either
 import com.bkahlert.kommons.Either.Left
 import com.bkahlert.kommons.Either.Right
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.docker.Docker
@@ -17,6 +16,7 @@ import com.bkahlert.kommons.exec.Process.State
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.shell.ShellScript
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.Semantics.formattedAs
 import com.bkahlert.kommons.tracing.KommonsTelemetry
 import java.nio.file.Path

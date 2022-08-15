@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.nio
 
-import com.bkahlert.kommons.debug.asEmoji
-import com.bkahlert.kommons.text.asString
+import com.bkahlert.kommons.asEmoji
+import com.bkahlert.kommons.debug.asString
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer

@@ -4,15 +4,34 @@
 
 ## About
 
-**Kommons** is the following set of Kotlin Multiplatform Libraries:
+**Kommons** is a family of the following Kotlin—most of them multiplatform libraries:
 
+- [Kommons Core](kommons-core) … for runtime information, simple byte and string operations
 - [Kommons Debug](kommons-debug) … for print debugging
 - [Kommons Exec](kommons-exec) … to execute command lines, shell scripts and containers
 - [Kommons Test](kommons-test) … to ease testing
+- [Kommons Text](kommons-text) … for Unicode-aware text operations
 
 ## Installation / Setup
 
-The Kommons modules are independent.
+Kommons is hosted on GitHub with releases provided on Maven Central.
+
+To use a module separately, see the corresponding instructions linked above.
+
+The following dependency can be added to add the core, debug, and text module:
+
+* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.0.0")
+
+* **Maven**
+  ```xml
+  <dependency>
+      <groupId>com.bkahlert.kommons</groupId>
+      <artifactId>kommons</artifactId>
+      <version>2.0.0</version>
+  </dependency>
+  ```
+
+
 
 Please read the corresponding documentation for instruction on how to use them.
 

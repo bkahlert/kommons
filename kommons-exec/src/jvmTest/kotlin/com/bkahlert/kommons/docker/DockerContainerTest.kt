@@ -10,7 +10,7 @@ import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.text.Semantics.FieldDelimiters.FIELD
 import com.bkahlert.kommons.text.Semantics.Symbols.Negative
 import com.bkahlert.kommons.text.Semantics.Symbols.OK
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.spaced
 import com.bkahlert.kommons.tracing.TestSpanScope
 import io.kotest.assertions.throwables.shouldNotThrowAny

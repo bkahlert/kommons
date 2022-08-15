@@ -1,0 +1,49 @@
+[versions]
+icu = "71.1"
+kotlin = "1.7.10"
+kotlin-logging = "2.1.23"
+kotest = "5.4.1"
+ktor = "1.6.3"
+jvm = "1.8"
+junit-jupiter = "5.9.0"
+junit-platform = "1.9.0"
+mordant = "2.0.0-beta7"
+nebula-release = "16.0.0"
+slf4j = "1.7.36"
+stdlib-js = "0.0.9"
+xregexp = "5.1.0"
+
+[libraries]
+icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
+
+kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlin-logging" }
+
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
+
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+
+mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
+
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+
+junit-platform-commons = { module = "org.junit.platform:junit-platform-commons", version.ref = "junit-platform" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
+
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+
+# Gradle plugins
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+[bundles]
+junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
+junit-platform = ["junit-platform-commons", "junit-platform-launcher"]
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+nebula-release = { id = "nebula.release", version.ref = "nebula-release" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
+dokka-versioning = { id = "org.jetbrains.dokka:versioning-plugin", version.ref = "kotlin" }

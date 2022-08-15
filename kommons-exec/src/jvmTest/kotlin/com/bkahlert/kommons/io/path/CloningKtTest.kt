@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.io.createTempFile
 import com.bkahlert.kommons.text.withRandomSuffix
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledOnOs

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.text.asString
+import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.tracing.Key
 import io.opentelemetry.api.common.Attributes
 

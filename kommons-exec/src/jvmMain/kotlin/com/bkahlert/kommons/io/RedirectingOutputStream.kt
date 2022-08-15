@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.text.asString
+import com.bkahlert.kommons.debug.asString
 import java.io.OutputStream
 
 /**

@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.text.EMPTY
+import com.bkahlert.kommons.EMPTY
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KType

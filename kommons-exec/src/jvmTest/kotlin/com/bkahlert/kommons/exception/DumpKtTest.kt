@@ -1,14 +1,14 @@
 package com.bkahlert.kommons.exception
 
-import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.io.createTempFile
 import com.bkahlert.kommons.io.path.writeText
+import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.UrlRegex
 import com.bkahlert.kommons.text.findAllValues
-import com.bkahlert.kommons.text.randomString
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forAny
@@ -62,7 +62,7 @@ class DumpKtTest {
 
         @Test
         fun `should contains last lines of dump`(@TempDir tempDir: Path) {
-            val data = (0 until 15).map { randomString(20) }.joinToString(LineSeparators.Default)
+            val data = (0 until 15).joinToString(LineSeparators.Default) { randomString(20) }
             tempDir.dump("", data = data).lines().takeLast(11).map { it.trim() }
                 .shouldContainExactly(data.lines().takeLast(10) + "")
         }

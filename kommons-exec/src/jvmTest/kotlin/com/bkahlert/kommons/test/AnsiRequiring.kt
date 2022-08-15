@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.test
 
 import com.bkahlert.kommons.printTestExecutionStatus
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.junit.displayName
 import com.bkahlert.kommons.text.ANSI
-import com.bkahlert.kommons.text.quoted
 import com.github.ajalt.mordant.rendering.AnsiLevel
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ExecutionCondition

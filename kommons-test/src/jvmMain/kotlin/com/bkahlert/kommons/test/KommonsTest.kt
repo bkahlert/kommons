@@ -1,24 +1,7 @@
 package com.bkahlert.kommons.test
 
-import java.nio.file.FileSystems
-import java.nio.file.Path
-import java.nio.file.Paths
-
 /** A couple of library features. */
 public object KommonsTest {
-
-    /** Working directory, that is, the directory in which this binary is located. */
-    public val Work: Path = FileSystems.getDefault().getPath("").toAbsolutePath()
-
-    /** Home directory of the currently logged-in user. */
-    public val Home: Path = Paths.get(System.getProperty("user.home"))
-
-    /** Directory in which temporary data can be stored. */
-    public val Temp: Path = Paths.get(System.getProperty("java.io.tmpdir"))
-
-    /** Directory of the currently running Java distribution. */
-    public val JavaHome: Path = Paths.get(System.getProperty("java.home"))
-
 
     /** Locates the stack trace element representing a call to this library. */
     public fun locateCall(): StackTraceElement =

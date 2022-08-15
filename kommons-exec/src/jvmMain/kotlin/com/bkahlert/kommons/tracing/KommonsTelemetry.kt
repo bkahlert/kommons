@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.tracing
 
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.withSuffix
 import com.bkahlert.kommons.tracing.Key.KeyValue
 import com.bkahlert.kommons.tracing.KommonsTelemetry.NOOP

@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.io.path
 
-import com.bkahlert.kommons.createTempDirectory
-import com.bkahlert.kommons.createTempFile
+import com.bkahlert.kommons.io.createTempDirectory
+import com.bkahlert.kommons.io.createTempFile
 import com.bkahlert.kommons.test.copyToDirectory
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.junit.SimpleId

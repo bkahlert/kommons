@@ -1,7 +1,3 @@
-plugins {
-    kotlin("multiplatform")
-}
-
 description = "Kommons Exec is a Kotlin Multiplatform Library to execute command lines and shell scripts—locally or in a Docker Container"
 
 kotlin {
@@ -34,8 +30,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.github.ajalt.mordant:mordant:2.0.0-beta7")
+                implementation(libs.kotlin.logging)
+                implementation(libs.mordant)
+                implementation(project(":kommons-core"))
                 implementation(project(":kommons-debug"))
+                implementation(project(":kommons-io"))
+                implementation(project(":kommons-text"))
             }
         }
         val commonTest by getting {
@@ -45,6 +45,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                implementation(libs.slf4j.api)
                 implementation("org.apache.commons:commons-compress:1.21")
                 implementation("org.apache.commons:commons-exec:1.3")
                 implementation("org.codehaus.plexus:plexus-utils:3.4.1")
@@ -59,6 +60,8 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
+                implementation(libs.slf4j.simple)
+
                 // TODO delete
                 implementation("io.opentelemetry:opentelemetry-sdk:1.5.0")
                 // TODO delete
@@ -68,15 +71,8 @@ kotlin {
                 // TODO delete
                 implementation("io.grpc:grpc-netty:1.40.1")
 
-                implementation("io.ktor:ktor-server-core:1.6.3") {
-                    because("tests needing a short-lived webserver")
-                }
-                implementation("io.ktor:ktor-server-netty:1.6.3") {
-                    because("tests needing a short-lived webserver")
-                }
-                implementation("org.slf4j:slf4j-nop:1.7.32") {
-                    because("suppress failed to load class StaticLoggerBinder")
-                }
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.server.netty)
 
                 // TODO delete
                 implementation(project.dependencies.platform("org.junit:junit-bom:5.9.0"))

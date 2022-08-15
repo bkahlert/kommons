@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.io.path
 
 import com.bkahlert.kommons.debug.replaceNonPrintableCharacters
-import com.bkahlert.kommons.listDirectoryEntriesRecursively
-import com.bkahlert.kommons.resolveBetweenFileSystems
+import com.bkahlert.kommons.io.listDirectoryEntriesRecursively
+import com.bkahlert.kommons.quoted
+import com.bkahlert.kommons.io.resolveBetweenFileSystems
 import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.quoted
 import strikt.api.Assertion.Builder
 import strikt.api.expectThat
 import strikt.assertions.contentEquals

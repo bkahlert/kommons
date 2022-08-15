@@ -1,6 +1,8 @@
 package com.bkahlert.kommons.text
 
+import com.bkahlert.kommons.AnsiSupport
 import com.bkahlert.kommons.Program
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Formatter
 import com.bkahlert.kommons.text.ANSI.Text.ColoredText

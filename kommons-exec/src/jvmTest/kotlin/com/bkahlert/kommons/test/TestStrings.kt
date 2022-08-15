@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.test
 
 import com.bkahlert.kommons.debug.render
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.text.CodePoint
 import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.ansiRemoved
-import com.bkahlert.kommons.text.quoted
+import com.bkahlert.kommons.ansiRemoved
 import strikt.api.Assertion.Builder
 import strikt.api.DescribeableBuilder
 import strikt.assertions.hasSize

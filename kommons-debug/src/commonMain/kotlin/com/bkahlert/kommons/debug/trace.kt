@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.LineSeparators.isMultiline
 import com.bkahlert.kommons.Platform
 import com.bkahlert.kommons.Platform.JVM
 import com.bkahlert.kommons.debug.Typing.SimplyTyped
+import com.bkahlert.kommons.text.LineSeparators.LF
+import com.bkahlert.kommons.text.LineSeparators.isMultiline
 
 /** A function that renders any object. */
 public typealias Renderer = (Any?) -> String

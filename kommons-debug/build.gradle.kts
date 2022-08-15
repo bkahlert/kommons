@@ -1,9 +1,5 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 
-plugins {
-    kotlin("multiplatform")
-}
-
 description = "Kommons Debug is a Kotlin Multiplatform Library to help you debug"
 
 kotlin {
@@ -11,7 +7,7 @@ kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = libs.versions.jvm.get()
         }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -35,8 +31,10 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                @Suppress("SpellCheckingInspection")
-                implementation("io.github.microutils:kotlin-logging:2.1.23") { because("SLF4J logger API + Kotlin wrapper") }
+                implementation(libs.kotlin.logging)
+                implementation(project(":kommons-core"))
+                implementation(project(":kommons-io"))
+                implementation(project(":kommons-text"))
             }
         }
         val commonTest by getting {
@@ -47,22 +45,16 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("reflect"))
-                implementation("org.slf4j:slf4j-api:1.7.36") { because("logger API") }
-                implementation("com.ibm.icu:icu4j:71.1") { because("grapheme sequence") }
+                implementation(libs.slf4j.api)
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.slf4j:slf4j-simple:1.7.36") { because("logger implementation for tests") }
+                implementation(libs.slf4j.simple)
 
             }
         }
-        val jsMain by getting {
-            dependencies {
-                implementation(npm("xregexp", "5.1.0")) { because("code point sequence") }
-                implementation(npm("@stdlib/string-next-grapheme-cluster-break", "0.0.8")) { because("grapheme sequence") }
-            }
-        }
+        val jsMain by getting
         val jsTest by getting
 
         all {

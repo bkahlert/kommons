@@ -1,8 +1,6 @@
 package com.bkahlert.kommons.io
 
 import com.bkahlert.kommons.Kommons
-import com.bkahlert.kommons.createParentDirectories
-import com.bkahlert.kommons.createTempFile
 import com.bkahlert.kommons.docker.Docker.AwesomeCliBinaries
 import com.bkahlert.kommons.docker.Docker.LibRSvg
 import com.bkahlert.kommons.docker.docker
@@ -15,7 +13,6 @@ import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.ANSI.resetLines
 import com.bkahlert.kommons.tracing.rendering.Renderer.Companion.NOOP
 import com.bkahlert.kommons.tracing.rendering.RendererProvider
-import com.bkahlert.kommons.withTempDirectory
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.isReadable

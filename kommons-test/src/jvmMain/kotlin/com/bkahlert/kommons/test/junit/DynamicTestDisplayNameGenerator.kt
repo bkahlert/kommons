@@ -1,15 +1,15 @@
 package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.debug.renderType
+import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.KommonsTest
 import com.bkahlert.kommons.test.LambdaBody
 import com.bkahlert.kommons.test.SLF4J
 import com.bkahlert.kommons.test.UnicodeFont
 import com.bkahlert.kommons.test.rootCause
 import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.ansiRemoved
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.decapitalize
-import com.bkahlert.kommons.text.quoted
 import java.nio.file.Path
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass

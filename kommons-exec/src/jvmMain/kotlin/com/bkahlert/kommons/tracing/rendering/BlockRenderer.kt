@@ -1,12 +1,12 @@
 package com.bkahlert.kommons.tracing.rendering
 
+import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.debug.renderType
 import com.bkahlert.kommons.text.ANSI
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.AnsiString.Companion.toAnsiString
 import com.bkahlert.kommons.text.LineSeparators.lineSequence
 import com.bkahlert.kommons.text.UriRegex
-import com.bkahlert.kommons.text.asString
 import com.bkahlert.kommons.text.graphemeCount
 import com.bkahlert.kommons.text.takeUnlessEmpty
 import com.bkahlert.kommons.tracing.SpanId

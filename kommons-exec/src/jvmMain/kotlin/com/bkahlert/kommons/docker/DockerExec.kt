@@ -1,6 +1,8 @@
 package com.bkahlert.kommons.docker
 
 import com.bkahlert.kommons.Now
+import com.bkahlert.kommons.ansiRemoved
+import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.docker.DockerContainer.State.Error
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Created
 import com.bkahlert.kommons.docker.DockerContainer.State.Existent.Dead
@@ -15,8 +17,6 @@ import com.bkahlert.kommons.exec.Exec.Companion.createDump
 import com.bkahlert.kommons.exec.Process.ExitState
 import com.bkahlert.kommons.exec.Process.State
 import com.bkahlert.kommons.exec.Process.State.Excepted
-import com.bkahlert.kommons.text.ansiRemoved
-import com.bkahlert.kommons.text.asString
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
