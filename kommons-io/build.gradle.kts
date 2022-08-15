@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 import java.time.Duration
 
-description = "Kommons Path is a Kotlin Multiplatform Library to help you debug"
+description = "Kommons IO is a Kotlin Library for simpler IO handling on the JVM."
 
 kotlin {
     explicitApi()

@@ -1,4 +1,4 @@
-description = "Kommons Exec is a Kotlin Multiplatform Library to execute command lines and shell scripts—locally or in a Docker Container"
+description = "Kommons Exec is a Kotlin Library to execute command lines and shell scripts—locally or in a Docker Container."
 
 kotlin {
     explicitApi()

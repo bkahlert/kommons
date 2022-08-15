@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 import java.time.Duration
 
-description = "Kommons Debug is a Kotlin Multiplatform Library to help you debug"
+description = "Kommons Debug is a Kotlin Multiplatform Library for print debugging."
 
 kotlin {
     explicitApi()

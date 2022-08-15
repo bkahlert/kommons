@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.targets.js.yarn.yarn
 import java.time.Duration
 
-description = "Kommons Core is a Kotlin Multiplatform Library to provide shared features"
+description = "Kommons Core is a Kotlin Multiplatform Library that offers shared features for all Kommons modules."
 
 kotlin {
     explicitApi()
