@@ -36,7 +36,9 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 # Gradle plugins
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
 
 [bundles]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
