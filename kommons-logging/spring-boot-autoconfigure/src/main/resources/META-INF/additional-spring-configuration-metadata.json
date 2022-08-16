@@ -1,0 +1,26 @@
+{
+  "hints": [
+    {
+      "name": "kkb.logging.appenders.console",
+      "providers": [
+        {
+          "name": "handle-as",
+          "parameters": {
+            "target": "com.bkahlert.logging.logback.LogbackConfiguration$Encoder"
+          }
+        }
+      ]
+    },
+    {
+      "name": "kkb.logging.appenders.file",
+      "providers": [
+        {
+          "name": "handle-as",
+          "parameters": {
+            "target": "com.bkahlert.logging.logback.LogbackConfiguration$Encoder"
+          }
+        }
+      ]
+    }
+  ]
+}

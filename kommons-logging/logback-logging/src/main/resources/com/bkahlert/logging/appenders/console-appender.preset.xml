@@ -1,0 +1,6 @@
+<included>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        ${includes["jansi"]}
+        ${includes["plain-ansi-encoder"]}
+    </appender>
+</included>

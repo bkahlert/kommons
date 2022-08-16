@@ -1,0 +1,3 @@
+<included>
+    <appender name="CONSOLE" class="ch.qos.logback.core.helpers.NOPAppender"/>
+</included>

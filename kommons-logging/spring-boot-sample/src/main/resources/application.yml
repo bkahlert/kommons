@@ -1,0 +1,17 @@
+spring.application.name: "Demo"
+
+logging:
+  file.path: ${java.io.tmpdir}
+  pattern:
+    dateformat:
+
+  #  config: classpath:logback-docker.xml
+  level:
+    app: trace
+    com.bkahlert.logging.demo.DemoSpringApplication: debug
+
+spring.banner.location: classpath:banner.txt
+
+kkb.logging.appenders:
+  console: plain
+  file: json

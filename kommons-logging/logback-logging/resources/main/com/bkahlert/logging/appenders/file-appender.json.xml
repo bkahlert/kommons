@@ -1,0 +1,45 @@
+<included>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+    <providers>
+        <pattern>
+            <omitEmptyFields>true</omitEmptyFields>
+            <pattern>
+                {
+                "timestamp": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
+                "level": "%level",
+                "service": "${service.name}",
+                "version": "${service.version}"
+                }
+            </pattern>
+        </pattern>
+        <mdc/>
+        <loggerName>
+            <fieldName>logger</fieldName>
+        </loggerName>
+        <threadName>
+            <fieldName>thread</fieldName>
+        </threadName>
+        <message>
+            <fieldName>message</fieldName>
+        </message>
+        <stackTrace>
+            <fieldName>stack-trace</fieldName>
+        </stackTrace>
+        <arguments/>
+    </providers>
+</encoder>
+
+        <!-- @formatter:off -->
+<file>${LOG_FILE}</file>
+<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+    <cleanHistoryOnStart>${LOG_FILE_CLEAN_HISTORY_ON_START:-false}</cleanHistoryOnStart>
+    <fileNamePattern>${ROLLING_FILE_NAME_PATTERN:-${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz}</fileNamePattern>
+    <maxFileSize>${LOG_FILE_MAX_SIZE:-1GB}</maxFileSize>
+    <maxHistory>${LOG_FILE_MAX_HISTORY:-14}</maxHistory>
+    <totalSizeCap>${LOG_FILE_TOTAL_SIZE_CAP:-0}</totalSizeCap>
+</rollingPolicy>
+<!-- @formatter:on -->
+
+    </appender>
+</included>

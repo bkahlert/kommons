@@ -1,0 +1,34 @@
+<included>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+    <providers>
+        <pattern>
+            <omitEmptyFields>true</omitEmptyFields>
+            <pattern>
+                {
+                "timestamp": "%d{yyyy-MM-dd HH:mm:ss.SSS}",
+                "level": "%level",
+                "service": "${service.name}",
+                "version": "${service.version}"
+                }
+            </pattern>
+        </pattern>
+        <mdc/>
+        <loggerName>
+            <fieldName>logger</fieldName>
+        </loggerName>
+        <threadName>
+            <fieldName>thread</fieldName>
+        </threadName>
+        <message>
+            <fieldName>message</fieldName>
+        </message>
+        <stackTrace>
+            <fieldName>stack-trace</fieldName>
+        </stackTrace>
+        <arguments/>
+    </providers>
+</encoder>
+
+    </appender>
+</included>

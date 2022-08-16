@@ -1,0 +1,5 @@
+<!-- @formatter:off -->
+<encoder>
+    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${service.name}:${service.version},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-} %thread] %-40.40logger{39} : %m%n%wEx</pattern>
+</encoder>
+<!-- @formatter:on -->

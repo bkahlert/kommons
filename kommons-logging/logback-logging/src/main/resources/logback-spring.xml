@@ -1,0 +1,9 @@
+<configuration scan="false" debug="false">
+    <springProperty scope="context" name="zipkin.service.name" source="spring.zipkin.service.name"/>
+    <springProperty scope="context" name="service.name" source="spring.application.name"/>
+    <springProperty scope="context" name="CONSOLE_APPENDER" source="kkb.logging.appenders.console"/>
+    <springProperty scope="context" name="FILE_APPENDER" source="kkb.logging.appenders.file"/>
+
+    <property name="CONFIG_PATH" value="com/bkahlert/logging/"/>
+    <include resource="${CONFIG_PATH}base.xml"/>
+</configuration>
