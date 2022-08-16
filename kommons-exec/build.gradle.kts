@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-jvm-conventions")
+    id("kommons-multiplatform-jvm-library-conventions")
 }
 
 description = "Kommons Exec is a Kotlin Library to execute command lines and shell scripts—locally or in a Docker Container."
