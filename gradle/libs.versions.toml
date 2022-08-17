@@ -4,14 +4,18 @@ kotlin = "1.7.10"
 kotlin-logging = "2.1.23"
 kotest = "5.4.1"
 ktor = "1.6.3"
+logback-classic = "1.2.11"
+logstash-logback-encoder = "7.2"
 jvm = "1.8"
 junit-jupiter = "5.9.0"
 junit-platform = "1.9.0"
 mordant = "2.0.0-beta7"
 nebula-release = "16.0.0"
 slf4j = "1.7.36"
+spring-boot = "2.7.2" # https://docs.spring.io/spring-boot/docs/2.7.2/
 stdlib-js = "0.0.9"
 xregexp = "5.1.0"
+
 
 [libraries]
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
@@ -24,6 +28,9 @@ kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
+logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback-encoder" }
+
 mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
 
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
@@ -34,6 +41,9 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+
+spring-boot = { module = "org.springframework.boot:spring-boot", version.ref = "spring-boot" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
 
 # Gradle plugins
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }

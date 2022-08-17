@@ -5,7 +5,6 @@ plugins {
 description = "Kommons Exec is a Kotlin Library to execute command lines and shell scripts—locally or in a Docker Container."
 
 kotlin {
-    explicitApi()
 
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
@@ -85,7 +84,7 @@ kotlin {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
-                // TODO get rid off
+                // TODO remove
                 implementation("io.strikt:strikt-core:0.30.1")
                 implementation("io.strikt:strikt-jvm:0.30.1")
             }

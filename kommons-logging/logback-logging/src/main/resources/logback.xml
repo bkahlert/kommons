@@ -1,4 +1,0 @@
-<configuration scan="false" debug="false">
-    <property name="CONFIG_PATH" value="com/bkahlert/logging/"/>
-    <include resource="${CONFIG_PATH}base.xml"/>
-</configuration>

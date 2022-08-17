@@ -9,16 +9,19 @@ import org.springframework.util.ResourceUtils
 /**
  * Configuration of the Logback logging framework
  */
-@Configuration(proxyBeanMethods = false) @PropertySource(factory = YamlPropertySourceFactory::class,
+@Configuration(proxyBeanMethods = false) @PropertySource(
+    factory = YamlPropertySourceFactory::class,
     name = LogbackAutoConfiguration.LOGGING_CONFIG_RESOURCE,
-    value = [LogbackAutoConfiguration.LOGGING_CONFIG_RESOURCE]) @EnableConfigurationProperties(
-    LogbackProperties::class)
+    value = [LogbackAutoConfiguration.LOGGING_CONFIG_RESOURCE]
+) @EnableConfigurationProperties(
+    LogbackProperties::class
+)
 public data class LogbackAutoConfiguration(
     public val logbackProperties: LogbackProperties,
 ) {
 
     public companion object {
         public const val LOGGING_CONFIG_RESOURCE: String =
-            ResourceUtils.CLASSPATH_URL_PREFIX + "com/bkahlert/logging/autoconfigure/logging.yml"
+            ResourceUtils.CLASSPATH_URL_PREFIX + "com/bkahlert/kommons/logging/logback/autoconfigure/logging.yml"
     }
 }

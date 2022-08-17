@@ -14,7 +14,7 @@ public object Banners {
     public const val SPRING_BANNER_LOCATION: String = "spring.banner.location"
     public const val SPRING_MAIN_BANNER_MODE: String = "spring.main.banner-mode"
 
-    private val SPRING_CLOUD_BANNER_LOCATION = ResourceUtils.CLASSPATH_URL_PREFIX + "com/bkahlert/logging/autoconfigure/banner-boot+cloud.txt"
+    private val SPRING_CLOUD_BANNER_LOCATION = ResourceUtils.CLASSPATH_URL_PREFIX + "com/bkahlert/kommons/logging/logback/autoconfigure/banner-boot+cloud.txt"
     private val LOG_MESSAGE = "Added {} to environment"
 
     public fun turnOffBanner(environment: ConfigurableEnvironment) {
