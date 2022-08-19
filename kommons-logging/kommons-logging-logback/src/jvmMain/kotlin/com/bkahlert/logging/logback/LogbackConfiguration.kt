@@ -64,6 +64,7 @@ public enum class LogbackConfiguration {
          * is easier to parse and easier to read due to the use of brackets that group information more semantically.
          */
         plain,
+        spring,
 
         /**
          * Minimal version of the new KKB console log encoder which only logs minutes to milliseconds,

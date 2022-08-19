@@ -75,9 +75,9 @@ public class SystemPropertyExtension : BeforeAllCallback, AfterAllCallback, Befo
     AnnotationTarget.PROPERTY_SETTER,
     AnnotationTarget.VALUE_PARAMETER
 )
-@Suppress("DEPRECATED_JAVA_ANNOTATION") // JUnit explicitly requires Java @Repeatable
-@Repeatable(SystemProperties::class)
+@Repeatable(SystemProperties::class) // JUnit requires Java @Repeatable
 @ExtendWith(SystemPropertyExtension::class)
+@MustBeDocumented
 public annotation class SystemProperty(
     /** Name of the system property to set during test execution. */
     val name: String,
@@ -100,6 +100,7 @@ public annotation class SystemProperty(
     AnnotationTarget.VALUE_PARAMETER
 )
 @ExtendWith(SystemPropertyExtension::class)
+@MustBeDocumented
 public annotation class SystemProperties(
     /** System properties to set during test execution. */
     vararg val value: SystemProperty,

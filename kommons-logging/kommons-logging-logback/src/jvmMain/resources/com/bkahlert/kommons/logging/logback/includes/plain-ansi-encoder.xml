@@ -1,6 +1,6 @@
 <!-- @formatter:off -->
 <encoder>
-    <pattern>%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(%5p) %clr(${PID:--}){magenta} %clr(---){faint} %clr([${service.name:--},${service.version:--}]){faint} %clr([%X{X-B3-TraceId:--},%X{X-B3-SpanId:--},%X{X-Span-Export:--}]){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
+    <pattern>%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
     <charset>utf8</charset>
 </encoder>
 <!-- @formatter:off -->

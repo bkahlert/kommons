@@ -1,5 +1,6 @@
 package org.springframework.boot.test.system
 
+import com.bkahlert.logging.logback.CapturedOutput2
 import com.bkahlert.logging.support.SmartCapturedLog
 import com.bkahlert.logging.support.SmartCapturedOutput
 import org.junit.jupiter.api.extension.AfterAllCallback
@@ -40,6 +41,18 @@ class SmartOutputCaptureExtension() : BeforeAllCallback, AfterAllCallback, Befor
         } else outputCaptureExtension.resolveParameter(parameterContext, extensionContext)
             ?.takeIf { CapturedOutput::class.java.isInstance(it) }
             ?.let { CapturedOutput::class.java.cast(it) }
-            ?.let { SmartCapturedOutput.enrich(it) }
+            ?.let {
+                if (parameterContext.parameter.type == CapturedOutput::class.java) {
+                    it
+                } else if (parameterContext.parameter.type == CapturedOutput2::class.java) {
+                    object : CapturedOutput2, CapturedOutput by it {
+                        override fun toString(): String {
+                            return it.toString()
+                        }
+                    }
+                } else {
+                    SmartCapturedOutput.enrich(it)
+                }
+            }
     }
 }

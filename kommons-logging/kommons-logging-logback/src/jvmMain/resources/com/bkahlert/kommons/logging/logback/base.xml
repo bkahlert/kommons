@@ -4,12 +4,12 @@
     <property name="CONSOLE_APPENDER_CONFIG_FILE" value="console-appender.${CONSOLE_APPENDER}.xml"/>
     <include resource="${APPENDER_CONFIG_PATH}${CONSOLE_APPENDER_CONFIG_FILE}"/>
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
     </root>
 
     <property name="FILE_APPENDER_CONFIG_FILE" value="file-appender.${FILE_APPENDER}.xml"/>
     <include resource="${APPENDER_CONFIG_PATH}${FILE_APPENDER_CONFIG_FILE}"/>
     <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
 </included>

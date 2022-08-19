@@ -1,13 +1,12 @@
 package com.bkahlert.logging.logback
 
 import ch.qos.logback.classic.Level
+import com.bkahlert.kommons.test.junit.SystemProperty
 import com.bkahlert.logging.logback.LogbackConfiguration.Encoder.plain
 import com.bkahlert.logging.support.LogbackConfigurationExtension
 import com.bkahlert.logging.support.LogbackConfigurationExtension.LogbackTestConfiguration
 import com.bkahlert.logging.support.SmartCapturedLog
 import com.bkahlert.logging.support.SmartCapturedOutput
-import de.dkb.api.systemproperties.SystemProperty
-import de.dkb.api.systemproperties.SystemPropertyExtension
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
@@ -17,7 +16,7 @@ import strikt.assertions.matches
 import java.util.regex.Pattern
 import java.util.stream.Stream
 
-@ExtendWith(SmartOutputCaptureExtension::class, SystemPropertyExtension::class, LogbackConfigurationExtension::class)
+@ExtendWith(SmartOutputCaptureExtension::class, LogbackConfigurationExtension::class)
 class ManualTest {
 
     // TODO prefix all environment variables CONFIG_PATH
@@ -38,7 +37,8 @@ class ManualTest {
         ).forEach {
             it.matches(
                 DATETIME_PATTERN + SPACE + q("INFO - --- [common-logging-core,1.5.0-SNAPSHOT] [-,-,-] [")
-                    + SPACE + q("main] MyLogger") + SPACE + q(": Test log message via SLF4J"))
+                    + SPACE + q("main] MyLogger") + SPACE + q(": Test log message via SLF4J")
+            )
         }
     }
 
@@ -53,7 +53,8 @@ class ManualTest {
         ).forEach {
             it.matches(
                 DATETIME_PATTERN + SPACE + q("INFO - --- [common-logging-core,1.5.0-SNAPSHOT] [-,-,-] [")
-                    + SPACE + q("main] MyLogger") + SPACE + q(": Test log message via SLF4J"))
+                    + SPACE + q("main] MyLogger") + SPACE + q(": Test log message via SLF4J")
+            )
         }
     }
 

@@ -5,10 +5,13 @@ import com.bkahlert.logging.support.LogbackConfigurationExtension.LogbackTestCon
 import com.bkahlert.logging.support.LogbackUtil.isLogbackDebugMode
 import com.bkahlert.logging.support.LogbackUtil.loadConfigurationStream
 import com.bkahlert.logging.support.LogbackUtil.reset
-import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.ExtensionContext
+import org.junit.jupiter.api.parallel.ResourceAccessMode.READ_WRITE
+import org.junit.jupiter.api.parallel.ResourceLock
+import org.junit.jupiter.api.parallel.Resources
 import org.junit.platform.commons.support.AnnotationSupport
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -18,8 +21,6 @@ import java.util.function.Function
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.annotation.AnnotationTarget.FUNCTION
-import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
-import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 
 /**
  * This extensionwhen annotated to a classtemporarily reconfigures Logback according
@@ -28,16 +29,12 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
  *
  * @author Björn Kahlert
  */
-class LogbackConfigurationExtension : AfterAllCallback, BeforeEachCallback, AfterEachCallback {
+class LogbackConfigurationExtension : BeforeEachCallback, AfterEachCallback {
     override fun beforeEach(context: ExtensionContext) {
         refresh(context)
     }
 
     override fun afterEach(context: ExtensionContext?) {
-        reset()
-    }
-
-    override fun afterAll(context: ExtensionContext?) {
         reset()
     }
 
@@ -63,7 +60,10 @@ class LogbackConfigurationExtension : AfterAllCallback, BeforeEachCallback, Afte
     /**
      * Annotation to specify the configuration
      */
-    @Target(FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER) @Retention(AnnotationRetention.RUNTIME)
+    @ResourceLock(Resources.SYSTEM_PROPERTIES, mode = READ_WRITE)
+    @Retention(AnnotationRetention.RUNTIME)
+    @Target(FUNCTION)
+    @ExtendWith(LogbackConfigurationExtension::class)
     annotation class LogbackTestConfiguration(
         val CONSOLE_APPENDER: Encoder = Encoder.preset,
         val FILE_APPENDER: Encoder = Encoder.preset,

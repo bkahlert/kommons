@@ -52,7 +52,8 @@ internal class MinimalLoggingTest {
             expectThat(logged.line(-1)),
         ).forEach {
             it.matches(
-                DATETIME_PATTERN + SPACE + q("INFO") + SPACE + q("MyLogger") + SPACE + q(": Test log message via SLF4J"))
+                DATETIME_PATTERN + SPACE + q("INFO") + SPACE + q("MyLogger") + SPACE + q(": Test log message via SLF4J")
+            )
         }
     }
 

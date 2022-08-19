@@ -1,5 +1,6 @@
 package com.bkahlert.logging.logback
 
+import com.bkahlert.kommons.test.junit.SystemProperty
 import com.bkahlert.logging.logback.LogbackConfiguration.CONSOLE_APPENDER
 import com.bkahlert.logging.logback.LogbackConfiguration.Encoder
 import com.bkahlert.logging.logback.LogbackConfiguration.FILE_APPENDER
@@ -9,8 +10,6 @@ import com.bkahlert.logging.support.LogbackUtil
 import com.bkahlert.logging.support.SmartCapturedLog
 import com.bkahlert.logging.support.SmartCapturedLog.LoggingFromNowLog
 import com.bkahlert.logging.support.SmartCapturedOutput
-import de.dkb.api.systemproperties.SystemProperty
-import de.dkb.api.systemproperties.SystemPropertyExtension
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -21,7 +20,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
-@ExtendWith(SmartOutputCaptureExtension::class, SystemPropertyExtension::class)
+@ExtendWith(SmartOutputCaptureExtension::class)
 internal class LogbackConfigurationTest {
 
     @BeforeEach

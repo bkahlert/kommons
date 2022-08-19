@@ -15,3 +15,7 @@ spring.banner.location: classpath:banner.txt
 kkb.logging.appenders:
   console: plain
   file: json
+
+logging:
+  console: spring
+  file: json

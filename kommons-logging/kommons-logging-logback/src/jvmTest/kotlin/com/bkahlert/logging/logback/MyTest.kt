@@ -1,7 +1,6 @@
 package com.bkahlert.logging.logback
 
 import com.bkahlert.kommons.test.testAll
-import com.bkahlert.logging.trace
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -22,7 +21,6 @@ class MyTest {
         logger2.info("Hello World")
         logger2.info("Hello World")
         logger2.info("Hello World")
-        output.trace
         fail("fail")
     }
 }

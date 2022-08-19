@@ -24,7 +24,7 @@ kotlin {
                 implementation(libs.spring.boot.starter.test) // output capturing
 
                 // TODO remove
-                implementation(libs.kotlin.logging) // output capturing
+                implementation(project(":kommons-debug"))
 
                 // TODO remove
                 implementation("io.strikt:strikt-core:0.34.1") { because("assertion lib") }

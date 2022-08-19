@@ -1,13 +1,12 @@
 package com.bkahlert.logging.logback
 
+import com.bkahlert.kommons.test.junit.SystemProperty
 import com.bkahlert.logging.StructuredLogging
 import com.bkahlert.logging.logback.LogbackConfiguration.Encoder.json
 import com.bkahlert.logging.support.LogbackConfigurationExtension
 import com.bkahlert.logging.support.LogbackConfigurationExtension.LogbackTestConfiguration
 import com.bkahlert.logging.support.SmartCapturedLog.Companion.loggedSoFar
 import com.bkahlert.logging.support.SmartCapturedOutput
-import de.dkb.api.systemproperties.SystemProperty
-import de.dkb.api.systemproperties.SystemPropertyExtension
 import net.logstash.logback.argument.StructuredArguments
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -20,7 +19,7 @@ import java.text.MessageFormat
 import java.time.Duration
 import java.time.Instant
 
-@ExtendWith(SmartOutputCaptureExtension::class, SystemPropertyExtension::class, LogbackConfigurationExtension::class)
+@ExtendWith(SmartOutputCaptureExtension::class, LogbackConfigurationExtension::class)
 class JsonLoggingTest {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -44,7 +43,8 @@ class JsonLoggingTest {
                 .containsKeys(*REQUIRED_FIELDS)
                 .hasEntrySatisfying("timestamp") { entry ->
                     expectThat(
-                        Duration.between(toInstant(checkNotNull(entry)), Instant.now()) < Duration.ofMinutes(1))
+                        Duration.between(toInstant(checkNotNull(entry)), Instant.now()) < Duration.ofMinutes(1)
+                    )
                 }
                 .containsEntry("level", "INFO")
                 .containsEntry("service", "any-service")
@@ -92,8 +92,12 @@ class JsonLoggingTest {
                 .containsEntry("message", message)
                 .hasEntrySatisfying("stack-trace") { stacktrace ->
                     expectThat(stacktrace.toString())
-                        .startsWith(MessageFormat.format("java.lang.RuntimeException: luckily just a test\n\tat {0}.should_log_exceptions",
-                            JsonLoggingTest::class.java.name))
+                        .startsWith(
+                            MessageFormat.format(
+                                "java.lang.RuntimeException: luckily just a test\n\tat {0}.should_log_exceptions",
+                                JsonLoggingTest::class.java.name
+                            )
+                        )
                 }
         }
     }
@@ -110,9 +114,13 @@ class JsonLoggingTest {
                 .containsEntry("message", "...")
                 .hasEntrySatisfying("stack-trace") { stacktrace ->
                     expectThat(stacktrace.toString())
-                        .startsWith(MessageFormat
-                            .format("java.lang.RuntimeException: Mapped to JSON\n\tat {0}.should_log_exceptions_using_formatted_message",
-                                JsonLoggingTest::class.java.name))
+                        .startsWith(
+                            MessageFormat
+                                .format(
+                                    "java.lang.RuntimeException: Mapped to JSON\n\tat {0}.should_log_exceptions_using_formatted_message",
+                                    JsonLoggingTest::class.java.name
+                                )
+                        )
                 }
         }
     }
