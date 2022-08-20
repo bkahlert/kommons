@@ -1,6 +1,6 @@
-package com.bkahlert.logging.sample
+package com.bkahlert.kommons.sample
 
-import com.bkahlert.logging.logback.LogbackConfiguration
+import com.bkahlert.kommons.logback.LogbackConfiguration
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.boot.logging.LogFile

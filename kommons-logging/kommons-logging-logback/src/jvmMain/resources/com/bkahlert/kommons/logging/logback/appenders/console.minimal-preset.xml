@@ -1,0 +1,6 @@
+<included>
+    ${includes["console.minimal-preset-properties"]}
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        ${includes["console.pattern-layout-encoder"]}
+    </appender>
+</included>

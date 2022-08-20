@@ -1,4 +1,4 @@
-package com.bkahlert.logging.sample
+package com.bkahlert.kommons.sample
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -36,10 +36,12 @@ class EnvironmentLogger(
         fun logEnvironment(environment: ConfigurableEnvironment) {
             val allProperties = environment.propertySources.stream()
                 .map { propertySource: PropertySource<*> -> toEntryStream(propertySource) }
-                .collect(Collectors.toMap(
-                    { (key, _) -> key },
-                    { (_, value) -> value },
-                    { _: Any?, b: Any? -> b }))
+                .collect(
+                    Collectors.toMap(
+                        { (key, _) -> key },
+                        { (_, value) -> value },
+                        { _: Any?, b: Any? -> b })
+                )
             val json: String = Jackson2ObjectMapperBuilder.json().featuresToEnable(INDENT_OUTPUT).build<ObjectMapper>().writeValueAsString(allProperties)
             logger.debug("Configuration: {}", json, StructuredArguments.entries(allProperties))
         }

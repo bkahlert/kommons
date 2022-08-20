@@ -1,0 +1,6 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.bkahlert.kommons.autoconfigure.logback.LogConfiguringEnvironmentPostProcessor
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.bkahlert.kommons.autoconfigure.tracing.B3FlagsAutoConfiguration,\
+com.bkahlert.kommons.autoconfigure.request.RequestLoggingAutoConfiguration,\
+com.bkahlert.kommons.autoconfigure.logback.LogbackAutoConfiguration

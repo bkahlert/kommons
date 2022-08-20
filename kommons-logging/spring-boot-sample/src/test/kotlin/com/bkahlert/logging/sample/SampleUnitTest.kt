@@ -1,4 +1,4 @@
-package com.bkahlert.logging.sample
+package com.bkahlert.kommons.sample
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

@@ -287,7 +287,7 @@ This library comes with a `junit-platform.properties` and the following settings
 ```properties
 # concise test names with no parameter list
 junit.jupiter.displayname.generator.default=\
-  com.bkahlert.kommons.test.junit.MethodNameOnlyDisplayNameGenerator
+  com.bkahlert.kommons.test.junit.KommonsTestDisplayNameGenerator
 # default 10-seconds timeout for each test
 junit.jupiter.execution.timeout.default=10 s
 # disable timeout when debugging

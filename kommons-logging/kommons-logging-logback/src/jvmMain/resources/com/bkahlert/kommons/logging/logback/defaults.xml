@@ -1,14 +1,6 @@
 <included>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <conversionRule conversionWord="clr" converterClass="com.bkahlert.logging.logback.ConsoleIgnoringColorConverter"/>
-
-    <property scope="context" name="service.name" value="${service.name:-${build.artifact:-${build.name}}}"/>
-    <property scope="context" name="service.version" value="${service.version:-${build.version}}"/>
-
-    <property scope="context" name="CONFIG_PATH" value="${CONFIG_PATH:-com/bkahlert/kommons/logging/logback/}"/>
-    <property scope="context" name="APPENDER_CONFIG_PATH" value="${APPENDER_CONFIG_PATH:-${CONFIG_PATH}appenders/}"/>
-    <property scope="context" name="CONSOLE_APPENDER" value="${CONSOLE_APPENDER:-preset}"/>
-    <property scope="context" name="FILE_APPENDER" value="${FILE_APPENDER:-preset}"/>
-
-    <property scope="context" name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/app.log}"/>
+    <conversionRule conversionWord="clr" converterClass="com.bkahlert.kommons.logging.logback.ConsolePretendingColorConverter"/>
+    <property name="CONSOLE_LOG_PRESET" value="${CONSOLE_LOG_PRESET:-default}"/>
+    <property name="FILE_LOG_PRESET" value="${FILE_LOG_PRESET:-default}"/>
 </included>

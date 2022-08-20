@@ -1,6 +1,0 @@
-<included>
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        ${includes["plain-encoder"]}
-        ${includes["rolling-policy"]}
-    </appender>
-</included>

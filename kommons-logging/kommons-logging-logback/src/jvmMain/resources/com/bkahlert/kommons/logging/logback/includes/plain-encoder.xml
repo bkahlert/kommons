@@ -1,6 +1,0 @@
-<!-- @formatter:off -->
-<encoder>
-    <pattern>%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} %5p ${PID:--} --- [${service.name:--},${service.version:--}] [%X{X-B3-TraceId:--},%X{X-B3-SpanId:--},%X{X-Span-Export:--}] [%15.15t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
-    <charset>utf8</charset>
-</encoder>
-<!-- @formatter:off -->

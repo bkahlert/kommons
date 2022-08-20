@@ -1,41 +1,58 @@
 plugins {
-    id("org.springframework.boot")
-    kotlin("jvm")
-    kotlin("plugin.spring")
+    id("kommons-multiplatform-jvm-library-conventions")
 }
 
-description = "Spring Boot AutoConfiguration"
-
-configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
-    }
-}
+description = "Spring Boot AutoConfiguration for Kommons Logging"
 
 kotlin {
-    explicitApi()
+
+    jvm {
+//        apply(plugin = "org.springframework.boot")
+//        apply(plugin = "io.spring.dependency-management")
+//        apply(plugin = "org.jetbrains.kotlin.plugin.spring")
+
+        configurations {
+
+//            compileOnly {
+//                extendsFrom(configurations.annotationProcessor.get())
+//            }
+        }
+    }
+
+    @Suppress("UNUSED_VARIABLE")
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+//                kapt("org.springframework.boot:spring-boot-configuration-processor") { because("application properties metadata creation") }
+                implementation(kotlin("reflect"))
+                implementation(project(":kommons-core"))
+                implementation(project(":kommons-debug"))
+
+                api(project(":kommons-logging:kommons-logging-logback"))
+
+                // TODO use only required dependency (spring framework context)
+                implementation("org.springframework.boot:spring-boot-starter-web:2.7.2") { because("to provide functionality for endpoint implementations") }
+                implementation("org.springframework.boot:spring-boot-autoconfigure:2.7.2")
+                implementation("org.springframework.cloud:spring-cloud-context:3.1.1") { because("BootstrapApplicationListener") }
+
+                implementation("org.springframework.boot:spring-boot-actuator:2.7.2") { because("LogFileWebEndpoint") }
+                implementation("org.springframework.boot:spring-boot-configuration-processor:2.7.2") { because("MetadataStore") }
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.spring.boot.starter.test) // output capturing
+
+                // TODO remove
+                implementation("io.strikt:strikt-core:0.34.1") { because("assertion lib") }
+                implementation("io.strikt:strikt-jvm:0.34.1") { because("JVM specified assertion lib") }
+            }
+        }
+    }
 }
-
-dependencies {
-    api(project(":logback-logging"))
-
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.springframework.boot:spring-boot-autoconfigure")
-    implementation("org.springframework.cloud:spring-cloud-context:3.1.1") { because("BootstrapApplicationListener") }
-
-    implementation("org.springframework.boot:spring-boot-actuator") { because("LogFileWebEndpoint") }
-    implementation("org.springframework.boot:spring-boot-configuration-processor") { because("MetadataStore") }
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-    testImplementation(platform("org.junit:junit-bom:5.8.2"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
-    testImplementation("org.junit.platform:junit-platform-launcher")
-
-    testImplementation(platform("io.strikt:strikt-bom:0.34.1"))
-    testImplementation("io.strikt:strikt-core") { because("assertion lib") }
-    testImplementation("io.strikt:strikt-jvm") { because("JVM specified assertion lib") }
-}
+//
+//tasks {
+//    // makes sure an eventually existing additional-spring-configuration-metadata.json is copied to resources,
+//    // see https://docs.spring.io/spring-boot/docs/2.7.1/reference/html/configuration-metadata.html
+//    withType<KotlinCompile> { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
+//}

@@ -26,6 +26,7 @@ kotlin {
                 api(kotlin("test-junit5"))
                 api(libs.bundles.junit.jupiter)
                 implementation(libs.bundles.junit.platform)
+                implementation(project(":kommons-logging:kommons-logging-slf4j"))
             }
         }
         val jvmTest by getting

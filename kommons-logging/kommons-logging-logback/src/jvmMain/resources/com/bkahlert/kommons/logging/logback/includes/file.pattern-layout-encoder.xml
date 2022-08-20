@@ -1,0 +1,6 @@
+<!-- @formatter:off -->
+<encoder>
+    <pattern>${FILE_LOG_PATTERN}</pattern>
+    <charset>${FILE_LOG_CHARSET}</charset>
+</encoder>
+<!-- @formatter:off -->

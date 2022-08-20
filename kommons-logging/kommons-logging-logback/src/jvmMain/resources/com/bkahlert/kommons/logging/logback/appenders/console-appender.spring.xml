@@ -1,7 +1,0 @@
-<included>
-    ${includes["console-properties-spring"]}
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        ${includes["jansi"]}
-        ${includes["pattern-layout-encoder"]}
-    </appender>
-</included>

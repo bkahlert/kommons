@@ -1,6 +1,6 @@
-package com.bkahlert.logging.sample
+package com.bkahlert.kommons.sample
 
-import com.bkahlert.logging.autoconfigure.logback.Banners
+import com.bkahlert.kommons.autoconfigure.logback.Banners
 import com.fasterxml.jackson.core.JsonProcessingException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

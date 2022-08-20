@@ -1,21 +1,17 @@
 spring.application.name: "Demo"
 
 logging:
-  file.path: ${java.io.tmpdir}
+  console:
+    preset: spring
+  file:
+    preset: json
+    path: ${java.io.tmpdir}
   pattern:
     dateformat:
 
   #  config: classpath:logback-docker.xml
   level:
     app: trace
-    com.bkahlert.logging.demo.DemoSpringApplication: debug
+    com.bkahlert.kommons.demo.DemoSpringApplication: debug
 
 spring.banner.location: classpath:banner.txt
-
-kkb.logging.appenders:
-  console: plain
-  file: json
-
-logging:
-  console: spring
-  file: json
