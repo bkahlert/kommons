@@ -9,6 +9,7 @@
 ### Changed
 
 - Set `junit.jupiter.execution.parallel.config.dynamic.factor` to 2.
+- Display "PascalCaseNestedTests" as "pascal case nested tests".
 
 ### Deprecated
 

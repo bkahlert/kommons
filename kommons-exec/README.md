@@ -6,7 +6,7 @@
 
 ## Installation / Setup
 
-Kommons is hosted on GitHub with releases provided on Maven Central.
+This library is hosted on GitHub with releases provided on Maven Central.
 
 * **Gradle** `implementation("com.bkahlert.kommons:kommons-exec:2.0.0") { because("command line and shell script execution") }`
 

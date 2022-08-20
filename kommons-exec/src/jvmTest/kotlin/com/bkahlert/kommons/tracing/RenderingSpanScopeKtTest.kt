@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.tracing
 
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.test.CapturedOutput
 import com.bkahlert.kommons.test.SystemIOExclusive
 import com.bkahlert.kommons.test.junit.DisplayName
@@ -7,7 +8,6 @@ import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.text.ANSI.FilteringFormatter
 import com.bkahlert.kommons.text.ANSI.Text.Companion.ansi
 import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.tracing.TestSpanParameterResolver.Companion.registerAsTestSpan
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout
 import com.bkahlert.kommons.tracing.rendering.ColumnsLayout.Companion.columns
@@ -94,7 +94,8 @@ class RenderingSpanScopeKtTest {
                 fun `should trace`(displayName: DisplayName) {
                     val traceId = spanScope { runSpanning(displayName.composedDisplayName) { registerAsTestSpan(); TraceId.current } }
                     expectThat(traceId).isValid()
-                    traceId.spans.map { it.name }.shouldContainExactly("RenderingSpanScopeKtTest ➜ Tracing ➜ WithNoSpanScope ➜ NestedSpanning ➜ should trace")
+                    traceId.spans.map { it.name }
+                        .shouldContainExactly("RenderingSpanScopeKtTest ➜ tracing ➜ with no span scope ➜ nested spanning ➜ should trace")
                 }
 
                 @Test

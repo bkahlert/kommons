@@ -7,12 +7,14 @@ ktor = "1.6.3"
 logback-classic = "1.2.11"
 logstash-logback-encoder = "7.2"
 jvm = "1.8"
+jsr305 = "3.0.2"
 junit-jupiter = "5.9.0"
 junit-platform = "1.9.0"
 mordant = "2.0.0-beta7"
 nebula-release = "16.0.0"
 slf4j = "1.7.36"
-spring-boot = "2.7.2" # https://docs.spring.io/spring-boot/docs/2.7.2/
+spring-dependency-management = "1.0.13.RELEASE"
+spring-boot = "2.7.3" # https://docs.spring.io/spring-boot/docs/2.7.3/
 stdlib-js = "0.0.9"
 xregexp = "5.1.0"
 
@@ -33,6 +35,8 @@ logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-enc
 
 mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
 
+jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "jsr305" }
+
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
 
@@ -42,20 +46,17 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
-spring-boot = { module = "org.springframework.boot:spring-boot", version.ref = "spring-boot" }
-spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
+
 
 # Gradle plugins
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "kotlin" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
+spring-dependency-management-gradle-plugin = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management" }
+spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+
 
 [bundles]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
 junit-platform = ["junit-platform-commons", "junit-platform-launcher"]
-
-[plugins]
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-nebula-release = { id = "nebula.release", version.ref = "nebula-release" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
-dokka-versioning = { id = "org.jetbrains.dokka:versioning-plugin", version.ref = "kotlin" }

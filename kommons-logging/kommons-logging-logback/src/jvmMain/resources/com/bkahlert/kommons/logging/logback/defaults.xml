@@ -1,6 +1,6 @@
 <included>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <conversionRule conversionWord="clr" converterClass="com.bkahlert.kommons.logging.logback.ConsolePretendingColorConverter"/>
-    <property name="CONSOLE_LOG_PRESET" value="${CONSOLE_LOG_PRESET:-default}"/>
-    <property name="FILE_LOG_PRESET" value="${FILE_LOG_PRESET:-default}"/>
+    <property scope="context" name="CONSOLE_LOG_PRESET" value="${CONSOLE_LOG_PRESET:-default}"/>
+    <property scope="context" name="FILE_LOG_PRESET" value="${FILE_LOG_PRESET:-default}"/>
 </included>

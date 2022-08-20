@@ -1,0 +1,5 @@
+   ______   ______   __    __   ______  __       ______
+  /\  ___\ /\  __ \ /\ "-./  \ /\  == \/\ \     /\  ___\     ${AnsiStyle.UNDERLINE}${spring.application.name}${AnsiStyle.NORMAL} @ ${build.version}${AnsiStyle.NORMAL}
+  \ \___  \\ \  __ \\ \ \-./\ \\ \  _-/\ \ \____\ \  __\       ${AnsiColor.CYAN}${AnsiStyle.FAINT}${spring.profiles.active}${AnsiStyle.NORMAL}
+   \/\_____\\ \_\ \_\\ \_\ \ \_\\ \_\   \ \_____\\ \_____\
+    \/_____/ \/_/\/_/ \/_/  \/_/ \/_/    \/_____/ \/_____/   ${AnsiColor.BRIGHT_BLACK}${AnsiStyle.FAINT}Spring Boot @ ${spring-boot.version}${AnsiStyle.NORMAL}

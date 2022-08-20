@@ -29,7 +29,7 @@ Furthermore, there are some more [advanced features for the JVM platform](#jvm-f
 
 ## Installation / Setup
 
-Kommons Test is hosted on GitHub with releases provided on Maven Central.
+This library is hosted on GitHub with releases provided on Maven Central.
 
 * **Gradle** `testImplementation("com.bkahlert.kommons:kommons-test:2.0.0") { because("JUnit defaults, testAll, ...") }`
 * **Gradle** `implementation("com.bkahlert.kommons:kommons-test:2.0.0") { because("JUnit defaults, testAll, ...") }` *(for MPP projects)*

@@ -1,8 +1,0 @@
-<included>
-    ${includes["file.minimal-preset-properties"]}
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        ${includes["file.pattern-layout-encoder"]}
-        <file>\${LOG_FILE}</file>
-        ${includes["rolling-policy"]}
-    </appender>
-</included>

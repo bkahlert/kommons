@@ -33,6 +33,7 @@ import java.nio.file.NotDirectoryException
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.PathMatcher
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption.CREATE
 import java.nio.file.StandardOpenOption.READ
 import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
@@ -69,6 +70,12 @@ import kotlin.streams.asSequence
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+/** Returns this character sequence as a [Path] or `null` otherwise. */
+public fun CharSequence.toPathOrNull(): Path? = kotlin.runCatching { toPath() }.getOrNull()
+
+/** Returns this string as a [Path] or `null` otherwise. */
+public fun String.toPathOrNull(): Path? = kotlin.runCatching { toPath() }.getOrNull()
+
 /** Returns this URL as a [Path] or `null` otherwise. */
 public fun URL.toPathOrNull(): Path? = kotlin.runCatching { toPath() }.getOrNull()
 
@@ -78,9 +85,21 @@ public fun URI.toPathOrNull(): Path? = kotlin.runCatching { toPath() }.getOrNull
 /** Returns this file as a [Path] or `null` otherwise. */
 public fun File.toPathOrNull(): Path? = kotlin.runCatching { toPath() }.getOrNull()
 
+/** Returns this character sequence as a [Path] or throws an exception otherwise. */
+public fun CharSequence.toPath(): Path = toString().toPath()
+
+/** Returns this string as a [Path] or throws an exception otherwise. */
+public fun String.toPath(): Path = Paths.get(this)
+
 /** Returns this URL as a [Path] or throws an exception otherwise. */
 public fun URL.toPath(): Path = toURI().toPath()
 
+
+/** Returns this character sequence as a [File] or `null` otherwise. */
+public fun CharSequence.toFileOrNull(): File? = kotlin.runCatching { toFile() }.getOrNull()
+
+/** Returns this string as a [File] or `null` otherwise. */
+public fun String.toFileOrNull(): File? = kotlin.runCatching { toFile() }.getOrNull()
 
 /** Returns this URL as a [File] or `null` otherwise. */
 public fun URL.toFileOrNull(): File? = kotlin.runCatching { toFile() }.getOrNull()
@@ -90,6 +109,12 @@ public fun URI.toFileOrNull(): File? = kotlin.runCatching { toFile() }.getOrNull
 
 /** Returns this path as a [File] or `null` otherwise. */
 public fun Path.toFileOrNull(): File? = kotlin.runCatching { toFile() }.getOrNull()
+
+/** Returns this character sequence as a [File] or throws an exception otherwise. */
+public fun CharSequence.toFile(): File = toString().toFile()
+
+/** Returns this string as a [File] or throws an exception otherwise. */
+public fun String.toFile(): File = File(this)
 
 /** Returns this URL as a [File] or throws an exception otherwise. */
 public fun URL.toFile(): File = toPath().toFile()

@@ -6,9 +6,9 @@
 
 ## Installation / setup
 
-Kommons Debug is hosted on GitHub with releases provided on Maven Central.
+This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-io:2.0.0") { because("print pathging") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-io:2.0.0") { because("print debugging") }`
 
 * **Maven**
   ```xml

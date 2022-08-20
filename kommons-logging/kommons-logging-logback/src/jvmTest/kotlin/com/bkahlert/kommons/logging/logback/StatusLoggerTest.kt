@@ -7,8 +7,10 @@ import com.bkahlert.kommons.test.spring.Captured
 import com.bkahlert.kommons.test.testAll
 import io.kotest.matchers.string.shouldMatch
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Isolated
 import org.springframework.boot.test.system.CapturedOutput
 
+@Isolated
 class StatusLoggerTest {
 
     @LogbackConfiguration(debug = true)

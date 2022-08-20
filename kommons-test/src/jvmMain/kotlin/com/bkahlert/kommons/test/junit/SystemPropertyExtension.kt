@@ -14,11 +14,8 @@ import org.junit.platform.commons.support.AnnotationSupport
 import java.lang.annotation.Repeatable
 
 /**
- * This extension allows to set/override system properties for the scope of a single test.
- *
- * The system properties can be specified using the [SystemProperty] annotation — one per property.
- *
- * The previous state will be restored after the test finished.
+ * A JUnit extension to set system properties for the scope of a test container or test.
+ * @see SystemProperty
  */
 public class SystemPropertyExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback {
 
@@ -62,7 +59,7 @@ public class SystemPropertyExtension : BeforeAllCallback, AfterAllCallback, Befo
 
 
 /**
- * Use this annotation to set a proper system property for the scope
+ * Sets a proper system property for the scope
  * of the annotated test class or method.
  */
 @ResourceLock(Resources.SYSTEM_PROPERTIES, mode = READ_WRITE)

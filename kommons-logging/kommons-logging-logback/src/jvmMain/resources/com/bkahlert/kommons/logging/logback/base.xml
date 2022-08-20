@@ -1,8 +1,10 @@
 <included>
     <include resource="com/bkahlert/kommons/logging/logback/defaults.xml"/>
+    <define name="CONSOLE_APPENDER_CONFIG" class="com.bkahlert.kommons.logging.logback.ConsoleAppenderConfigPropertyDefiner"/>
+    <define name="FILE_APPENDER_CONFIG" class="com.bkahlert.kommons.logging.logback.FileAppenderConfigPropertyDefiner"/>
     <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/kommons.log}"/>
-    <include resource="com/bkahlert/kommons/logging/logback/appenders/console.${CONSOLE_LOG_PRESET}-preset.xml"/>
-    <include resource="com/bkahlert/kommons/logging/logback/appenders/file.${FILE_LOG_PRESET}-preset.xml"/>
+    <include resource="${CONSOLE_APPENDER_CONFIG}"/>
+    <include resource="${FILE_APPENDER_CONFIG}"/>
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>

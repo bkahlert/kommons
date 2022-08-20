@@ -1,0 +1,11 @@
+# PostEnvironmentLogConfigurer loads config file right after Spring's environment configuration ...
+logging:
+  group: # default groups
+    tomcat: org.apache.catalina, org.apache.coyote, org.apache.tomcat
+  level: # default log levels
+    tomcat: WARN                        # applies to the group 'tomcat'
+    sql: WARN                           # applies to the Spring pre-defined group 'sql'
+    web: INFO                           # applies to the Spring pre-defined group 'web'
+    app: INFO                           # applies to the custom group 'app'
+
+spring-cloud.version: '@spring-cloud-dependencies.version@'

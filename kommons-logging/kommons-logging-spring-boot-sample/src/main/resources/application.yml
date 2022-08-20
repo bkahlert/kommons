@@ -1,0 +1,10 @@
+spring:
+  application.name: "Sample App"
+#  banner.location: classpath:banner.txt
+
+logging:
+  preset:
+    console: json
+    file: json
+  level:
+    com.bkahlert.kommons.logging.sample: trace

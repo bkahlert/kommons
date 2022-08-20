@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.test.junit
 
-import com.bkahlert.kommons.test.SLF4J
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.displayNameFor
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.function.Executable

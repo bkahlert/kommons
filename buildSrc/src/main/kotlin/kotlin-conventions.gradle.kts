@@ -13,14 +13,6 @@ repositories {
     gradlePluginPortal() // tvOS builds need to be able to fetch a kotlin gradle plugin
 }
 
-tasks.withType<Test>() {
-    useJUnitPlatform()
-
-    filter {
-        isFailOnNoMatchingTests = false
-    }
-}
-
 kotlin {
     explicitApi()
 
@@ -40,5 +32,13 @@ kotlin {
                 optIn("kotlin.experimental.ExperimentalTypeInference")
             }
         }
+    }
+}
+
+tasks.withType<Test>() {
+    useJUnitPlatform()
+
+    filter {
+        isFailOnNoMatchingTests = false
     }
 }
