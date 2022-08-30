@@ -73,13 +73,13 @@ fun PrintedLogEntry.shouldMatchCustomMinimalPreset(message: String = "message"):
 
 fun PrintedLogEntry.shouldMatchSpringPreset(message: String = "message"): PrintedLogEntry = this shouldMatch Regex(
     """
-    \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3} {2}INFO {3}--- \[.*] TestLogger + : $message with value
+    \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3} {2}INFO +\d* +--- \[.*] TestLogger + : $message with value
     """.trimIndent()
 )
 
 fun PrintedLogEntry.shouldMatchCustomSpringPreset(message: String = "message"): PrintedLogEntry = this shouldMatch Regex(
     """
-    \d{4}-\d{2}-\d{2} I {3}--- \[.*] TestLogger + : $message with value
+    \d{4}-\d{2}-\d{2} I +\d* +--- \[.*] TestLogger + : $message with value
     java\.lang\.RuntimeException: message
     \tat .*
     """.trimIndent()

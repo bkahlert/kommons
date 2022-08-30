@@ -1,15 +1,20 @@
 package com.bkahlert.kommons.logging.sample
 
-import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.SpringBootApplication
+import com.bkahlert.kommons.logging.core.SLF4J
+import com.bkahlert.kommons.logging.sample.helloworld.HelloWorldConfiguration
+import org.springframework.boot.SpringBootConfiguration
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Import
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 
-@SpringBootApplication
+@SpringBootConfiguration(proxyBeanMethods = false)
+@EnableAutoConfiguration
+@Import(HelloWorldConfiguration::class)
 class SampleApplication {
 
-    private val logger = LoggerFactory.getLogger(SampleApplication::class.java)
+    private val logger by SLF4J
 
     @EventListener
     fun contextRefreshedEvent(event: ContextRefreshedEvent) {

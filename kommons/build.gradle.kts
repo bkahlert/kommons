@@ -13,6 +13,7 @@ kotlin {
                 api(project(":kommons-core"))
                 api(project(":kommons-debug"))
                 api(project(":kommons-io"))
+                api(project(":kommons-logging:kommons-logging-core"))
                 api(project(":kommons-text"))
             }
         }

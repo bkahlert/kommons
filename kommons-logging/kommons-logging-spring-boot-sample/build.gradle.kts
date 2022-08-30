@@ -5,19 +5,10 @@ plugins {
     id("io.spring.dependency-management")
     kotlin("jvm")
     kotlin("plugin.spring") version "1.7.10"
-
-    // TODO delete
-    kotlin("kapt")
+//    kotlin("kapt")
 }
 
-description = "Spring Boot Sample Application for Kommons Logging"
-
-// TODO delete
-configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
-    }
-}
+description = "Spring Boot sample application for Kommons Logging: Spring Boot"
 
 repositories {
     mavenCentral()
@@ -28,17 +19,14 @@ kotlin {
 }
 
 dependencies {
+    // implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:2.0.0")
     implementation(project(":kommons-logging:kommons-logging-spring-boot-starter"))
 
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
+//    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
-    // TODO delete
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    kapt("org.springframework.boot:spring-boot-configuration-processor")
-
+    // testImplementation("com.bkahlert.kommons:kommons-test:2.0.0")
     testImplementation(project(":kommons-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
@@ -49,12 +37,15 @@ tasks {
     }
 
     withType<Test> { useJUnitPlatform() }
-}
 
-
-// TODO delete
-tasks {
-    // makes sure an eventually existing additional-spring-configuration-metadata.json is copied to resources,
-    // see https://docs.spring.io/spring-boot/docs/2.7.1/reference/html/configuration-metadata.html
-    withType<KotlinCompile> { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
+    @Suppress("UnstableApiUsage")
+    withType<ProcessResources>().configureEach {
+        doLast {
+            copy {
+                from(layout.projectDirectory.file("src/main/resources/banner.txt"))
+                into(layout.buildDirectory.dir("resources/main"))
+                expand("project" to project)
+            }
+        }
+    }
 }

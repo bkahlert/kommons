@@ -8,21 +8,23 @@ import com.bkahlert.kommons.Program
 import com.bkahlert.kommons.logging.LoggingPreset
 import com.bkahlert.kommons.logging.LoggingSystemProperties
 
-
 /** Provides the config path for the CONSOLE log. */
 public class ConsoleAppenderConfigPropertyDefiner : ContextAware, PropertyDefiner by AppenderConfigPropertyDefiner(
     name = "console",
+    fallbackPreset = LoggingPreset.SPRING,
     valueProvider = { it?.getProperty(LoggingSystemProperties.CONSOLE_LOG_PRESET) },
 )
 
 /** Provides the config path for the FILE log. */
 public class FileAppenderConfigPropertyDefiner : ContextAware, PropertyDefiner by AppenderConfigPropertyDefiner(
     name = "file",
+    fallbackPreset = LoggingPreset.OFF,
     valueProvider = { it?.getProperty(LoggingSystemProperties.FILE_LOG_PRESET) },
 )
 
 private class AppenderConfigPropertyDefiner(
     val name: String,
+    val fallbackPreset: LoggingPreset,
     val valueProvider: (Context?) -> String?,
 ) : PropertyDefinerBase() {
     private val preset: LoggingPreset
@@ -30,7 +32,7 @@ private class AppenderConfigPropertyDefiner(
             val value = valueProvider(context)
 
             StatusLogger.info<AppenderConfigPropertyDefiner>("Resolving preset for value: $value")
-            val preset = LoggingPreset.valueOfOrDefault(value)
+            val preset = LoggingPreset.valueOfOrNull(value) ?: fallbackPreset
             StatusLogger.info<AppenderConfigPropertyDefiner>("Using preset $preset for $name log.")
 
             return preset

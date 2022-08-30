@@ -87,8 +87,8 @@ class LogbackConfigurationExtension : ParameterResolver, BeforeEachCallback, Aft
 @ExtendWith(LogbackConfigurationExtension::class)
 @MustBeDocumented
 annotation class LogbackConfiguration(
-    val console: LoggingPreset = LoggingPreset.DEFAULT,
-    val file: LoggingPreset = LoggingPreset.DEFAULT,
+    val console: LoggingPreset = LoggingPreset.SPRING,
+    val file: LoggingPreset = LoggingPreset.OFF,
     val debug: Boolean = false,
 )
 

@@ -2,11 +2,7 @@ package com.bkahlert.kommons.test.spring
 
 import com.bkahlert.kommons.io.toPath
 import com.bkahlert.kommons.logging.LoggingPreset
-import com.bkahlert.kommons.logging.spring.Banners.SPRING_MAIN_BANNER_MODE
 import com.bkahlert.kommons.logging.spring.LoggingProperties
-import com.bkahlert.kommons.logging.spring.SpringCloudDetection
-import com.bkahlert.kommons.text.takeUnlessEmpty
-import org.springframework.boot.Banner
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -43,13 +39,19 @@ class SpringPropertiesScope(
     var actuatorEndpoints: List<String>
         get() = map["management.endpoints.web.exposure.include"]?.toString()?.split(",")?.map { it.trim() } ?: emptyList()
         set(value) {
-            map["management.endpoints.web.exposure.include"] = "*" // TODO value.joinToString(",")
+            map["management.endpoints.web.exposure.include"] = value.joinToString(",")
         }
 
-    var springCloudBootstrap: Boolean?
-        get() = map[SpringCloudDetection.SPRING_CLOUD_BOOTSTRAP_ENABLED]?.toString()?.toBoolean()
-        set(value) {
-            map[SpringCloudDetection.SPRING_CLOUD_BOOTSTRAP_ENABLED] = value.toString()
+    var consoleLogPreset: LoggingPreset?
+        get() = map[LoggingProperties.CONSOLE_LOG_PRESET_PROPERTY]?.toString()?.let { LoggingPreset.valueOfOrNull(it) }
+        set(preset) {
+            map[LoggingProperties.CONSOLE_LOG_PRESET_PROPERTY] = preset?.value
+        }
+
+    var fileLogPreset: LoggingPreset?
+        get() = map[LoggingProperties.FILE_LOG_PRESET_PROPERTY]?.toString()?.let { LoggingPreset.valueOfOrNull(it) }
+        set(preset) {
+            map[LoggingProperties.FILE_LOG_PRESET_PROPERTY] = preset?.value
         }
 
     /** The [LogFile.FILE_NAME_PROPERTY], that is, the directory holding the log. */
@@ -64,24 +66,6 @@ class SpringPropertiesScope(
         get() = map[LogFile.FILE_PATH_PROPERTY]?.toString()?.toPath()
         set(value) {
             map[LogFile.FILE_PATH_PROPERTY] = value?.pathString
-        }
-
-    var bannerMode: Banner.Mode?
-        get() = map[SPRING_MAIN_BANNER_MODE]?.toString()?.takeUnlessEmpty()?.let { Banner.Mode.valueOf(it) }
-        set(value) {
-            map[SPRING_MAIN_BANNER_MODE] = value?.name
-        }
-
-    var consoleLogPreset: LoggingPreset?
-        get() = map[LoggingProperties.CONSOLE_LOG_PRESET_PROPERTY]?.toString()?.let { LoggingPreset.valueOfOrDefault(it) }
-        set(preset) {
-            map[LoggingProperties.CONSOLE_LOG_PRESET_PROPERTY] = preset?.value
-        }
-
-    var fileLogPreset: LoggingPreset?
-        get() = map[LoggingProperties.FILE_LOG_PRESET_PROPERTY]?.toString()?.let { LoggingPreset.valueOfOrDefault(it) }
-        set(preset) {
-            map[LoggingProperties.FILE_LOG_PRESET_PROPERTY] = preset?.value
         }
 }
 
@@ -119,3 +103,11 @@ inline fun <reified T> ApplicationContextRunner.withAutoConfiguration(): Applica
 /** Registers the specified user configuration [T] as a [AutoConfiguration] with the [ApplicationContext]. */
 inline fun <reified T> ApplicationContextRunner.withUserConfiguration(): ApplicationContextRunner =
     withUserConfiguration(T::class.java)
+
+/**
+ * Adds the specified system properties before the
+ * context is [run] and restores them when the context is
+ * closed.
+ */
+fun ApplicationContextRunner.withSystemProperties(vararg properties: Pair<String, String>): ApplicationContextRunner =
+    withSystemProperties(*properties.map { (key, value) -> "$key=$value" }.toTypedArray())

@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.logging.spring
 
 import com.bkahlert.kommons.logging.LoggingPreset
+import com.bkahlert.kommons.logging.core.SLF4J
 import com.bkahlert.kommons.logging.logback.Logback
 import com.bkahlert.kommons.logging.logback.StructuredArguments.e
 import com.bkahlert.kommons.logging.spring.LoggingProperties.Companion
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -19,10 +19,10 @@ public data class LoggingProperties(
     public val preset: PresetProperties = PresetProperties(),
 ) : InitializingBean {
 
-    private val logger = LoggerFactory.getLogger(LoggingProperties::class.java)
+    private val logger by SLF4J
 
     public override fun afterPropertiesSet() {
-        logger.info("Configured Logback: {}", e(Logback.properties))
+        logger.debug("Logback configuration: {}", e(Logback.properties))
     }
 
     /**
@@ -32,12 +32,12 @@ public data class LoggingProperties(
         /**
          * Preset to use for the CONSOLE log.
          */
-        public val console: LoggingPreset = LoggingPreset.DEFAULT,
+        public val console: LoggingPreset? = null,
 
         /**
          * Preset to use for the FILE log.
          */
-        public val file: LoggingPreset = LoggingPreset.DEFAULT,
+        public val file: LoggingPreset? = null,
     )
 
     public companion object {

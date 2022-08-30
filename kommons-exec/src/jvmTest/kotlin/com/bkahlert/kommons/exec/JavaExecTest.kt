@@ -1,8 +1,7 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.io.createTempFile
-import com.bkahlert.kommons.io.delete
+import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.exec.IO.Error
 import com.bkahlert.kommons.exec.IO.Input
 import com.bkahlert.kommons.exec.IO.Meta
@@ -14,19 +13,19 @@ import com.bkahlert.kommons.exec.Process.State.Exited
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
 import com.bkahlert.kommons.exec.Process.State.Running
+import com.bkahlert.kommons.io.createTempFile
+import com.bkahlert.kommons.io.delete
 import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.runtime.wait
 import com.bkahlert.kommons.shell.ShellScript
 import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.Smoke
 import com.bkahlert.kommons.test.junit.SimpleId
-import com.bkahlert.kommons.test.rootCause
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.toStringContainsAll
 import com.bkahlert.kommons.test.withTempDir
 import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.text.lines
 import com.bkahlert.kommons.text.matchesGlob
 import com.bkahlert.kommons.text.removeAnsi
@@ -617,16 +616,6 @@ fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, io: Collection
         }
     }
 
-fun Builder<List<IO>>.logsWithin(timeFrame: Duration = 5.seconds, predicate: List<IO>.() -> Boolean) =
-    assert("logs within $timeFrame") { ioLog ->
-        when (poll {
-            ioLog.toList().predicate()
-        }.every(100.milliseconds).forAtMost(5.seconds)) {
-            true -> pass()
-            else -> fail("did not log within $timeFrame")
-        }
-    }
-
 inline val <reified T : Process> Builder<T>.stopped: Builder<T>
     get() = get("with stop() called") { stop() }.isA()
 
@@ -673,9 +662,6 @@ inline val Builder<out Failed>.dump: Builder<String?>
 
 inline val Builder<out Excepted>.exception: Builder<Throwable?>
     get(): Builder<Throwable?> = get("exception") { exception }
-
-inline val Builder<out Excepted>.rootCause: Builder<Throwable?>
-    get(): Builder<Throwable?> = get("root cause") { exception?.rootCause }
 
 
 fun Builder<out ExitState>.io() =

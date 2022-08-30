@@ -19,7 +19,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
 
 To use a module separately, see the corresponding instructions linked above.
 
-The following dependency can be added to add the core, debug, logging, and text module:
+The following dependency can be added to add the `core`, `debug`, `io`, `logging-core`, and `text` module:
 
 * **Gradle** `implementation("com.bkahlert.kommons:kommons:2.0.0")
 

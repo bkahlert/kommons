@@ -4,7 +4,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.provider.Provider
 
-fun DependencySet.add(element: Provider<MinimalExternalModuleDependency>): Boolean = add(element.get())
+fun DependencySet.add(element: Provider<out MinimalExternalModuleDependency>): Boolean = add(element.get())
 fun DependencySet.add(element: MinimalExternalModuleDependency): Boolean = add(element.toDependency())
 
 fun MinimalExternalModuleDependency.toDependency(): Dependency =
@@ -12,4 +12,4 @@ fun MinimalExternalModuleDependency.toDependency(): Dependency =
         module.group,
         module.name,
         versionConstraint.preferredVersion
-    ).also { println(it) }
+    )

@@ -5,7 +5,7 @@ import ch.qos.logback.core.status.ErrorStatus
 import ch.qos.logback.core.status.InfoStatus
 import ch.qos.logback.core.status.Status
 import ch.qos.logback.core.status.WarnStatus
-import com.bkahlert.kommons.logging.slf4j.SLF4J
+import com.bkahlert.kommons.logging.core.SLF4J
 
 /** Logger for status messages related to [Logback]. */
 public object StatusLogger {

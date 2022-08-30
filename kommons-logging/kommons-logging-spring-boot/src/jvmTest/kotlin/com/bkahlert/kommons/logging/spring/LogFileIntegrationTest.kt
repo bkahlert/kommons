@@ -2,7 +2,6 @@
 
 package com.bkahlert.kommons.logging.spring
 
-import com.bkahlert.kommons.logging.LoggingPreset
 import com.bkahlert.kommons.logging.LoggingPreset.OFF
 import com.bkahlert.kommons.logging.LoggingPreset.SPRING
 import com.bkahlert.kommons.logging.logback.Logback
@@ -40,7 +39,7 @@ class LogFileIntegrationTest {
         get() = SpringApplicationBuilder(TestConfig::class.java).properties {
             actuatorEndpoints = actuatorEndpoints + "logfile"
             port = 0
-            consoleLogPreset = LoggingPreset.OFF
+            consoleLogPreset = OFF
         }
 
     @Nested inner class FileLoggingEnabled {
@@ -50,7 +49,7 @@ class LogFileIntegrationTest {
             provider: LogFileProvider,
             @TempDir tempDir: Path,
         ) {
-            val logFile = tempDir / "test2.log"
+            val logFile = tempDir / "test.log"
             springApplicationBuilder.properties {
                 fileLogPreset = SPRING
                 this.logFile = logFile

@@ -2,8 +2,8 @@
 
 ## About
 
-**Kommons Logging: Logback** is a Kotlin Library for configuring [Logback](https://logback.qos.ch/) with nothing but system properties, and provides support for
-JSON.
+**Kommons Logging: Logback** is a Kotlin Library for configuring [Logback](https://logback.qos.ch/) with
+nothing but system properties, and provides support for JSON.
 
 ## Installation / setup
 
@@ -22,11 +22,25 @@ This library is hosted on GitHub with releases provided on Maven Central.
 
 ## Features
 
-### Logging Presets
+You can configure logging to the console and to a file using system properties.
 
-Logging can be configured based on presets. The following exist:
+The following example invokes `java` with the system properties
 
-#### spring
+- `CONSOLE_LOG_PRESET` set to `spring`, and
+- `FILE_LOG_PRESET` set to `json`:
+
+```shell
+java -DCONSOLE_LOG_PRESET=spring -DFILE_LOG_PRESET=json
+```
+
+Those settings make your application
+
+- log to the console the way [Spring Boot](https://spring.io/projects/spring-boot/) does, and
+- log to a file using the JSON format.
+
+You can choose from the following presets:
+
+### Spring Preset: `spring`
 
 Configures the log to use the default Spring Boot logging settings:
 
@@ -34,7 +48,9 @@ Configures the log to use the default Spring Boot logging settings:
 2022-08-29 00:08:52.917  INFO   --- [ool-1-worker-18] TestLogger                               : message
 ```
 
-#### minimal
+This is the default preset for **console logging**.
+
+### Minimal Preset: `minimal`
 
 Configures the log to only include the time, log level, logger, and message:
 
@@ -42,9 +58,9 @@ Configures the log to only include the time, log level, logger, and message:
 08:52.917  INFO TestLogger                     : message
 ```
 
-#### json
+### JSON Preset: `json`
 
-Configures the log to log using the JSON format:
+Configures the log to use the JSON format:
 
 ```json
 {
@@ -58,27 +74,16 @@ Configures the log to log using the JSON format:
 }
 ```
 
-#### off
+### Off Preset: `off`
 
-Configures the log to not log at all.
+The `off` preset turns off logging.
 
-#### default
+This is the default preset for **file logging**.  
+To enable file logging, `FILE_LOGGING_PRESET` needs to be set to:
 
-Explicitly configures the log to use default logging settings,
-see [Console Logging](#console-logging) and [File Logging](#file-logging).
-
-### Console Logging
-
-Logging to the console is enabled by default and uses the [spring preset](#spring)—though you **don't need Spring** to use it.
-
-To use a different preset, start your application with the system property `CONSOLE_LOG_PRESET` set to an [available preset](#logging-presets),
-e.g. [minimal](#minimal).
-
-### File Logging
-
-Logging to a file is turned off by default.
-
-To use a file logging, start your application with the system property `FILE_LOG_PRESET` set to an [available preset](#logging-presets), e.g. [json](#json).
+- `spring`,
+- `minimal`, or
+- `json`.
 
 You can set the following system properties to customize file logging:
 

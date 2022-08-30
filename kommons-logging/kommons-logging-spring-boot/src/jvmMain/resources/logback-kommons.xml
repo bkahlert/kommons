@@ -1,0 +1,8 @@
+<configuration scan="false" debug="false">
+    <property name="CONSOLE_LOG_PRESET_INIT" value="${CONSOLE_LOG_PRESET}"/>
+    <property name="FILE_LOG_PRESET_INIT" value="${FILE_LOG_PRESET}"/>
+    <springProperty scope="context" name="CONSOLE_LOG_PRESET" source="logging.preset.console" defaultValue="${CONSOLE_LOG_PRESET_INIT}"/>
+    <springProperty scope="context" name="FILE_LOG_PRESET" source="logging.preset.file" defaultValue="${FILE_LOG_PRESET_INIT}"/>
+
+    <include resource="com/bkahlert/kommons/logging/logback/base.xml"/>
+</configuration>

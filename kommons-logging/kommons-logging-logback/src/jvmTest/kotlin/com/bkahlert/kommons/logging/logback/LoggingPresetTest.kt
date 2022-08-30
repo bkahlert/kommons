@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.logging.logback
 
 import com.bkahlert.kommons.SystemLocations
-import com.bkahlert.kommons.logging.DEFAULT_PRESET_VALUE
 import com.bkahlert.kommons.logging.JSON_PRESET_VALUE
 import com.bkahlert.kommons.logging.LoggingPreset
 import com.bkahlert.kommons.logging.LoggingSystemProperties.CONSOLE_LOG_PRESET
@@ -15,7 +14,6 @@ import com.bkahlert.kommons.test.logging.lastLog
 import com.bkahlert.kommons.test.logging.logRandomInfo
 import com.bkahlert.kommons.test.logging.logRandomInfoWithException
 import com.bkahlert.kommons.test.logging.logback.LogFile
-import com.bkahlert.kommons.test.logging.logback.LogbackConfiguration
 import com.bkahlert.kommons.test.logging.shouldMatchCustomMinimalPreset
 import com.bkahlert.kommons.test.logging.shouldMatchCustomSpringPreset
 import com.bkahlert.kommons.test.logging.shouldMatchJsonPreset
@@ -55,36 +53,18 @@ class LoggingPresetTest {
         SystemLocations.Temp.resolve(CUSTOM_LOG_FILE_NAME).deleteIfExists()
     }
 
-    @Test fun value_of_or_default() = testAll {
+    @Test fun value_of_or_null() = testAll {
         LoggingPreset.values().forAll {
-            LoggingPreset.valueOfOrDefault(it.name) shouldBe it
-            LoggingPreset.valueOfOrDefault(it.name.uppercase()) shouldBe it
-            LoggingPreset.valueOfOrDefault(it.name.lowercase()) shouldBe it
+            LoggingPreset.valueOfOrNull(it.name) shouldBe it
+            LoggingPreset.valueOfOrNull(it.name.uppercase()) shouldBe it
+            LoggingPreset.valueOfOrNull(it.name.lowercase()) shouldBe it
         }
-        LoggingPreset.valueOfOrDefault("illegal") shouldBe LoggingPreset.DEFAULT
-        LoggingPreset.valueOfOrDefault(null) shouldBe LoggingPreset.DEFAULT
+        LoggingPreset.valueOfOrNull("illegal") shouldBe null
+        LoggingPreset.valueOfOrNull(null) shouldBe null
     }
 
     @SystemProperty(FILE_LOG_PRESET, OFF_PRESET_VALUE)
     @Nested inner class ConsoleLogProperties {
-
-        @SystemProperty(CONSOLE_LOG_PRESET, DEFAULT_PRESET_VALUE)
-        @Nested inner class UsingDefaultPreset {
-
-            @Test fun default(@Captured output: CapturedOutput) {
-                val randomMessage = logRandomInfo()
-                output.lastLog.shouldMatchSpringPreset(message = randomMessage)
-            }
-
-            @SystemProperty(LOG_DATEFORMAT_PATTERN, "yyyy-MM-dd")
-            @SystemProperty(LOG_LEVEL_PATTERN, "%.-1p")
-            @SystemProperty(EXCEPTION_CONVERSION_WORD, "%ex{short}")
-            @LogbackConfiguration
-            @Test fun custom(@Captured output: CapturedOutput) {
-                val randomMessage = logRandomInfoWithException()
-                output.lastLog.shouldMatchCustomSpringPreset(message = randomMessage)
-            }
-        }
 
         @SystemProperty(CONSOLE_LOG_PRESET, SPRING_PRESET_VALUE)
         @Nested inner class UsingSpringPreset {

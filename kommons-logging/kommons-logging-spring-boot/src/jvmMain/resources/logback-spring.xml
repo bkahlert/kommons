@@ -1,6 +1,0 @@
-<configuration scan="false" debug="false">
-    <springProperty scope="context" name="CONSOLE_LOG_PRESET" source="logging.preset.console"/>
-    <springProperty scope="context" name="FILE_LOG_PRESET" source="logging.preset.file"/>
-
-    <include resource="com/bkahlert/kommons/logging/logback/base.xml"/>
-</configuration>

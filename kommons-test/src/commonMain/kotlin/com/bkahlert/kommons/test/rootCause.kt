@@ -1,5 +1,6 @@
 package com.bkahlert.kommons.test
 
+import com.bkahlert.kommons.rootCause
 import io.kotest.assertions.print.print
 import io.kotest.matchers.ComparableMatcherResult
 import io.kotest.matchers.Matcher
@@ -7,19 +8,6 @@ import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.mpp.bestName
-
-/**
- * The root cause of this [Throwable], that is,
- * the throwable that was thrown the first.
- */
-public val Throwable.rootCause: Throwable
-    get() {
-        var rootCause: Throwable = this
-        while (rootCause.cause != null && rootCause.cause !== rootCause) {
-            rootCause = rootCause.cause ?: error("Must not happen.")
-        }
-        return rootCause
-    }
 
 public infix fun Throwable.shouldHaveRootCauseMessage(rootCauseMessage: String): Unit = this should haveRootCauseMessage(rootCauseMessage)
 public infix fun Throwable.shouldNotHaveRootCauseMessage(rootCauseMessage: String): Unit = this shouldNot haveRootCauseMessage(rootCauseMessage)

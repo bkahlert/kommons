@@ -15,7 +15,7 @@ import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
  * @see Timeout
  */
 @Timeout(1, unit = MINUTES)
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class OneMinuteTimeout
 
@@ -24,7 +24,7 @@ public annotation class OneMinuteTimeout
  * @see Timeout
  */
 @Timeout(2, unit = MINUTES)
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class TwoMinutesTimeout
 
@@ -33,7 +33,7 @@ public annotation class TwoMinutesTimeout
  * @see Timeout
  */
 @Timeout(5, unit = MINUTES)
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class FiveMinutesTimeout
 
@@ -42,7 +42,7 @@ public annotation class FiveMinutesTimeout
  * @see Timeout
  */
 @Timeout(10, unit = MINUTES)
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class TenMinutesTimeout
 
@@ -51,7 +51,7 @@ public annotation class TenMinutesTimeout
  * @see Timeout
  */
 @Timeout(15, unit = MINUTES)
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class FifteenMinutesTimeout
 
@@ -60,7 +60,7 @@ public annotation class FifteenMinutesTimeout
  * @see Timeout
  */
 @Timeout(30, unit = MINUTES)
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class ThirtyMinutesTimeout
 
@@ -70,6 +70,6 @@ public annotation class ThirtyMinutesTimeout
  */
 @TwoMinutesTimeout
 @Tag("slow")
-@Target(ANNOTATION_CLASS, FUNCTION, PROPERTY_GETTER, PROPERTY_SETTER, CLASS)
+@Target(ANNOTATION_CLASS, FUNCTION, CLASS)
 @Retention(RUNTIME)
 public annotation class Slow

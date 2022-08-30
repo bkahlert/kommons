@@ -8,9 +8,6 @@ public enum class LoggingPreset(
     public val value: String
 ) {
 
-    /** Explicitly configures the log to use default logging settings. */
-    DEFAULT(DEFAULT_PRESET_VALUE),
-
     /** Configures the log to use the default Spring Boot logging settings. */
     SPRING(SPRING_PRESET_VALUE),
 
@@ -23,7 +20,7 @@ public enum class LoggingPreset(
      */
     MINIMAL(MINIMAL_PRESET_VALUE),
 
-    /** Configures the log to log using the JSON format. */
+    /** Configures the log to use the JSON format. */
     JSON(JSON_PRESET_VALUE),
 
     /** Configures the log to not log at all. */
@@ -33,17 +30,14 @@ public enum class LoggingPreset(
     public companion object {
 
         /**
-         * Returns the [LoggingPreset] corresponding to the specified [name], or [LoggingPreset.DEFAULT] otherwise.
+         * Returns the [LoggingPreset] corresponding to the specified [name], or `null` otherwise.
          *
          * The [name] is compared ignoring the case.
          */
-        public fun valueOfOrDefault(name: String?): LoggingPreset =
-            firstEnumValueOfOrNull<LoggingPreset> { it.name.equals(name, ignoreCase = true) } ?: DEFAULT
+        public fun valueOfOrNull(name: String?): LoggingPreset? =
+            firstEnumValueOfOrNull<LoggingPreset> { it.name.equals(name, ignoreCase = true) }
     }
 }
-
-/** The value that represents [LoggingPreset.DEFAULT]. */
-public const val DEFAULT_PRESET_VALUE: String = "default"
 
 /** The value that represents [LoggingPreset.SPRING]. */
 public const val SPRING_PRESET_VALUE: String = "spring"

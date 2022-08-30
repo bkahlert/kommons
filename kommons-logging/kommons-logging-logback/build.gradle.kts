@@ -2,7 +2,7 @@ plugins {
     id("kommons-multiplatform-jvm-library-conventions")
 }
 
-description = "Kommons Logging Logback is a Kotlin Library to facilitate the configuration of Logback."
+description = "Kommons Logging Logback is a Kotlin Library for configuring Logback with nothing but system properties, and provides support for JSON"
 
 kotlin {
 
@@ -17,7 +17,7 @@ kotlin {
             dependencies {
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-io"))
-                implementation(project(":kommons-logging:kommons-logging-slf4j"))
+                implementation(project(":kommons-logging:kommons-logging-core"))
                 implementation("org.springframework.boot:spring-boot") { because("ColorConverter") }
                 api(libs.logback.classic)
                 api(libs.logstash.logback.encoder)

@@ -8,6 +8,9 @@ import ch.qos.logback.core.FileAppender
 import ch.qos.logback.core.OutputStreamAppender
 import ch.qos.logback.core.joran.spi.JoranException
 import ch.qos.logback.core.rolling.RollingFileAppender
+import ch.qos.logback.core.rolling.RollingPolicy
+import ch.qos.logback.core.rolling.RollingPolicyBase
+import ch.qos.logback.core.rolling.TriggeringPolicy
 import ch.qos.logback.core.util.StatusPrinter
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.io.toPath
@@ -19,6 +22,7 @@ import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.file.Path
 import java.util.concurrent.TimeoutException
+import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.seconds
 import org.springframework.boot.logging.LoggingSystemProperties as SpringLoggingSystemProperties
 
@@ -41,30 +45,52 @@ public object Logback {
 
     /** The properties of the [context]. */
     public val properties: Map<String, String?>
-        get() = buildMap {
-            putAll(context.copyOfPropertyMap)
-            put(SpringLoggingSystemProperties.LOG_FILE, activeLogFileName)
-        }
+        get() = context.copyOfPropertyMap
 
     /** The root logger. */
     public val rootLogger: Logger
         get() = LoggerFactory.getLogger(ROOT_LOGGER_NAME) as Logger
 
     /** The active log filename used by the [FileAppender]. */
-    public val activeLogFileName: String?
+    public var activeLogFileName: String?
         get() = fileAppender
             ?.let { (it as? RollingFileAppender) }
             ?.apply { flush() }
             ?.rollingPolicy
             ?.activeFileName
-            ?: context.getProperty(SpringLoggingSystemProperties.LOG_FILE)
+        set(value) {
+            if (activeLogFileName == value) return
+            fileAppender
+                ?.let { (it as? RollingFileAppender) }
+                ?.apply {
+                    stop()
+                    val triggeringPolicyBackup: TriggeringPolicy<*>? = triggeringPolicy.also { it.stop() }
+                    val rollingPolicyBackup: RollingPolicy? = rollingPolicy.also { it.stop() }
+                    if (rollingPolicyBackup is RollingPolicyBase) {
+                        val activeFileNameBackup: String? = rollingPolicyBackup.activeFileName
+                        val fileNamePatternBackup: String? = rollingPolicyBackup.fileNamePattern
+                        if (activeFileNameBackup != null && fileNamePatternBackup != null && value != null) {
+                            rollingPolicyBackup.fileNamePattern = fileNamePatternBackup.replace(activeFileNameBackup, value)
+                        }
+                    }
+                    triggeringPolicy = null
+                    rollingPolicy = null
+                    file = value
+                    triggeringPolicy = triggeringPolicyBackup.also { it?.start() }
+                    rollingPolicy = rollingPolicyBackup.also { it?.start() }
+                    start()
+                }
+        }
 
     /** The active log file used by the [FileAppender]. */
-    public val activeLogFile: Path?
+    public var activeLogFile: Path?
         get() = activeLogFileName?.toPath()
+        set(value) {
+            activeLogFileName = value?.pathString
+        }
 
     /** Returns the actual `FILE` [FileAppender]. */
-    private val fileAppender: FileAppender<*>?
+    public val fileAppender: FileAppender<*>?
         get() = rootLogger.getAppender("FILE") as? RollingFileAppender
 
     private fun OutputStreamAppender<*>.flush() {
