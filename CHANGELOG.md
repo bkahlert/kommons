@@ -4,7 +4,9 @@
 
 ### Added
 
-*none*
+- `Kommons Logging: Core`: get Logback or Kotlin Logger logger easily
+- `Kommons Logging: Logback`: configure logging using system properties `CONSOLE_LOG_PRESET` and `FILE_LOG_PRESET`
+- `Kommons Logging: Spring Boot`: configure logging using application properties `logging.preset.console` and `logging.preset.file`
 
 ### Changed
 
