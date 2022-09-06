@@ -1,0 +1,3 @@
+<!-- @formatter:off -->
+<property name="FILE_LOG_PATTERN" value="%d{mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} %-30.30logger{29} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+<!-- @formatter:off -->

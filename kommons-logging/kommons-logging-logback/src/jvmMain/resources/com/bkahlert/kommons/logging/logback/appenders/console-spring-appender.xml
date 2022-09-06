@@ -1,0 +1,5 @@
+<included>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        ${includes["console-pattern-layout-encoder"]}
+    </appender>
+</included>

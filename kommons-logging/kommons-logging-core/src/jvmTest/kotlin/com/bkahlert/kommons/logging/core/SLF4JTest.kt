@@ -1,5 +1,6 @@
-package com.bkahlert.kommons.test
+package com.bkahlert.kommons.logging.core
 
+import com.bkahlert.kommons.test.testAll
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

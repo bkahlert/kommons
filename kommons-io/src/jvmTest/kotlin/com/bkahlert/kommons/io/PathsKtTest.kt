@@ -16,8 +16,10 @@ import com.bkahlert.kommons.test.createTempJarFileSystem
 import com.bkahlert.kommons.test.fixtures.SvgImageFixture
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.test.toNewJarFileSystem
+import com.bkahlert.kommons.text.Unicode.NULL
 import com.bkahlert.kommons.toFileTime
 import io.kotest.assertions.asClue
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowUnit
 import io.kotest.matchers.collections.shouldContain
@@ -55,6 +57,7 @@ import java.nio.file.FileStore
 import java.nio.file.FileSystem
 import java.nio.file.FileSystemNotFoundException
 import java.nio.file.Files
+import java.nio.file.InvalidPathException
 import java.nio.file.LinkOption
 import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.NoSuchFileException
@@ -97,40 +100,56 @@ import kotlin.time.Duration.Companion.seconds
 class PathsKtTest {
 
     @Test fun to_path_or_null(@TempDir tempDir: Path) = testAll {
+        tempDir.pathString.cs.toPathOrNull()?.pathString shouldBe tempDir.pathString
+        tempDir.pathString.toPathOrNull()?.pathString shouldBe tempDir.pathString
         tempDir.toUri().toURL().toPathOrNull()?.pathString shouldBe tempDir.pathString
         tempDir.toUri().toPathOrNull()?.pathString shouldBe tempDir.pathString
         tempDir.toFile().toPathOrNull()?.pathString shouldBe tempDir.pathString
 
+        NULL.toString().cs.toPathOrNull() shouldBe null
+        NULL.toString().toPathOrNull() shouldBe null
         URL("https://example.com/path").toPathOrNull() shouldBe null
         URI("https://example.com/path").toPathOrNull() shouldBe null
         File("\u0000").toPathOrNull() shouldBe null
     }
 
     @Test fun to_path(@TempDir tempDir: Path) = testAll {
+        tempDir.pathString.cs.toPath().pathString shouldBe tempDir.pathString
+        tempDir.pathString.toPath().pathString shouldBe tempDir.pathString
         tempDir.toUri().toURL().toPath().pathString shouldBe tempDir.pathString
         tempDir.toUri().toPath().pathString shouldBe tempDir.pathString
         tempDir.toFile().toPath().pathString shouldBe tempDir.pathString
 
+        shouldThrow<InvalidPathException> { NULL.toString().cs.toPath() }
+        shouldThrow<InvalidPathException> { NULL.toString().toPath() }
         shouldThrow<FileSystemNotFoundException> { URL("https://example.com/path").toPath() }
         shouldThrow<FileSystemNotFoundException> { URI("https://example.com/path").toPath() }
         shouldThrow<IllegalArgumentException> { File("\u0000").toPath() }
     }
 
     @Test fun to_file_or_null(@TempDir tempDir: File) = testAll {
+        tempDir.path.cs.toFileOrNull()?.path shouldBe tempDir.path
+        tempDir.path.toFileOrNull()?.path shouldBe tempDir.path
         tempDir.toPath().toUri().toURL().toFileOrNull()?.path shouldBe tempDir.path
         tempDir.toPath().toUri().toFileOrNull()?.path shouldBe tempDir.path
         tempDir.toPath().toFileOrNull()?.path shouldBe tempDir.path
 
+        shouldNotThrowAny { "$NULL".cs.toFileOrNull() }
+        shouldNotThrowAny { "$NULL".toFileOrNull() }
         URL("https://example.com/path").toFileOrNull() shouldBe null
         tempDir.toPath().createJarAndResolve().toUri().toFileOrNull() shouldBe null
         tempDir.toPath().createJarAndResolve().toFileOrNull() shouldBe null
     }
 
     @Test fun to_file(@TempDir tempDir: File) = testAll {
+        tempDir.path.cs.toFile().path shouldBe tempDir.path
+        tempDir.path.toFile().path shouldBe tempDir.path
         tempDir.toPath().toUri().toURL().toFile().path shouldBe tempDir.path
         tempDir.toPath().toUri().toFile().path shouldBe tempDir.path
         tempDir.toPath().toFile().path shouldBe tempDir.path
 
+        // NULL.toString().cs.toFile() // does not even throw
+        // NULL.toString().toFile() // does not even throw
         shouldThrow<FileSystemNotFoundException> { URL("https://example.com/path").toFile() }
         shouldThrow<UnsupportedOperationException> { tempDir.toPath().createJarAndResolve().toUri().toFile() }
         shouldThrow<UnsupportedOperationException> { tempDir.toPath().createJarAndResolve().toFile() }
@@ -903,3 +922,5 @@ internal object UnsupportedPath : Path {
     override fun register(watcher: WatchService, vararg events: Kind<*>): WatchKey = throw UnsupportedOperationException()
     override fun register(watcher: WatchService, events: Array<out Kind<*>>, vararg modifiers: Modifier?): WatchKey = throw UnsupportedOperationException()
 }
+
+private val String.cs: CharSequence get() = StringBuilder(this)

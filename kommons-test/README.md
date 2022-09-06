@@ -29,7 +29,7 @@ Furthermore, there are some more [advanced features for the JVM platform](#jvm-f
 
 ## Installation / Setup
 
-Kommons Test is hosted on GitHub with releases provided on Maven Central.
+This library is hosted on GitHub with releases provided on Maven Central.
 
 * **Gradle** `testImplementation("com.bkahlert.kommons:kommons-test:2.0.0") { because("JUnit defaults, testAll, ...") }`
 * **Gradle** `implementation("com.bkahlert.kommons:kommons-test:2.0.0") { because("JUnit defaults, testAll, ...") }` *(for MPP projects)*
@@ -287,9 +287,11 @@ This library comes with a `junit-platform.properties` and the following settings
 ```properties
 # concise test names with no parameter list
 junit.jupiter.displayname.generator.default=\
-  com.bkahlert.kommons.test.junit.MethodNameOnlyDisplayNameGenerator
-# default 10-seconds timeout for each test
-junit.jupiter.execution.timeout.default=10 s
+  com.bkahlert.kommons.test.junit.KommonsTestDisplayNameGenerator
+# default 10-seconds timeout for all tests
+junit.jupiter.execution.timeout.testable.method.default=10 s
+# default 30-seconds timeout for all lifecycle methods
+junit.jupiter.execution.timeout.lifecycle.method.default=30 s
 # disable timeout when debugging
 junit.jupiter.execution.timeout.mode=disabled_on_debug
 # run top-level test containers in parallel

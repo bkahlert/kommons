@@ -1,0 +1,20 @@
+spring:
+  application.name: "Sample App"
+
+management:
+  endpoints:
+    web:
+      exposure.include: '*'
+      cors.allowed-origins: '*'
+  endpoint:
+    shutdown.enabled: true
+
+hello-world:
+  greeting: "Hey"
+
+logging:
+  preset:
+    console: off
+    file: json
+  level:
+    com.bkahlert.kommons.logging.sample: debug

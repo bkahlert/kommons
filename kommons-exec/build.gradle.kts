@@ -1,7 +1,10 @@
-description = "Kommons Exec is a Kotlin Multiplatform Library to execute command lines and shell scripts—locally or in a Docker Container"
+plugins {
+    id("kommons-multiplatform-jvm-library-conventions")
+}
+
+description = "Kommons Exec is a Kotlin Library to execute command lines and shell scripts—locally or in a Docker Container."
 
 kotlin {
-    explicitApi()
 
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
@@ -81,23 +84,10 @@ kotlin {
                     because("needed to launch the JUnit Platform Console program")
                 }
 
-                // TODO get rid off
+                // TODO remove
                 implementation("io.strikt:strikt-core:0.30.1")
                 implementation("io.strikt:strikt-jvm:0.30.1")
             }
         }
-
-        all {
-            languageSettings.apply {
-                optIn("kotlin.ExperimentalUnsignedTypes")
-                optIn("kotlin.time.ExperimentalTime")
-                optIn("kotlin.contracts.ExperimentalContracts")
-                optIn("kotlin.experimental.ExperimentalTypeInference")
-                progressiveMode = true // false by default
-            }
-        }
     }
 }
-
-// getting rid of missing dependency declarations; see https://youtrack.jetbrains.com/issue/KT-46466
-tasks.withType<Sign>().forEach { tasks.withType<AbstractPublishToMaven>().configureEach { dependsOn(it) } }

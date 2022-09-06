@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import kotlin.reflect.jvm.javaMethod
 
-class MethodNameOnlyDisplayNameGeneratorTest {
+class KommonsTestDisplayNameGeneratorTest {
 
-    private val generator = MethodNameOnlyDisplayNameGenerator()
+    private val generator = KommonsTestDisplayNameGenerator()
     private val standardGenerator = DisplayNameGenerator.Standard()
 
     @Test fun generate_display_name_for_class() = testAll {
@@ -19,7 +19,7 @@ class MethodNameOnlyDisplayNameGeneratorTest {
 
     @Test fun generate_display_name_for_nested_class() = testAll {
         generator.generateDisplayNameForNestedClass(OuterClass.NestedClass::class.java)
-            .shouldBe(standardGenerator.generateDisplayNameForNestedClass(OuterClass.NestedClass::class.java))
+            .shouldBe("nested class")
     }
 
     @Test fun generate_display_name_for_method() = testAll {

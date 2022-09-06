@@ -1,7 +1,5 @@
 package com.bkahlert.kommons.exec.mock
 
-import com.bkahlert.kommons.text.LineSeparators
-import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.exec.Exec
 import com.bkahlert.kommons.exec.Process.State.Exited.Failed
 import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
@@ -35,6 +33,8 @@ import com.bkahlert.kommons.test.expecting
 import com.bkahlert.kommons.test.isEqualToByteWise
 import com.bkahlert.kommons.test.testEachOld
 import com.bkahlert.kommons.test.testOld
+import com.bkahlert.kommons.text.LineSeparators
+import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.time.poll
 import com.bkahlert.kommons.time.sleep
 import org.junit.jupiter.api.Nested
@@ -292,8 +292,7 @@ class JavaExecMockTest {
         }
     }
 
-    @Slow
-    @Test
+    @Slow @Test
     fun `should terminate if all output is consumed`() {
         val p = withIndividuallySlowInput(
             0.5.seconds to "Welcome!$LF",

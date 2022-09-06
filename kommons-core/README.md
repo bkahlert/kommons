@@ -13,7 +13,7 @@
 
 ## Installation / setup
 
-Kommons Core is hosted on GitHub with releases provided on Maven Central.
+This library is hosted on GitHub with releases provided on Maven Central.
 
 * **Gradle** `implementation("com.bkahlert.kommons:kommons-core:2.0.0")
 
