@@ -1,4 +1,4 @@
-package com.bkahlert.kommons.logging.core
+package com.bkahlert.kommons.logging
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -39,6 +39,6 @@ class JvmDelegateKtTest {
     }
 
     companion object {
-        private const val Package: String = "com.bkahlert.kommons.logging.core"
+        private const val Package: String = "com.bkahlert.kommons.logging"
     }
 }

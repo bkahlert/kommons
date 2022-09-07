@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.logging.spring
 
 import com.bkahlert.kommons.logging.LoggingPreset
-import com.bkahlert.kommons.logging.core.SLF4J
+import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.logging.logback.Logback
 import com.bkahlert.kommons.logging.logback.StructuredArguments.e
 import com.bkahlert.kommons.logging.spring.LoggingProperties.Companion

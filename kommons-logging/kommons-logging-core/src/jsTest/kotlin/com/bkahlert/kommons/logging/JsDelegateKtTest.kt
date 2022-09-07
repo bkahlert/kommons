@@ -1,4 +1,4 @@
-package com.bkahlert.kommons.logging.core
+package com.bkahlert.kommons.logging
 
 import com.bkahlert.kommons.debug.properties
 import io.kotest.matchers.shouldBe

@@ -1,11 +1,8 @@
-package com.bkahlert.kommons.logging.core
+package com.bkahlert.kommons.logging
 
 import mu.KLogger
 import mu.KotlinLogging
-import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
-
-internal expect fun loggerNameOf(thisRef: Any?, fn: KFunction<*>): String
 
 /**
  * Returns a logger property of which the name is derived from
@@ -16,6 +13,6 @@ internal expect fun loggerNameOf(thisRef: Any?, fn: KFunction<*>): String
  * Uses [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging)'s [KotlinLogging.logger] to get the logger.
  */
 public operator fun KotlinLogging.provideDelegate(thisRef: Any?, property: KProperty<*>): Lazy<KLogger> {
-    val name = loggerNameOf(thisRef, ::provideDelegate)
+    val name = thisRef.loggerName(::provideDelegate)
     return lazy { logger(name) }
 }

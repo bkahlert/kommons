@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.logging.sample
 
-import com.bkahlert.kommons.logging.core.SLF4J
+import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.logging.logback.Logback
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.nulls.shouldNotBeNull

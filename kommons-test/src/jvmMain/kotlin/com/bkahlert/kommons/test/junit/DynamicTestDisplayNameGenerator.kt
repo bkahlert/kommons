@@ -2,7 +2,7 @@ package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.renderType
-import com.bkahlert.kommons.logging.core.SLF4J
+import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.rootCause
 import com.bkahlert.kommons.test.KommonsTest

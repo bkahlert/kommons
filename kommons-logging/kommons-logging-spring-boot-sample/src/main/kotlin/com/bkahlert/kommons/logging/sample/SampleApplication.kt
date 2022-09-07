@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.logging.sample
 
-import com.bkahlert.kommons.logging.core.SLF4J
+import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.logging.sample.helloworld.HelloWorldConfiguration
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration

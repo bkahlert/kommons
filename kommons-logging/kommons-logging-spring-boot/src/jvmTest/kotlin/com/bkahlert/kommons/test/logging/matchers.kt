@@ -87,6 +87,6 @@ fun PrintedLogEntry.shouldMatchCustomSpringPreset(message: String = "message"): 
 fun PrintedLogEntry.shouldMatchJsonPreset(message: String = "message"): PrintedLogEntry = this shouldMatch Regex(
     @Suppress("LongLine")
     """
-    \{"@timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{1,3}[+-]\d{2}:\d{2}","level":"INFO","thread_name":".+","logger_name":"TestLogger","message":"$message with value","key":"value","foo":"bar"}
+    \{"@timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:[+-]\d{2}:\d{2}|Z)","level":"INFO","thread_name":".+","logger_name":"TestLogger","message":"$message with value","key":"value","foo":"bar"}
     """.trimIndent()
 )

@@ -22,6 +22,7 @@ import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -41,6 +42,12 @@ class LoggingReConfiguringEnvironmentPostProcessorTest {
 
         MDC.put("foo", "bar")
         MDC.put("baz", null)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        Logback.clearSystemProperties()
+        Logback.reset()
     }
 
     private val springApplicationBuilder: SpringApplicationBuilder

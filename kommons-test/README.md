@@ -298,7 +298,7 @@ junit.jupiter.execution.timeout.mode=disabled_on_debug
 junit.jupiter.execution.parallel.enabled=true
 junit.jupiter.execution.parallel.mode.classes.default=concurrent
 junit.jupiter.execution.parallel.config.strategy=dynamic
-junit.jupiter.execution.parallel.config.dynamic.factor=2
+junit.jupiter.execution.parallel.config.dynamic.factor=1
 # run tests inside a test tree sequentially
 junit.jupiter.execution.parallel.mode.default=same_thread
 # autodetect extensions located in META-INF/services

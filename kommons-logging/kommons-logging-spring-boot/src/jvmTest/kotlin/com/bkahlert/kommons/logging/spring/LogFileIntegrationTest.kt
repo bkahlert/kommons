@@ -10,6 +10,7 @@ import com.bkahlert.kommons.test.spring.properties
 import com.bkahlert.kommons.test.spring.run
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -30,7 +31,13 @@ import kotlin.io.path.pathString
 class LogFileIntegrationTest {
 
     @BeforeEach
+    @AfterEach
     fun setUp() {
+        Logback.reset()
+    }
+
+    @AfterEach
+    fun tearDown() {
         Logback.clearSystemProperties()
         Logback.reset()
     }

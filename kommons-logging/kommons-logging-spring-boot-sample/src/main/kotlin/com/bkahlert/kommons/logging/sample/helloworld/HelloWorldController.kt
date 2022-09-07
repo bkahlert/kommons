@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.logging.sample.helloworld
 
-import com.bkahlert.kommons.logging.core.SLF4J
+import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.logging.logback.StructuredArguments.v
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable

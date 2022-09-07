@@ -1,4 +1,4 @@
-package com.bkahlert.kommons.logging.core
+package com.bkahlert.kommons.logging
 
 import org.slf4j.ILoggerFactory
 import org.slf4j.Logger
@@ -19,6 +19,14 @@ public object SLF4J {
     private val SLF4J_PATTERN = Pattern.compile(Pattern.quote(SLF4J_ANCHOR))
     private const val MESSAGE_FORMAT_REPLACEMENT = "{%d}"
 
+    /**
+     * Returns a [Lazy] logger property of which the name is derived from
+     * the owning class,
+     * respectively the companion object's owning class, or if missing,
+     * the file class.
+     *
+     * Uses [SLF4J]'s [ILoggerFactory] to get the logger.
+     */
     public operator fun provideDelegate(thisRef: Any?, property: KProperty<*>): Lazy<Logger> =
         LoggerFactory.getILoggerFactory().provideDelegate(thisRef, property)
 
@@ -47,9 +55,9 @@ public object SLF4J {
  * respectively the companion object's owning class, or if missing,
  * the file class.
  *
- * Uses [SLF4J](https://www.slf4j.org/)'s [ILoggerFactory] to get the logger.
+ * Uses [SLF4J]'s [ILoggerFactory] to get the logger.
  */
 public operator fun ILoggerFactory.provideDelegate(thisRef: Any?, property: KProperty<*>): Lazy<Logger> {
-    val name = loggerNameOf(thisRef, ::provideDelegate)
+    val name = thisRef.loggerName(::provideDelegate)
     return lazy { getLogger(name) }
 }

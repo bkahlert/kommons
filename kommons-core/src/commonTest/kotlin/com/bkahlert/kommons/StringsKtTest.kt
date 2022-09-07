@@ -43,6 +43,17 @@ class StringsKtTest {
 
         "other".asEmoji() shouldBe "🔣"
     }
+
+    @Test fun pluralize() = testAll {
+        "bus".pluralize() shouldBe "buses"
+        "tax".pluralize() shouldBe "taxes"
+        "blitz".pluralize() shouldBe "blitzes"
+        "lunch".pluralize() shouldBe "lunches"
+        "marsh".pluralize() shouldBe "marshes"
+        "city".pluralize() shouldBe "cities"
+        "ray".pluralize() shouldBe "rays"
+        "word".pluralize() shouldBe "words"
+    }
 }
 
 internal val String.cs: CharSequence get() = StringBuilder(this)

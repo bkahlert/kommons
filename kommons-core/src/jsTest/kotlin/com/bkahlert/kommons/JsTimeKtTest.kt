@@ -76,7 +76,7 @@ class JsTimeTest {
         val time = Date().getTime().toLong()
         Timestamp should {
             it shouldBeLessThanOrEqualTo time
-            it shouldBeGreaterThanOrEqualTo time - 100
+            it shouldBeGreaterThanOrEqualTo time - 500
         }
     }
 
