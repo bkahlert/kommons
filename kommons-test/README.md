@@ -324,14 +324,14 @@ single tests or whole test containers.
 Platform properties have the lowest precedence and can be overridden
 with system properties.
 
-If, for example, you want to change the default timeout to 30s for all tests,
+If, for example, you want to change the default timeout to 30 seconds for all tests,
 in Gradle you can configure:
 
 ```kotlin
 tasks {
     test {
         useJUnitPlatform()
-        systemProperty("junit.jupiter.execution.timeout.default", "30s")
+        systemProperty("junit.jupiter.execution.timeout.testable.method.default", "30s")
     }
 }
 ```
