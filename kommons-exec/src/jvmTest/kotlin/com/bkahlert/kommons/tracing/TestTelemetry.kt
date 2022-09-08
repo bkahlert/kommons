@@ -50,7 +50,7 @@ class TestTelemetry : TestExecutionListener {
                     Resource.create(
                         Attributes.of(
                             AttributeKey.stringKey("service.name"), "kommons-test",
-                            AttributeKey.stringKey("service.version"), "2.0.0",
+                            AttributeKey.stringKey("service.version"), "2.1.0",
                         )
                     )
                 )

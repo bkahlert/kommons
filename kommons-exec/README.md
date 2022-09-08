@@ -8,14 +8,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-exec:2.0.0") { because("command line and shell script execution") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-exec:2.1.0") { because("command line and shell script execution") }`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-exec</artifactId>
-      <version>2.0.0</version>
+      <version>2.1.0</version>
   </dependency>
   ```
 

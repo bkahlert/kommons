@@ -21,14 +21,14 @@ To use a module separately, see the corresponding instructions linked above.
 
 The following dependency can be added to add the `core`, `debug`, `io`, `logging-core`, and `text` module:
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.0.0")
+* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.1.0")
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons</artifactId>
-      <version>2.0.0</version>
+      <version>2.1.0</version>
   </dependency>
   ```
 

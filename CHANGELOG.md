@@ -4,6 +4,19 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+
+## [2.1.0] - 2022-09-08
+
+### Added
+
 - simple `pluralize()` extension function
 - `Kommons Logging: Core`: get Logback or Kotlin Logger logger easily
 - `Kommons Logging: Logback`: configure logging using system properties `CONSOLE_LOG_PRESET` and `FILE_LOG_PRESET`
@@ -37,6 +50,8 @@
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.0.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.1.0...HEAD
+
+[2.1.0]: https://github.com/bkahlert/kommons-test/compare/v2.0.0...v2.1.0
 
 [2.0.0]: https://github.com/bkahlert/kommons-test/compare/v1.0.0...v2.0.0
