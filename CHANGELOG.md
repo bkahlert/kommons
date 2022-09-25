@@ -27,14 +27,6 @@
 - Set `junit.jupiter.execution.parallel.config.dynamic.factor` to 2.
 - Display "PascalCaseNestedTests" as "pascal case nested tests".
 
-### Deprecated
-
-*none*
-
-### Removed
-
-*none*
-
 ### Fixed
 
 - Set JS test timeout to same as JUnit tests.

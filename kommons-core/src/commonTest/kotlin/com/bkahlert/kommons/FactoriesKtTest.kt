@@ -405,9 +405,9 @@ internal val throwingConverter3 = object : Converter3<String, Int, Int, Int> {
 
 
 internal val intParser = object : Parser<Int> {
-    override fun parse(string: CharSequence): Int = string.toString().toInt()
+    override fun parse(text: CharSequence): Int = text.toString().toInt()
 }
 
 internal val throwingParser = object : Parser<Int> {
-    override fun parse(string: CharSequence): Int = string.toString().toIntOrNull() ?: throw ParsingException("error parsing $string")
+    override fun parse(text: CharSequence): Int = text.toString().toIntOrNull() ?: throw ParsingException("error parsing $text")
 }

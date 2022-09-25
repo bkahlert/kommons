@@ -253,20 +253,20 @@ public sealed interface Converter<T> {
  * @see <a href="https://docs.oracle.com/javase/tutorial/datetime/overview/naming.html">Method Naming Convention</a>
  */
 public interface Parser<T : Any> {
-    /** Returns an object of type [T] representing the parsed [string], or `null` otherwise. */
-    public fun parseOrNull(string: CharSequence): T? = kotlin.runCatching { parse(string) }.getOrNull()
+    /** Returns an object of type [T] representing the parsed [text], or `null` otherwise. */
+    public fun parseOrNull(text: CharSequence): T? = kotlin.runCatching { parse(text) }.getOrNull()
 
-    /** Returns an object of type [T] representing the parsed [string], or throws a [ParsingException] otherwise. */
-    public fun parse(string: CharSequence): T
+    /** Returns an object of type [T] representing the parsed [text], or throws a [ParsingException] otherwise. */
+    public fun parse(text: CharSequence): T
 
     public companion object {
         /** Returns a [Parser] that can parse a string into a [T] object using the specified [parseOrNull]. */
         public inline fun <reified T : Any> parser(crossinline parseOrNull: (CharSequence) -> T?): Parser<T> = object : Parser<T> {
-            override fun parse(string: CharSequence): T = kotlin.runCatching {
-                parseOrNull(string) ?: throw ParsingException(string, T::class)
+            override fun parse(text: CharSequence): T = kotlin.runCatching {
+                parseOrNull(text) ?: throw ParsingException(text, T::class)
             }.getOrElse {
                 if (it is ParsingException) throw it
-                throw throw ParsingException(string, T::class, it)
+                throw throw ParsingException(text, T::class, it)
             }
         }
     }
