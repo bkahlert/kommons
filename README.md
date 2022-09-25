@@ -6,22 +6,27 @@
 
 **Kommons** is a family of the following Kotlin—most of them multiplatform libraries:
 
-- [Kommons Core](kommons-core) … for runtime information, simple byte and string operations
-- [Kommons Debug](kommons-debug) … for print debugging
+- **[Kommons Core](kommons-core) … for runtime information, simple byte and string operations**
+- **[Kommons Debug](kommons-debug) … for print debugging**
 - [Kommons Exec](kommons-exec) … to execute command lines, shell scripts and containers
-- [Kommons Logging](kommons-logging) … for simple logging
+- **[Kommons IO](kommons-exec) … for simpler IO handling on the JVM**
+- [Kommons Kaomoji](kommons-kaomoji) … Japanese style emoticon constants
+- [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
 - [Kommons Test](kommons-test) … to ease testing
-- [Kommons Text](kommons-text) … for Unicode-aware text operations
+- **[Kommons Text](kommons-text) … for Unicode-aware text operations**
+
+The modules in **bold** are included in the `Kommons` module.  
+The other modules need to be added individually to use them.
 
 ## Installation / Setup
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-To use a module separately, see the corresponding instructions linked above.
+To use a module individually, see the corresponding instructions linked in [About](#about).
 
-The following dependency can be added to add the `core`, `debug`, `io`, `logging-core`, and `text` module:
+The following dependency adds the `core`, `debug`, `io`, `logging-core`, and `text` module:
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.1.0")
+* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.1.0")`
 
 * **Maven**
   ```xml

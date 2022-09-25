@@ -6,6 +6,8 @@
 
 ### Changed
 
+- add [Japanese style emoticon](https://en.wikipedia.org/wiki/Emoticon#Japanese_style) constants such as `(つ◕౪◕)つ━☆ﾟ.*･｡ﾟ`
+
 ### Deprecated
 
 ### Removed

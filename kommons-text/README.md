@@ -18,7 +18,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
-      <artifactId>kommons-debug</artifactId>
+      <artifactId>kommons-text</artifactId>
       <version>2.1.0</version>
   </dependency>
   ```
