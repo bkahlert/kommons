@@ -86,7 +86,7 @@ public open class CommandLine(
     /**
      * A human-readable representation of this command line.
      *
-     * ***Warning:** The content is not guaranteed to work due to simplified quoting. Use [shellCommand] for an always working command.*
+     * ***Warning:** The content isn't guaranteed to work due to simplified quoting. Use [shellCommand] for an always working command.*
      */
     override val content: CharSequence get() = commandLineParts.joinToString(" ").removeTrailingLineSeparator()
 

@@ -1,15 +1,3 @@
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
-import org.gradle.api.tasks.bundling.Jar
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getValue
-import org.gradle.kotlin.dsl.provideDelegate
-import org.gradle.kotlin.dsl.registering
-import org.gradle.kotlin.dsl.repositories
-import org.gradle.kotlin.dsl.withType
-import org.gradle.plugins.signing.Sign
-
 plugins {
     signing
     id("maven-publish")

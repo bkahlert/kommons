@@ -14,7 +14,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
-      <artifactId>kommons-path</artifactId>
+      <artifactId>kommons-io</artifactId>
       <version>2.1.0</version>
   </dependency>
   ```
@@ -65,11 +65,13 @@ Paths.get("classpath:dir/to/resource").useBufferedReader { it.readLine() }
 
 ## Contributing
 
-Want to contribute? Awesome! The most basic way to show your support is to star the project, or to raise issues. You can also support this project by making
-a [PayPal donation](https://www.paypal.me/bkahlert) to ensure this journey continues indefinitely!
+Want to contribute?
+Awesome!
+The most basic way to show your support is to star the project or to raise issues.
+You can also support this project by making a [PayPal donation](https://www.paypal.me/bkahlert) to ensure this journey continues indefinitely!
 
-Thanks again for your support, it is much appreciated! :pray:
+Thanks again for your support, it's much appreciated! :pray:
 
 ## License
 
-MIT. See [LICENSE](LICENSE) for more details.
+MIT. See [LICENSE](../LICENSE) for more details.

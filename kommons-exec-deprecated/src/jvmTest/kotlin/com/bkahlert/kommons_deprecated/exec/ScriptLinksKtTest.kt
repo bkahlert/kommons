@@ -12,9 +12,7 @@ import kotlin.io.path.readText
 
 class ScriptLinksKtTest {
 
-    @Nested
-
-    inner class ToLink {
+    @Nested inner class ToLink {
 
         private val commandLine = CommandLine("printenv", "TEST_PROP", name = "command line printing TEST_PROP")
         private val shellScript = ShellScript("shell script printing TEST_PROP") { shebang; !commandLine }
