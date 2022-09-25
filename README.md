@@ -8,7 +8,7 @@
 
 - **[Kommons Core](kommons-core) … for runtime information, simple byte and string operations**
 - **[Kommons Debug](kommons-debug) … for print debugging**
-- [Kommons Exec](kommons-exec) … to execute command lines, shell scripts and containers
+- **[Kommons Exec](kommons-exec) … to execute command lines and shell scripts**
 - **[Kommons IO](kommons-exec) … for simpler IO handling on the JVM**
 - [Kommons Kaomoji](kommons-kaomoji) … Japanese style emoticon constants
 - [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
@@ -24,7 +24,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
 
 To use a module individually, see the corresponding instructions linked in [About](#about).
 
-The following dependency adds the `core`, `debug`, `io`, `logging-core`, and `text` module:
+The following dependency adds the `core`, `debug`, `exec`, `io`, `logging-core`, and `text` module:
 
 * **Gradle** `implementation("com.bkahlert.kommons:kommons:2.1.0")`
 
@@ -41,10 +41,12 @@ Please read the corresponding documentation for instruction on how to use them.
 
 ## Contributing
 
-Want to contribute? Awesome! The most basic way to show your support is to star the project, or to raise issues. You can also support this project by making
-a [PayPal donation](https://www.paypal.me/bkahlert) to ensure this journey continues indefinitely!
+Want to contribute?
+Awesome!
+The most basic way to show your support is to star the project or to raise issues.
+You can also support this project by making a [PayPal donation](https://www.paypal.me/bkahlert) to ensure this journey continues indefinitely!
 
-Thanks again for your support, it is much appreciated! :pray:
+Thanks again for your support, it's much appreciated! :pray:
 
 ## License
 

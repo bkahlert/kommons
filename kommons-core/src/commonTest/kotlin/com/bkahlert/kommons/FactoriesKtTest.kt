@@ -11,7 +11,6 @@ import com.bkahlert.kommons.Creator.Creator1
 import com.bkahlert.kommons.Creator.Creator2
 import com.bkahlert.kommons.Creator.Creator3
 import com.bkahlert.kommons.Parser.Companion.parser
-import com.bkahlert.kommons.Parser.ParsingException
 import com.bkahlert.kommons.test.testAll
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll

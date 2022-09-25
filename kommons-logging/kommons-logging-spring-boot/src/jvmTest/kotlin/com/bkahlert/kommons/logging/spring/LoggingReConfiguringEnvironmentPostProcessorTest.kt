@@ -59,7 +59,6 @@ class LoggingReConfiguringEnvironmentPostProcessorTest {
     @SystemProperty(LoggingSystemProperties.FILE_LOG_PRESET, SPRING_PRESET_VALUE)
     @Test fun reuse_existing_configuration(
         @Captured output: CapturedOutput,
-        @TempDir tempDir: Path
     ) {
         springApplicationBuilder.run { ctx ->
             ctx.getBean<LoggingProperties>() should {
@@ -82,7 +81,7 @@ class LoggingReConfiguringEnvironmentPostProcessorTest {
     @SystemProperty(LoggingSystemProperties.FILE_LOG_PRESET, SPRING_PRESET_VALUE)
     @Test fun logfile_configuration_using_application_properties(
         @Captured output: CapturedOutput,
-        @TempDir tempDir: Path
+        @TempDir tempDir: Path,
     ) {
         springApplicationBuilder.properties {
             logPath = tempDir
@@ -105,7 +104,7 @@ class LoggingReConfiguringEnvironmentPostProcessorTest {
 
     @Test fun configuration_using_application_properties(
         @Captured output: CapturedOutput,
-        @TempDir tempDir: Path
+        @TempDir tempDir: Path,
     ) {
         springApplicationBuilder.properties {
             consoleLogPreset = JSON

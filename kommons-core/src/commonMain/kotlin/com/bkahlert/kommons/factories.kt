@@ -260,28 +260,42 @@ public interface Parser<T : Any> {
     public fun parse(text: CharSequence): T
 
     public companion object {
-        /** Returns a [Parser] that can parse a string into a [T] object using the specified [parseOrNull]. */
-        public inline fun <reified T : Any> parser(crossinline parseOrNull: (CharSequence) -> T?): Parser<T> = object : Parser<T> {
-            override fun parse(text: CharSequence): T = kotlin.runCatching {
-                parseOrNull(text) ?: throw ParsingException(text, T::class)
-            }.getOrElse {
-                if (it is ParsingException) throw it
-                throw throw ParsingException(text, T::class, it)
-            }
+
+        /** Returns a [Parser] that can parse a string into a [T] object using the specified [parse]. */
+        public inline fun <reified T : Any> parser(
+            crossinline parse: (CharSequence) -> T?,
+        ): Parser<T> = object : AbstractParser<T>(T::class) {
+            override fun parseText(text: CharSequence): T? = parse.invoke(text)
         }
     }
+}
 
-    /** Exception thrown by a [Parser] when parsing fails. */
-    public class ParsingException(
-        message: String,
-        /** Optional cause of this exception. */
+/** Exception thrown by a [Parser] when parsing fails. */
+public class ParsingException(
+    message: String,
+    /** Optional cause of this exception. */
+    cause: Throwable? = null,
+) : IllegalArgumentException(message, cause) {
+    /** Creates a new parse exception for the specified [string], the specified [type], and the optional [cause]. */
+    public constructor(
+        string: CharSequence,
+        type: KClass<*>,
         cause: Throwable? = null,
-    ) : IllegalArgumentException(message, cause) {
-        /** Creates a new parse exception for the specified [string], the specified [type], and the optional [cause]. */
-        public constructor(
-            string: CharSequence,
-            type: KClass<*>,
-            cause: Throwable? = null,
-        ) : this("Failed to parse ${string.quoted} into an instance of ${type.simpleName ?: type.toString()}", cause)
+    ) : this("Failed to parse ${string.quoted} into an instance of ${type.simpleName ?: type.toString()}", cause)
+}
+
+/**
+ * Provides a skeletal implementation of the [Parser] interface.
+ */
+public abstract class AbstractParser<T : Any>(
+    private val kClass: KClass<T>,
+) : Parser<T> {
+    protected abstract fun parseText(text: CharSequence): T?
+
+    override fun parse(text: CharSequence): T = kotlin.runCatching {
+        parseText(text) ?: throw ParsingException(text, kClass)
+    }.getOrElse {
+        if (it is ParsingException) throw it
+        throw throw ParsingException(text, kClass, it)
     }
 }

@@ -19,6 +19,10 @@ public object SLF4J {
     private val SLF4J_PATTERN = Pattern.compile(Pattern.quote(SLF4J_ANCHOR))
     private const val MESSAGE_FORMAT_REPLACEMENT = "{%d}"
 
+    /** Uses [SLF4J]'s [ILoggerFactory] to get a logger with the specified [name]. */
+    public fun getLogger(name: String): Logger =
+        LoggerFactory.getILoggerFactory().getLogger(name)
+
     /**
      * Returns a [Lazy] logger property of which the name is derived from
      * the owning class,

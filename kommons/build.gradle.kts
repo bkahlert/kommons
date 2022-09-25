@@ -17,5 +17,10 @@ kotlin {
                 api(project(":kommons-text"))
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                api(project(":kommons-exec"))
+            }
+        }
     }
 }

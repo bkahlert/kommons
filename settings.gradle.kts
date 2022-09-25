@@ -12,6 +12,7 @@ rootProject.name = "kommons"
 include("kommons")
 include("kommons-core")
 include("kommons-debug")
+include("kommons-exec")
 include("kommons-exec-deprecated")
 include("kommons-io")
 include("kommons-kaomoji")
