@@ -37,7 +37,7 @@ public class InputStreamReader(
     private var decoder: CharsetDecoder = charset.newDecoder()
         .onMalformedInput(CodingErrorAction.REPLACE)
         .onUnmappableCharacter(CodingErrorAction.REPLACE)
-    public var bytes: ByteBuffer = ByteBuffer.allocate(BUFFER_SIZE).limit(0)
+    public var bytes: ByteBuffer = ByteBuffer.allocate(BUFFER_SIZE).apply { limit(0) }
     private var pending: Char = (-1).toChar()
 
     /**

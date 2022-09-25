@@ -39,20 +39,20 @@ public interface Process {
 
     /**
      * This program's input stream, that is,
-     * the stream you can write to in order
-     * to provide input for this program.
+     * the stream you can write to provide input
+     * for this program.
      *
-     * *In contrast to the extremely misleading naming used in the Java world,
+     * *In contrast to the misleading naming used in the Java world,
      * this property is named after its purpose—not its type.*
      */
     public val inputStream: OutputStream
 
     /**
      * This program's output stream, that is,
-     * the stream you can read in order to find
-     * out what [IO] this process produces.
+     * the stream you can read to find out
+     * what [IO] this process produces.
      *
-     * *In contrast to the extremely misleading naming used in the Java world,
+     * *In contrast to the misleading naming used in the Java world,
      * this property is named after its purpose—not its type.*
      */
     public val outputStream: InputStream
