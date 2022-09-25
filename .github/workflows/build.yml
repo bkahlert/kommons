@@ -37,8 +37,7 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build -x :kommons-exec:check -Pkotlin.tests.individualTaskReports=true
-      # TODO re-enable          arguments: build -Pkotlin.tests.individualTaskReports=true
+          arguments: build -x :kommons-exec-deprecated:check -Pkotlin.tests.individualTaskReports=true
 
       - name: Upload test reports
         uses: actions/upload-artifact@v3
