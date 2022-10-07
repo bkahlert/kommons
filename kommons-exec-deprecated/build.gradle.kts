@@ -56,7 +56,7 @@ kotlin {
                 // TODO delete
                 api("io.opentelemetry:opentelemetry-api:1.5.0")
                 // TODO delete
-                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.5.0")
+                implementation("io.opentelemetry:opentelemetry-extension-annotations:1.18.0")
                 // TODO delete
                 implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.5.0")
             }
