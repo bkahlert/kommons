@@ -21,7 +21,7 @@ public data class CommandLine(
         vararg arguments: CharSequence,
     ) : this(command.toString(), arguments.map { it.toString() })
 
-    override val exec: SyncExecutor
+    override val exec: Executor<Process.ExitState>
         get() = SyncExecutor(this)
 
     /**

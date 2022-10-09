@@ -1,58 +1,54 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.debug.trace
-import com.bkahlert.kommons.logging.SLF4J
+import com.bkahlert.kommons.exec.Process.Failed
+import com.bkahlert.kommons.exec.Process.Succeeded
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.inspectors.forSingle
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.should
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
-import java.util.concurrent.TimeUnit.SECONDS
+import java.io.IOException
 
-private val Process.ExitState.x: Any
-    get() {
-        return this.process.io.trace
-    }
 
 class IntegrationTest {
-
-    @Test fun xxx() = testAll {
-        val commandLine = CommandLine("echo", "test")
-
-        commandLine.exec().x
-    }
 
     @Test fun command_line() = testAll {
         val commandLine = CommandLine("echo", "test")
 
-        commandLine.exec().x
-        commandLine.exec.logging()
+        commandLine.exec().readLinesOrThrow()
+            .shouldContainExactly("test")
 
-        sync { commandLine.exec.async() }
-        sync { commandLine.exec.async.logging() }
-        sync { commandLine.exec.async { logger.info(it.toString()) } }
-        sync { commandLine.exec.async.logging { logger.info(it.toString()) } }
+        commandLine.exec.logging()
+            .shouldBeInstanceOf<Succeeded>()
     }
 
     @Test fun shell_script() = testAll {
-        val shellScript = ShellScript {
-            """
-                echo "some output"
-                echo "some error" 1>&2
-            """.trimIndent()
-        }
+        val shellScript = ShellScript("echo output")
 
-        shellScript.exec()
+        shellScript.exec().readLinesOrThrow()
+            .shouldContainExactly("output")
+
         shellScript.exec.logging()
-
-        sync { shellScript.exec.async() }
-        sync { shellScript.exec.async.logging() }
-        sync { shellScript.exec.async { logger.info(it.toString()) } }
-        sync { shellScript.exec.async.logging { logger.info(it.toString()) } }
+            .shouldBeInstanceOf<Succeeded>()
     }
 
-    companion object {
-        private val logger by SLF4J
-
-        private fun sync(block: () -> Process) {
-            block().waitFor(2, SECONDS)
+    @Test fun error_handling() = testAll {
+        val logger = RecordingLogger()
+        when (val exitState = ShellScript("exit 42").exec()) {
+            is Succeeded -> logger.info("Process took ${exitState.runtime}")
+            is Failed -> logger.error("Process ${exitState.process.pid} failed")
         }
+        logger should {
+            it.events.forSingle { event ->
+                event.message shouldMatchGlob "Process* failed"
+            }
+        }
+
+        shouldThrow<IOException> {
+            ShellScript("exit 42").exec().readLinesOrThrow()
+        }.message shouldMatchGlob "Process* terminated after * with exit code 42"
     }
 }

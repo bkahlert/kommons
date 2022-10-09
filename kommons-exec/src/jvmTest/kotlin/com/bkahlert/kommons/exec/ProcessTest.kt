@@ -6,8 +6,11 @@ import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
+import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.date.shouldNotBeAfter
 import io.kotest.matchers.date.shouldNotBeBefore
@@ -17,6 +20,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import org.codehaus.plexus.util.Os
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import kotlin.time.Duration.Companion.milliseconds
@@ -99,42 +103,21 @@ class ProcessTest {
     }
 
     @Test fun to_string() = testAll {
-        Process.succeeded().toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
-            Process {* state: "succeeded", commandLine: * }
-        """.trimIndent()
-    }
-
-    @Test fun state() = testAll {
         val runningProcess = Process.running()
-        runningProcess.state.shouldBeInstanceOf<Process.Running>() should {
-            it.process shouldBeSameInstanceAs runningProcess
-            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.status shouldMatchGlob "Process* is running"
-            it.toString() shouldBe it.status
-        }
+        runningProcess.toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
+            Process {* state: "running", commandLine: * }
+        """.trimIndent()
         runningProcess.destroy()
 
         val succeededProcess = Process.succeeded()
-        succeededProcess.state.shouldBeInstanceOf<Process.Succeeded>() should {
-            it.process shouldBeSameInstanceAs succeededProcess
-            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.end shouldNotBeAfter Now
-            it.runtime shouldBe it.end.minus(it.start)
-            it.exitCode shouldBe 0
-            it.status shouldMatchGlob "Process* terminated successfully within *"
-            it.toString() shouldBe it.status
-        }
+        succeededProcess.toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
+            Process {* state: "succeeded", commandLine: * }
+        """.trimIndent()
 
         val failedProcess = Process.failed()
-        failedProcess.state.shouldBeInstanceOf<Process.Failed>() should {
-            it.process shouldBeSameInstanceAs failedProcess
-            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.end shouldNotBeAfter Now
-            it.runtime shouldBe it.end.minus(it.start)
-            it.exitCode shouldBe 42
-            it.status shouldMatchGlob "Process* terminated after * with exit code 42"
-            it.toString() shouldBe it.status
-        }
+        failedProcess.toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
+            Process {* state: "failed", commandLine: * }
+        """.trimIndent()
     }
 
     @Test fun exit_state() = testAll {
@@ -143,21 +126,57 @@ class ProcessTest {
         runningProcess.destroy()
 
         val succeededProcess = Process.succeeded()
-        succeededProcess.exitState shouldBeSameInstanceAs succeededProcess.exitState
+        succeededProcess.exitState.shouldBeInstanceOf<Process.Succeeded>() should {
+            it.process shouldBeSameInstanceAs succeededProcess
+            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
+            it.end shouldNotBeAfter Now
+            it.runtime shouldBe it.end.minus(it.start)
+            it.exitCode shouldBe 0
+            it.status shouldMatchGlob "Process* terminated successfully within *"
+            it.toString() shouldBe it.status
+            it.readBytesOrThrow().decodeToString().removeTrailingLineSeparator() shouldBe "output"
+            it.readTextOrThrow().removeTrailingLineSeparator() shouldBe "output"
+            it.readLinesOrThrow().shouldContainExactly("output")
+        }
+
+        val failedProcess = Process.failed()
+        failedProcess.exitState.shouldBeInstanceOf<Process.Failed>() should {
+            it.process shouldBeSameInstanceAs failedProcess
+            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
+            it.end shouldNotBeAfter Now
+            it.runtime shouldBe it.end.minus(it.start)
+            it.exitCode shouldBe 42
+            it.status shouldMatchGlob "Process* terminated after * with exit code 42"
+            it.toString() shouldBe it.status
+            listOf(
+                { it.readBytesOrThrow() },
+                { it.readTextOrThrow() },
+                { it.readLinesOrThrow() },
+            ).forAll { read ->
+                shouldThrow<IOException> { read() }.message shouldMatchGlob """
+                    Process* terminated after * with exit code 42:
+                    error
+                """.trimIndent()
+            }
+        }
     }
 }
+
+
+private val commandSeparator = if (Os.isFamily(Os.FAMILY_WINDOWS)) " & " else "\n"
+private fun commands(vararg commands: String) = commands.joinToString(commandSeparator)
 
 internal fun Process.Companion.running(): Process =
     Process(ProcessBuilder(ShellScript("sleep 5").toCommandLine()))
 
 internal fun Process.Companion.succeeding(): Process =
-    Process(ProcessBuilder(ShellScript("exit 0").toCommandLine()))
+    Process(ProcessBuilder(ShellScript(commands("echo output", "exit 0")).toCommandLine()))
 
 internal fun Process.Companion.succeeded(): Process =
     succeeding().apply { waitFor() }
 
 internal fun Process.Companion.failing(): Process =
-    Process(ProcessBuilder(ShellScript("exit 42").toCommandLine()))
+    Process(ProcessBuilder(ShellScript(commands("echo output", "echo error 1>&2", "exit 42")).toCommandLine()))
 
 internal fun Process.Companion.failed(): Process =
     failing().apply { waitFor() }

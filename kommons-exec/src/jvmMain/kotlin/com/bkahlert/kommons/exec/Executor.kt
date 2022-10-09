@@ -39,7 +39,7 @@ public interface Executor<out T> {
      * @param environment the environment variables to add
      */
     public fun logging(
-        logger: (Process) -> Logger = { it.ioLogger() },
+        logger: (Process) -> Logger,
         workingDirectory: Path? = null,
         vararg environment: Pair<String, String>,
     ): T = logging(logger, {}, workingDirectory, *environment)
@@ -52,10 +52,9 @@ public interface Executor<out T> {
      * @param workingDirectory the working directory to be used during execution
      * @param environment the environment variables to add
      */
-    @OverloadResolutionByLambdaReturnType
     public fun logging(
         logger: (Process) -> Logger = { it.ioLogger() },
-        customize: ProcessBuilder.() -> Unit,
+        customize: ProcessBuilder.() -> Unit = {},
         workingDirectory: Path? = null,
         vararg environment: Pair<String, String>,
     ): T

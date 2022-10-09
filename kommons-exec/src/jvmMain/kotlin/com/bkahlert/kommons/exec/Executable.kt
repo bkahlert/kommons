@@ -4,5 +4,5 @@ package com.bkahlert.kommons.exec
 public interface Executable {
 
     /** [Executor] that can be used to execute this executable. */
-    public val exec: SyncExecutor
+    public val exec: Executor<Process.ExitState>
 }

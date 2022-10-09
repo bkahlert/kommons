@@ -2,15 +2,13 @@ package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.debug.asString
-import com.bkahlert.kommons.debug.trace
-import com.bkahlert.kommons.exec.IO.Output
-import com.bkahlert.kommons.exec.io.RedirectingOutputStream
-import com.bkahlert.kommons.exec.io.TeeInputStream
+import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.text.startSpaced
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.Charset
 import java.time.Instant
-import java.util.Collections
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration
@@ -24,23 +22,14 @@ public class Process(
     public val start: Instant = Now
     private val process: java.lang.Process = processBuilder.start()
 
-    private val _io: MutableList<IO> = Collections.synchronizedList(mutableListOf())
-    public val io: List<IO> = _io
-
     @Suppress("KDocMissingDocumentation")
     override fun getOutputStream(): OutputStream = process.outputStream
 
-    private val teeInputStream: InputStream = TeeInputStream(process.inputStream, RedirectingOutputStream {
-        it.trace("recording")
-        _io.add(Output(it))
-    })
-    private val teeErrorStream: InputStream = TeeInputStream(process.errorStream, RedirectingOutputStream { _io.add(IO.Error(it)) })
+    @Suppress("KDocMissingDocumentation")
+    override fun getInputStream(): InputStream = process.inputStream
 
     @Suppress("KDocMissingDocumentation")
-    override fun getInputStream(): InputStream = teeInputStream
-
-    @Suppress("KDocMissingDocumentation")
-    override fun getErrorStream(): InputStream = teeErrorStream
+    override fun getErrorStream(): InputStream = process.errorStream
 
     @Suppress("KDocMissingDocumentation")
     override fun waitFor(): Int = process.waitFor()
@@ -65,26 +54,17 @@ public class Process(
     }
 
     override fun toString(): String = asString {
-        pid?.also { put("pid", it) }
-        put("state", state::class.simpleName?.lowercase())
+        pid?.also { put(::pid.name, it) }
+        put("state", exitState?.let { it::class.simpleName?.lowercase() } ?: "running")
         put("commandLine", processBuilder.commandLine)
     }
-
-    /** State of the process. */
-    public val state: State get() = exitState ?: Running()
 
     /** Exit state of the process or `null` if the process is still running. */
     public var exitState: ExitState? = null
         get() {
             if (field == null) {
                 field = try {
-                    val exitValue = exitValue()
-                    // TODO read lazily
-                    // TODO succeeded.toString -> output
-                    // TODO failed.toString -> error
-                    kotlin.runCatching { _io.add(IO.Output(process.inputStream.readBytes())) }
-                    kotlin.runCatching { _io.add(IO.Error(process.errorStream.readBytes())) }
-                    if (exitValue == 0) Succeeded()
+                    if (exitValue() == 0) Succeeded()
                     else Failed()
                 } catch (e: IllegalThreadStateException) {
                     null
@@ -94,8 +74,8 @@ public class Process(
         }
         private set
 
-    /** Representation of the state of a [Process]. */
-    public sealed interface State {
+    /** State of a process that terminated with an [exitCode]. */
+    public sealed interface ExitState {
 
         /** Process this state describes. */
         public val process: Process
@@ -105,18 +85,6 @@ public class Process(
 
         /** Textual representation of this state. */
         public val status: String
-    }
-
-    /** State of a process that already started but not terminated, yet. */
-    public inner class Running(
-        override val status: String = "Process${pid?.toString().startSpaced} is running",
-    ) : State {
-        override val process: Process get() = this@Process
-        override fun toString(): String = status
-    }
-
-    /** State of a process that terminated with an [exitCode]. */
-    public sealed interface ExitState : State {
 
         /** Moment the process terminated. */
         public val end: Instant
@@ -126,22 +94,69 @@ public class Process(
 
         /** Exit code the process terminated with. */
         public val exitCode: Int get() = process.exitValue()
+
+        /**
+         * Returns the read standard output if the process [Succeeded] or
+         * throws an exception with the read standard error if the process [Failed].
+         *
+         * ***Note:** This convenience method is only safe to call
+         * if the corresponding input streams aren't already closed.
+         * That is, **it can't be used if the output was already read or logged.***
+         *
+         * @param charset used to read the standard error if the process [Failed]
+         */
+        public fun readBytesOrThrow(charset: Charset = Charsets.UTF_8): ByteArray
+
+        /**
+         * Returns the read standard output if the process [Succeeded] or
+         * throws an exception with the read standard error if the process [Failed].
+         *
+         * ***Note:** This convenience method is only safe to call
+         * if the corresponding input streams aren't already closed.
+         * That is, **it can't be used if the output was already read or logged.***
+         *
+         * @param charset used to read the standard output respectively the standard error
+         */
+        public fun readTextOrThrow(charset: Charset = Charsets.UTF_8): String =
+            String(readBytesOrThrow(charset), charset)
+
+        /**
+         * Returns the read standard output if the process [Succeeded] or
+         * throws an exception with the read standard error if the process [Failed].
+         *
+         * ***Note:** This convenience method is only safe to call
+         * if the corresponding input streams aren't already closed.
+         * That is, **it can't be used if the output was already read or logged.***
+         *
+         * @param charset used to read the standard output respectively the standard error
+         */
+        public fun readLinesOrThrow(charset: Charset = Charsets.UTF_8): List<String> =
+            readTextOrThrow(charset).removeTrailingLineSeparator().lines()
     }
 
     /** State of a process that terminated successfully. */
     public inner class Succeeded : ExitState {
         override val process: Process get() = this@Process
         override val end: Instant = Now
-        override val status: String = "Process${process.pid?.toString().startSpaced} terminated successfully within $runtime"
+        override val status: String = "Process${pid?.toString().startSpaced} terminated successfully within $runtime"
         override fun toString(): String = status
+
+        private val bytes by lazy { inputStream.readBytes().also { inputStream.close() } }
+        override fun readBytesOrThrow(charset: Charset): ByteArray = bytes
     }
 
     /** State of a process that terminated erroneously. */
     public inner class Failed : ExitState {
         override val process: Process get() = this@Process
         override val end: Instant = Now
-        override val status: String = "Process${process.pid?.toString().startSpaced} terminated after $runtime with exit code $exitCode"
+        override val status: String = "Process${pid?.toString().startSpaced} terminated after $runtime with exit code $exitCode"
         override fun toString(): String = status
+
+        private val bytes by lazy { errorStream.readBytes().also { errorStream.close() } }
+        override fun readBytesOrThrow(charset: Charset): ByteArray {
+            if (bytes.isEmpty()) throw IOException(status)
+            else throw IOException(status + ":\n" + String(bytes, charset).removeTrailingLineSeparator())
+        }
     }
 
     public companion object

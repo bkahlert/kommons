@@ -7,12 +7,9 @@ import org.slf4j.Logger
 import java.nio.file.Path
 
 /** An [Executor] that runs the specified [commandLine] synchronously. */
-public data class SyncExecutor(
+internal data class SyncExecutor(
     private val commandLine: CommandLine,
 ) : Executor<ExitState> {
-
-    /** [Executor] that runs the [Executable] asynchronously.*/
-    public val async: AsyncExecutor get() = AsyncExecutor(commandLine)
 
     private fun prepare(
         workingDirectory: Path?,
@@ -26,13 +23,13 @@ public data class SyncExecutor(
         return process
     }
 
-    public override operator fun invoke(
+    override operator fun invoke(
         customize: ProcessBuilder.() -> Unit,
         workingDirectory: Path?,
         vararg environment: Pair<String, String>,
     ): ExitState = prepare(workingDirectory, environment, customize).finalize()
 
-    public override fun logging(
+    override fun logging(
         logger: (Process) -> Logger,
         customize: ProcessBuilder.() -> Unit,
         workingDirectory: Path?,
@@ -57,9 +54,9 @@ public data class SyncExecutor(
     private fun Process.finalize(): ExitState {
         logger.debug("Waiting for $this")
         waitFor()
-        return state.also {
+        return exitState?.also {
             logger.info(it.status)
-        } as? ExitState ?: error("Process $this expected to be terminated")
+        } ?: error("Process $this expected to be terminated")
     }
 
     override fun toString(): String = buildString {

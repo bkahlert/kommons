@@ -9,23 +9,22 @@ import org.junit.jupiter.api.Test
 
 class ShellScriptTest {
 
-    private val shellScript get() = ShellScript { "echo test" }
+    private val shellScript get() = ShellScript("echo test")
 
     @Test fun instantiation() = testAll {
-        ShellScript { "echo test" } should {
-            it shouldBe ShellScript("echo test")
-            it shouldBe ShellScript(null, "echo test")
-            it shouldBe ShellScript(null, listOf("echo test"))
-            it shouldBe ShellScript(null) { "echo test" }
-        }
-    }
-
-    @Test fun name() = testAll {
-        ShellScript("foo", "echo test").name shouldBe "foo"
+        ShellScript("echo foo", "echo bar") shouldBe ShellScript(
+            """
+                echo foo
+                echo bar
+            """.trimIndent()
+        )
     }
 
     @Test fun content() = testAll {
-        ShellScript("foo", "echo test").content shouldBe "echo test"
+        ShellScript("echo foo", "echo bar").content shouldBe """
+                echo foo
+                echo bar
+            """.trimIndent()
     }
 
     @Test fun to_command_line() = testAll {
