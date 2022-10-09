@@ -70,8 +70,6 @@ class AsyncExecutorTest {
             """.trimIndent()
         }.toCommandLine()).logging(logger = { logger }) { state = it } should {
             it.shouldBeInstanceOf<Process>()
-//            shouldThrow<IOException> { it.inputStream.read() }
-//            shouldThrow<IOException> { it.errorStream.read() }
             it.waitFor() shouldBe 0
             Thread.sleep(500)
             state.shouldBeInstanceOf<Process.Succeeded>()

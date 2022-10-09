@@ -2,13 +2,15 @@ package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.debug.asString
-import com.bkahlert.kommons.exec.Process.State.Exited.Failed
-import com.bkahlert.kommons.exec.Process.State.Exited.Succeeded
-import com.bkahlert.kommons.exec.Process.State.Running
+import com.bkahlert.kommons.debug.trace
+import com.bkahlert.kommons.exec.IO.Output
+import com.bkahlert.kommons.exec.io.RedirectingOutputStream
+import com.bkahlert.kommons.exec.io.TeeInputStream
 import com.bkahlert.kommons.text.startSpaced
 import java.io.InputStream
 import java.io.OutputStream
 import java.time.Instant
+import java.util.Collections
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration
@@ -22,14 +24,23 @@ public class Process(
     public val start: Instant = Now
     private val process: java.lang.Process = processBuilder.start()
 
+    private val _io: MutableList<IO> = Collections.synchronizedList(mutableListOf())
+    public val io: List<IO> = _io
+
     @Suppress("KDocMissingDocumentation")
     override fun getOutputStream(): OutputStream = process.outputStream
 
-    @Suppress("KDocMissingDocumentation")
-    override fun getInputStream(): InputStream = process.inputStream
+    private val teeInputStream: InputStream = TeeInputStream(process.inputStream, RedirectingOutputStream {
+        it.trace("recording")
+        _io.add(Output(it))
+    })
+    private val teeErrorStream: InputStream = TeeInputStream(process.errorStream, RedirectingOutputStream { _io.add(IO.Error(it)) })
 
     @Suppress("KDocMissingDocumentation")
-    override fun getErrorStream(): InputStream = process.errorStream
+    override fun getInputStream(): InputStream = teeInputStream
+
+    @Suppress("KDocMissingDocumentation")
+    override fun getErrorStream(): InputStream = teeErrorStream
 
     @Suppress("KDocMissingDocumentation")
     override fun waitFor(): Int = process.waitFor()
@@ -68,6 +79,11 @@ public class Process(
             if (field == null) {
                 field = try {
                     val exitValue = exitValue()
+                    // TODO read lazily
+                    // TODO succeeded.toString -> output
+                    // TODO failed.toString -> error
+                    kotlin.runCatching { _io.add(IO.Output(process.inputStream.readBytes())) }
+                    kotlin.runCatching { _io.add(IO.Error(process.errorStream.readBytes())) }
                     if (exitValue == 0) Succeeded()
                     else Failed()
                 } catch (e: IllegalThreadStateException) {
@@ -76,7 +92,7 @@ public class Process(
             }
             return field
         }
-        private set(value) = Unit
+        private set
 
     /** Representation of the state of a [Process]. */
     public sealed interface State {
