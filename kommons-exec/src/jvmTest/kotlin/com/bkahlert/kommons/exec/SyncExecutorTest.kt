@@ -27,7 +27,7 @@ class SyncExecutorTest {
         val out = tempDir / "out.log"
         var configuredWorkingDirectory: Path? = null
         var configuredEnvironment: Map<String, String> = emptyMap()
-        SyncExecutor(CommandLine("echo", "test")).invoke(
+        SyncExecutor(ShellScript("echo test").toCommandLine()).invoke(
             workingDirectory = tempDir,
             environment = arrayOf(
                 "foo" to "bar",
@@ -46,7 +46,7 @@ class SyncExecutorTest {
     }
 
     @Test fun invoke() = testAll {
-        SyncExecutor(CommandLine("echo", "test")).invoke() should {
+        SyncExecutor(ShellScript("echo test").toCommandLine()).invoke() should {
             it.shouldBeInstanceOf<Process.ExitState>()
             it.process.inputStream.bufferedReader().readLines().shouldContainExactly("test")
             it.process.errorStream.bufferedReader().readLines().shouldBeEmpty()
@@ -56,7 +56,7 @@ class SyncExecutorTest {
 
     @Test fun logging() = testAll {
         val logger = RecordingLogger()
-        SyncExecutor(CommandLine("echo", "test")).logging(logger = { logger }) should {
+        SyncExecutor(ShellScript("echo test").toCommandLine()).logging(logger = { logger }) should {
             it.shouldBeInstanceOf<Process.ExitState>()
             shouldThrow<IOException> { it.process.inputStream.read() }
             shouldThrow<IOException> { it.process.errorStream.read() }

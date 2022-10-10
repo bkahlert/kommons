@@ -54,7 +54,7 @@ public class Process(
     }
 
     override fun toString(): String = asString {
-        pid?.also { put(::pid.name, it) }
+        pid?.also { put("pid", it) }
         put("state", exitState?.let { it::class.simpleName?.lowercase() } ?: "running")
         put("commandLine", processBuilder.commandLine)
     }

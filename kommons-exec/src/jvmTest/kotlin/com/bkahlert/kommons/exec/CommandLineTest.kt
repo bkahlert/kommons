@@ -20,6 +20,10 @@ class CommandLineTest {
         CommandLine.Fixture.shouldContainExactly("command", "-a", "--bee", "c", " x'\ty'\n💤".quoted)
     }
 
+    @Test fun plus() = testAll {
+        CommandLine("foo", "bar") + "baz" shouldBe CommandLine("foo", "bar", "baz")
+    }
+
     @Test fun exec() = testAll {
         CommandLine.Fixture.exec shouldBe SyncExecutor(CommandLine.Fixture)
     }

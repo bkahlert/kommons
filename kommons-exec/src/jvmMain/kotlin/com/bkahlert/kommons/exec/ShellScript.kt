@@ -19,16 +19,7 @@ public data class ShellScript(
     ) : this(lines.joinToString("\n"))
 
     /** [CommandLine] that can be used to execute this script. */
-    public fun toCommandLine(): CommandLine {
-        val (shellCommand: String, shellArgs: List<String>) = Commandline().shell.run {
-            shellCommand to shellArgsList
-        }
-        return CommandLine(
-            shellCommand,
-            *shellArgs.toTypedArray(),
-            content,
-        )
-    }
+    public fun toCommandLine(): CommandLine = ShellCommandLine + content
 
     override val exec: Executor<Process.ExitState>
         get() = toCommandLine().exec
@@ -43,5 +34,8 @@ public data class ShellScript(
      */
     public override fun toString(): String = content
 
-    public companion object
+    public companion object {
+        internal val ShellCommandLine: CommandLine =
+            Commandline().shell.let { CommandLine(it.shellCommand, it.shellArgsList) }
+    }
 }

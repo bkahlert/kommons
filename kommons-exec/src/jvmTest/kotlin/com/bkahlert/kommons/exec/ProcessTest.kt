@@ -2,7 +2,6 @@ package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.minus
-import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
@@ -17,19 +16,19 @@ import io.kotest.matchers.date.shouldNotBeBefore
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import org.codehaus.plexus.util.Os
 import org.junit.jupiter.api.Test
 import java.io.IOException
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class ProcessTest {
 
     @Test fun instantiate() = testAll {
-        Process(ProcessBuilder("echo", "test")) should {
+        Process(ProcessBuilder(shellCommand, *shellArguments, "echo test")) should {
             it.waitFor() shouldBe 0
         }
 
@@ -40,7 +39,7 @@ class ProcessTest {
 
     @Test fun start() = testAll {
         val start = Now
-        Process(ProcessBuilder("echo", "test")).start should {
+        Process(ProcessBuilder(shellCommand, *shellArguments, "echo test")).start should {
             it.shouldNotBeBefore(start)
             it.shouldNotBeAfter(Now)
         }
@@ -48,26 +47,26 @@ class ProcessTest {
 
     @Test fun output_stream() = testAll {
         val input = randomString()
-        Process(ProcessBuilder("cat")) should {
+        Process(ProcessBuilder(shellCommand, *shellArguments, catCommand)) should {
             it.outputStream.write(input.encodeToByteArray())
             it.outputStream.close()
             it.waitFor() shouldBe 0
-            it.inputStream.readBytes().decodeToString() shouldBe input
+            it.inputStream.bufferedReader().readLines().shouldContainExactly(input)
         }
     }
 
     @Test fun input_stream() = testAll {
         val input = randomString()
-        val process = Process(ProcessBuilder(ShellScript("echo ${input.quoted}").toCommandLine()))
+        val process = Process(ProcessBuilder(shellCommand, *shellArguments, "echo $input"))
             .also { it.waitFor() }
-        process.inputStream.readBytes().decodeToString() shouldContain input
+        process.inputStream.bufferedReader().readLines().shouldContainExactly(input)
     }
 
     @Test fun error_stream() = testAll {
         val input = randomString()
-        val process = Process(ProcessBuilder(ShellScript("echo ${input.quoted} 1>&2").toCommandLine()))
+        val process = Process(ProcessBuilder(shellCommand, *shellArguments, "1>&2 echo $input"))
             .also { it.waitFor() }
-        process.errorStream.readBytes().decodeToString() shouldContain input
+        process.errorStream.bufferedReader().readLines().shouldContainExactly(input)
     }
 
     @Test fun wait_for() = testAll {
@@ -162,12 +161,22 @@ class ProcessTest {
     }
 }
 
-
-private val commandSeparator = if (Os.isFamily(Os.FAMILY_WINDOWS)) " & " else "\n"
+private val isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
+private val commandSeparator = if (isWindows) "&" else "\n"
 private fun commands(vararg commands: String) = commands.joinToString(commandSeparator)
 
-internal fun Process.Companion.running(): Process =
-    Process(ProcessBuilder(ShellScript("sleep 5").toCommandLine()))
+@Suppress("SpellCheckingInspection")
+private val catCommand = if (isWindows) "findstr \"^\"" else "cat"
+private fun sleepCommand(seconds: Long) = if (isWindows) "ping 127.0.0.1 -n $seconds > nul" else "sleep $seconds"
+
+internal val shellCommand: String = ShellScript.ShellCommandLine.command
+internal val shellArguments: Array<String> = ShellScript.ShellCommandLine.arguments.toTypedArray()
+
+
+internal fun Process.Companion.running(duration: Duration = 5.seconds): Process =
+    Process(ProcessBuilder(ShellScript(sleepCommand(duration.inWholeSeconds)).toCommandLine()).apply {
+        redirectErrorStream(true)
+    })
 
 internal fun Process.Companion.succeeding(): Process =
     Process(ProcessBuilder(ShellScript(commands("echo output", "exit 0")).toCommandLine()))
@@ -176,7 +185,7 @@ internal fun Process.Companion.succeeded(): Process =
     succeeding().apply { waitFor() }
 
 internal fun Process.Companion.failing(): Process =
-    Process(ProcessBuilder(ShellScript(commands("echo output", "echo error 1>&2", "exit 42")).toCommandLine()))
+    Process(ProcessBuilder(ShellScript(commands("echo output", "1>&2 echo error", "exit 42")).toCommandLine()))
 
 internal fun Process.Companion.failed(): Process =
     failing().apply { waitFor() }

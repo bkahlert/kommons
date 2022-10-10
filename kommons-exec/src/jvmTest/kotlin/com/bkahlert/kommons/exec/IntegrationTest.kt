@@ -16,7 +16,7 @@ import java.io.IOException
 class IntegrationTest {
 
     @Test fun command_line() = testAll {
-        val commandLine = CommandLine("echo", "test")
+        val commandLine = CommandLine(shellCommand, *shellArguments, "echo test")
 
         commandLine.exec().readLinesOrThrow()
             .shouldContainExactly("test")

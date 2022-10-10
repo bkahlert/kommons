@@ -21,6 +21,13 @@ public data class CommandLine(
         vararg arguments: CharSequence,
     ) : this(command.toString(), arguments.map { it.toString() })
 
+    /**
+     * Returns a command line containing the command and arguments of the original command line and
+     * then the given [argument].
+     */
+    public operator fun plus(argument: CharSequence): CommandLine =
+        CommandLine(command, arguments + argument.toString())
+
     override val exec: Executor<Process.ExitState>
         get() = SyncExecutor(this)
 

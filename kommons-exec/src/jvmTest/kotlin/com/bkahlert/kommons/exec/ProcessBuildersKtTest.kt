@@ -38,7 +38,7 @@ class ProcessBuildersKtTest {
         val out = tempDir / "out.log"
         var configuredWorkingDirectory: Path? = null
         var configuredEnvironment: Map<String, String> = emptyMap()
-        ProcessBuilder("echo", "test").start(
+        ProcessBuilder(shellCommand, *shellArguments, "echo test").start(
             tempDir,
             "foo" to "bar",
             "baz" to "",
