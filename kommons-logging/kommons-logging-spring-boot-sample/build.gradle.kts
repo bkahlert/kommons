@@ -4,7 +4,7 @@ plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("jvm")
-    kotlin("plugin.spring") version "1.7.10"
+    kotlin("plugin.spring") version "1.7.20"
 //    kotlin("kapt")
 }
 
