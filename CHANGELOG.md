@@ -6,14 +6,22 @@
 
 ### Changed
 
-- add [Japanese style emoticon](https://en.wikipedia.org/wiki/Emoticon#Japanese_style) constants such as `(つ◕౪◕)つ━☆ﾟ.*･｡ﾟ`
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+## [2.2.0] - 2022-10-11
+
+### Added
+
+- add [Japanese style emoticon](https://en.wikipedia.org/wiki/Emoticon#Japanese_style) constants such as `(つ◕౪◕)つ━☆ﾟ.*･｡ﾟ`
+- add [kommons-exec](kommons-exec)
+
+### Removed
+
+- removed `kommons-exec-deprecated`
 
 ## [2.1.0] - 2022-09-08
 
@@ -44,7 +52,9 @@
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.1.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.2.0...HEAD
+
+[2.2.0]: https://github.com/bkahlert/kommons-test/compare/v2.1.0...v2.2.0
 
 [2.1.0]: https://github.com/bkahlert/kommons-test/compare/v2.0.0...v2.1.0
 

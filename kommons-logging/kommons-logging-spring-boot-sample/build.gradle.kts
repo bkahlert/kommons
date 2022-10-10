@@ -14,19 +14,15 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    jvmToolchain { languageVersion.set(JavaLanguageVersion.of(17)) }
-}
-
 dependencies {
-    // implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:2.1.0")
+    // implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:2.2.0")
     implementation(project(":kommons-logging:kommons-logging-spring-boot-starter"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
 //    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
-    // testImplementation("com.bkahlert.kommons:kommons-test:2.1.0")
+    // testImplementation("com.bkahlert.kommons:kommons-test:2.2.0")
     testImplementation(project(":kommons-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
