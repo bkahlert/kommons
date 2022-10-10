@@ -19,10 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        java-version: [8]
-    #        os: [ubuntu-latest, macos-latest, windows-latest]
-    #        java-version: [8, 11, 17]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        java-version: [8, 11, 17]
 
     runs-on: ${{ matrix.os }}
 
@@ -39,7 +37,7 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build -x :kommons-exec-deprecated:check -Pkotlin.tests.individualTaskReports=true
+          arguments: build -Pkotlin.tests.individualTaskReports=true
 
       - name: Upload test reports
         uses: actions/upload-artifact@v3
