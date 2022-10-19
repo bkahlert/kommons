@@ -27,6 +27,7 @@ icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
 kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlin-logging" }
 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-assertions-json = { module = "io.kotest:kotest-assertions-json", version.ref = "kotest" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }

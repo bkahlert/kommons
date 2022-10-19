@@ -12,6 +12,7 @@ kotlin {
             dependencies {
                 api(kotlin("test"))
                 api(libs.kotest.assertions.core)
+                api(libs.kotest.assertions.json)
                 implementation(libs.kotest.common)
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-debug"))
