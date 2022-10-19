@@ -29,6 +29,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.slf4j.simple)
+                implementation(project(":kommons-exec"))
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.bkahlert.kommons
 
 import com.bkahlert.kommons.ShutdownHookTestHelper.Companion.marker
+import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.test.testAll
 import io.kotest.assertions.asClue
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -43,7 +44,7 @@ class JvmProgramTest {
 
     @Test fun on_exit(@TempDir tempDir: Path) = testAll {
         tempDir.resolve("on-exit.txt").asClue { file ->
-            IsolatedProcess.exec(OnExitTestHelper::class, file.pathString, "did complete") shouldBe 0
+            CommandLine(OnExitTestHelper::class, file.pathString, "did complete").exec().exitCode shouldBe 0
             file should {
                 it.shouldExist()
                 it.readText() shouldBe "did complete"
@@ -51,9 +52,9 @@ class JvmProgramTest {
         }
 
         tempDir.resolve("on-exit-failure.txt").asClue { file ->
-            IsolatedProcess.exec(OnExitTestHelper::class, file.pathString, "too long".repeat(10)) {
-                it.environment()["com.bkahlert.kommons.testing-shutdown"] = "true"
-            } shouldBe 0
+            CommandLine(OnExitTestHelper::class, file.pathString, "too long".repeat(10)).exec(
+                "com.bkahlert.kommons.testing-shutdown" to "true",
+            ).exitCode shouldBe 0
             file.shouldNotExist()
             SystemLocations.Temp
                 .listDirectoryEntries("kommons.*.onexit.log")
@@ -63,7 +64,7 @@ class JvmProgramTest {
                 it.shouldExist()
                 it.readText()
                     .shouldContain("An exception occurred during shutdown.")
-                    .shouldContain("at com.bkahlert.kommons.OnExitTestHelper\$Companion\$main\$1.invoke(JvmProgramTest.kt:96)")
+                    .shouldContain("at com.bkahlert.kommons.OnExitTestHelper\$Companion\$main")
                     .shouldContain("IllegalArgumentException: too much content")
             }
         }
@@ -71,11 +72,11 @@ class JvmProgramTest {
 
     @Test fun shutdown_hook() = testAll {
         marker.deleteIfExists()
-        IsolatedProcess.exec(ShutdownHookTestHelper::class, "create") shouldBe 0
+        CommandLine(ShutdownHookTestHelper::class, "create").exec().exitCode shouldBe 0
         marker.shouldExist()
 
         marker.deleteIfExists()
-        IsolatedProcess.exec(ShutdownHookTestHelper::class) shouldBe 0
+        CommandLine(ShutdownHookTestHelper::class).exec().exitCode shouldBe 0
         marker.shouldNotExist()
     }
 }

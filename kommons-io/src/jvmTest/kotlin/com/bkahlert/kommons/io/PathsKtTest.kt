@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.IsolatedProcess
 import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.SystemLocations
+import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.Default
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.NonRecursively
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.Recursively
@@ -673,33 +673,33 @@ class PathsKtTest {
     @OneMinuteTimeout
     @Test fun delete_on_exit(@TempDir tempDir: Path) = testAll {
         tempDir.createAnyFile("file-delete-default").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, Default.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, Default.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldNotExist()
         }
         tempDir.createAnyFile("file-delete-recursively").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, Recursively.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, Recursively.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldNotExist()
         }
         tempDir.createAnyFile("file-delete-non-recursively").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, NonRecursively.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, NonRecursively.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldNotExist()
         }
 
         tempDir.createDirectoryWithFiles("dir-delete-default").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, Default.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, Default.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldNotExist()
         }
         tempDir.createDirectoryWithFiles("dir-delete-recursively").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, Recursively.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, Recursively.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldNotExist()
         }
         tempDir.createDirectoryWithFiles("dir-delete-non-recursively").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, NonRecursively.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, NonRecursively.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldExist()
         }
 
         tempDir.resolve("missing").asClue {
-            IsolatedProcess.exec(DeleteOnExecTestHelper::class, Default.name, it.pathString) shouldBe 0
+            CommandLine(DeleteOnExecTestHelper::class, Default.name, it.pathString).exec().exitCode shouldBe 0
             it.shouldNotExist()
         }
     }

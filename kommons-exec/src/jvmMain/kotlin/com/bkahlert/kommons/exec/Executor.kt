@@ -8,6 +8,15 @@ import java.nio.file.Path
 public interface Executor<out T> {
 
     /**
+     * Executes the [Executable] with the specified [environment].
+     *
+     * @param environment the environment variables to add
+     */
+    public operator fun invoke(
+        vararg environment: Pair<String, String>,
+    ): T = invoke({}, null, *environment)
+
+    /**
      * Executes the [Executable] with the specified [workingDirectory] and [environment].
      *
      * @param workingDirectory the working directory to be used during execution
@@ -30,6 +39,30 @@ public interface Executor<out T> {
         workingDirectory: Path? = null,
         vararg environment: Pair<String, String>,
     ): T
+
+    /**
+     * Executes the [Executable] with the specified [environment] by logging all I/O using the given [logger].
+     *
+     * @param logger the logger to use for logging I/O
+     * @param environment the environment variables to add
+     */
+    public fun logging(
+        logger: (Process) -> Logger,
+        vararg environment: Pair<String, String>,
+    ): T = logging(logger, {}, null, *environment)
+
+    /**
+     * Executes the [Executable] with the specified [environment] by logging all I/O using the given [logger].
+     *
+     * @param logger the logger to use for logging I/O
+     * @param customize optional lambda to make adaptions to the underlying [ProcessBuilder]
+     * @param environment the environment variables to add
+     */
+    public fun logging(
+        logger: (Process) -> Logger = { it.ioLogger() },
+        customize: ProcessBuilder.() -> Unit = {},
+        vararg environment: Pair<String, String>,
+    ): T = logging(logger, customize, null, *environment)
 
     /**
      * Executes the [Executable] with the specified [workingDirectory] and [environment] by logging all I/O using the given [logger].
