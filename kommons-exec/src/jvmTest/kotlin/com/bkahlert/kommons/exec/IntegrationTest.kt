@@ -15,6 +15,14 @@ import java.io.IOException
 
 class IntegrationTest {
 
+    @Test fun TODO() = testAll {
+        val commandLine = CommandLine(shellCommand, *shellArguments, "echo test")
+
+        val exec = commandLine.exec()
+        exec.readLinesOrThrow()
+            .shouldContainExactly("test")
+    }
+
     @Test fun command_line() = testAll {
         val commandLine = CommandLine(shellCommand, *shellArguments, "echo test")
 

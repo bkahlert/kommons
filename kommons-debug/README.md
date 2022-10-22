@@ -15,14 +15,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-debug:2.2.0") { because("print debugging") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-debug:2.3.0") { because("print debugging") }`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-debug</artifactId>
-      <version>2.2.0</version>
+      <version>2.3.0</version>
   </dependency>
   ```
 

@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.test.testAll
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forSingle
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -11,7 +10,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.pathString
@@ -58,8 +56,8 @@ class SyncExecutorTest {
         val logger = RecordingLogger()
         SyncExecutor(ShellScript("echo test").toCommandLine()).logging(logger = { logger }) should {
             it.shouldBeInstanceOf<Process.ExitState>()
-            shouldThrow<IOException> { it.process.inputStream.read() }
-            shouldThrow<IOException> { it.process.errorStream.read() }
+            it.process.inputStream.bufferedReader().readLines().shouldContainExactly("test")
+            it.process.errorStream.bufferedReader().readLines().shouldBeEmpty()
             it.exitCode shouldBe 0
         }
         logger should {

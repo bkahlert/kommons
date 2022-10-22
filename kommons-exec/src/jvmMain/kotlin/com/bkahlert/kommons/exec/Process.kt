@@ -15,12 +15,23 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /** [java.lang.Process] wrapper with extended features such as access to its [state]. */
-public class Process(
-    private val processBuilder: ProcessBuilder,
-) : java.lang.Process() {
+public open class Process(
+    private val process: java.lang.Process,
+    private val commandLine: CommandLine? = null,
     /** Moment the process started. */
-    public val start: Instant = Now
-    private val process: java.lang.Process = processBuilder.start()
+    public val start: Instant = Now,
+) : java.lang.Process() {
+
+    public constructor(process: Process) : this(
+        process.process,
+        process.commandLine,
+        process.start,
+    )
+
+    public constructor(processBuilder: ProcessBuilder) : this(
+        processBuilder.start(),
+        processBuilder.commandLine,
+    )
 
     @Suppress("KDocMissingDocumentation")
     override fun getOutputStream(): OutputStream = process.outputStream
@@ -56,7 +67,7 @@ public class Process(
     override fun toString(): String = asString {
         pid?.also { put("pid", it) }
         put("state", exitState?.let { it::class.simpleName?.lowercase() } ?: "running")
-        put("commandLine", processBuilder.commandLine)
+        put("commandLine", commandLine)
     }
 
     /** Exit state of the process or `null` if the process is still running. */

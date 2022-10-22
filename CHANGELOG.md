@@ -12,12 +12,13 @@
 
 ### Fixed
 
-## [2.3.0] - 2022-10-19
+## [2.3.0] - 2022-10-22
 
 ### Added
 
 - Kotest JSON assertions API dependency
 - CommandLine constructor to invoke the main method of class using Java 
+- Fix SyncExecutor to always empty and close the output and error stream 
 
 ## [2.2.0] - 2022-10-11
 
