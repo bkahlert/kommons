@@ -57,7 +57,7 @@ public open class Process(
             process::class.members.firstOrNull { it.name == "pid" }
                 ?.apply { isAccessible = true }
                 ?.run { call(process).toString().toLong() }
-        }.recover {
+        }.recoverCatching {
             process::class.memberFunctions.firstOrNull { it.name == "pid" }
                 ?.apply { isAccessible = true }
                 ?.run { call(process).toString().toLong() }

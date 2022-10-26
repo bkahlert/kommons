@@ -31,15 +31,15 @@ Furthermore, there are some more [advanced features for the JVM platform](#jvm-f
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `testImplementation("com.bkahlert.kommons:kommons-test:2.3.0") { because("JUnit defaults, testAll, ...") }`
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-test:2.3.0") { because("JUnit defaults, testAll, ...") }` *(for MPP projects)*
+* **Gradle** `testImplementation("com.bkahlert.kommons:kommons-test:2.3.1") { because("JUnit defaults, testAll, ...") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-test:2.3.1") { because("JUnit defaults, testAll, ...") }` *(for MPP projects)*
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-test</artifactId>
-      <version>2.3.0</version>
+      <version>2.3.1</version>
       <scope>test</scope>
   </dependency>
   ```

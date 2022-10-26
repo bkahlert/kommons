@@ -12,13 +12,23 @@
 
 ### Fixed
 
+## [2.3.1] - 2022-10-26
+
+### Fixed
+
+- catch InaccessibleObjectException when attempting to compute PID
+
 ## [2.3.0] - 2022-10-22
 
 ### Added
 
 - Kotest JSON assertions API dependency
-- CommandLine constructor to invoke the main method of class using Java 
-- Fix SyncExecutor to always empty and close the output and error stream 
+- CommandLine constructor to invoke the main method of class using Java
+-
+
+### Fixed
+
+- Fix SyncExecutor to always empty and close the output and error stream
 
 ## [2.2.0] - 2022-10-11
 
@@ -60,7 +70,9 @@
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.3.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.3.1...HEAD
+
+[2.3.1]: https://github.com/bkahlert/kommons-test/compare/v2.3.0...v2.3.1
 
 [2.3.0]: https://github.com/bkahlert/kommons-test/compare/v2.2.0...v2.3.0
 

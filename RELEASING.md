@@ -81,7 +81,7 @@ pre-defined version, e.g.
 ### Override Version
 
 ```shell
-./gradlew -Prelease.version=2.3.0 final
+./gradlew -Prelease.version=2.3.1 final
 ```
 
 ```kotlin

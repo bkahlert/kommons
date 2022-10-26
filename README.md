@@ -9,7 +9,7 @@
 - **[Kommons Core](kommons-core) … for runtime information, simple byte and string operations**
 - **[Kommons Debug](kommons-debug) … for print debugging**
 - **[Kommons Exec](kommons-exec) … to execute command lines and shell scripts**
-- **[Kommons IO](kommons-exec) … for simpler IO handling on the JVM**
+- **[Kommons IO](kommons-io) … for simpler IO handling on the JVM**
 - [Kommons Kaomoji](kommons-kaomoji) … Japanese style emoticon constants
 - [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
 - [Kommons Test](kommons-test) … to ease testing
@@ -26,14 +26,14 @@ To use a module individually, see the corresponding instructions linked in [Abou
 
 The following dependency adds the `core`, `debug`, `exec`, `io`, `logging-core`, and `text` module:
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.3.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.3.1")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons</artifactId>
-      <version>2.3.0</version>
+      <version>2.3.1</version>
   </dependency>
   ```
 

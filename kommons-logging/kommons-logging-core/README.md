@@ -10,14 +10,14 @@ and [SLF4J](https://www.slf4j.org/).
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-core:2.3.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-core:2.3.1")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-logging-core</artifactId>
-      <version>2.3.0</version>
+      <version>2.3.1</version>
   </dependency>
   ```
 
@@ -25,7 +25,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
 
 ### Get Logger
 
-No matter where you prefer to get and store your logger,
+No matter how you prefer to get and where to store your logger,
 you always get the right one:
 
 ```kotlin
