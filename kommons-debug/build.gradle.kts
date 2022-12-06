@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-library-conventions")
+    id("kommons-multiplatform-jvm-js-library-conventions")
 }
 
 description = "Kommons Debug is a Kotlin Multiplatform Library for print debugging."

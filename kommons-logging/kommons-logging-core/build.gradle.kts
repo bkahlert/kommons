@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-library-conventions")
+    id("kommons-multiplatform-jvm-js-library-conventions")
 }
 
 description = "Kommons Logging: Core is a Kotlin Multiplatform Library with convenience features for Kotlin Logging and SLF4J"

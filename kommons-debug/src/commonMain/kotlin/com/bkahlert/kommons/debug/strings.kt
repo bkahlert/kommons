@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty
 public fun <T : Any> T.asString(
     vararg include: KProperty<*>,
     excludeNullValues: Boolean = true,
-    exclude: Iterable<KProperty<*>> = emptyList(),
+    exclude: Collection<KProperty<*>> = emptyList(),
 ): String {
     val receiver = this
     return asString(excludeNullValues, exclude.map { it.name }) {
@@ -33,7 +33,7 @@ public fun <T : Any> T.asString(
  */
 public fun <T : Any> T.asString(
     excludeNullValues: Boolean = true,
-    exclude: Iterable<String> = emptyList(),
+    exclude: Collection<String> = emptyList(),
     include: MutableMap<Any, Any?>.() -> Unit,
 ): String {
     val properties = buildMap(include).mapKeys { (key, _) ->

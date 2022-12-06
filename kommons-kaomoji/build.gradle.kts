@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-library-conventions")
+    id("kommons-multiplatform-jvm-js-library-conventions")
 }
 
 description = "Kommons Kaomoji is a Kotlin Multiplatform Library that offers Japanese style emoticons `(つ◕౪◕)つ━☆ﾟ.*･｡ﾟ"

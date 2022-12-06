@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-library-conventions")
+    id("kommons-multiplatform-jvm-js-library-conventions")
 }
 
 description = "Kommons Text is a Kotlin Multiplatform Library for Unicode-aware text manipulations."
