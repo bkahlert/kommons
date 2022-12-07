@@ -10,7 +10,11 @@ public expect enum class Platform {
     NodeJS,
 
     /** Java virtual machine */
-    JVM;
+    JVM,
+
+    /** Native platform */
+    Native,
+    ;
 
     public companion object {
         /** The platform this program runs on. */

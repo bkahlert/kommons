@@ -10,7 +10,11 @@ public actual enum class Platform {
     NodeJS,
 
     /** Java virtual machine */
-    JVM;
+    JVM,
+
+    /** Native platform */
+    Native,
+    ;
 
     public actual companion object {
         /** The platform this program runs on. */

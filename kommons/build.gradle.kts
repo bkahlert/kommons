@@ -1,7 +1,7 @@
 description = "Features for Kotlin™ Multiplatform You Didn't Know You Were Missing"
 
 plugins {
-    id("kommons-multiplatform-jvm-js-library-conventions")
+    id("kommons-multiplatform-library-conventions")
 }
 
 kotlin {

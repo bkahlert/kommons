@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-jvm-js-library-conventions")
+    id("kommons-multiplatform-library-conventions")
 }
 
 description = "Kommons Core is a Kotlin Multiplatform Library that offers shared features for all Kommons modules."
@@ -11,6 +11,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlin.logging)
+                api(libs.kotlinx.datetime)
             }
         }
         val commonTest by getting {
@@ -31,6 +32,10 @@ kotlin {
             }
         }
         val jsMain by getting
-        val jsTest by getting
+        val jsTest by getting {
+            dependencies {
+                implementation(project(":kommons-debug"))
+            }
+        }
     }
 }

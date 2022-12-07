@@ -35,6 +35,7 @@ signing {
 // getting rid of missing dependency declarations; see https://youtrack.jetbrains.com/issue/KT-46466
 tasks.withType<Sign>().forEach { tasks.withType<AbstractPublishToMaven>().configureEach { dependsOn(it) } }
 
+// TODO consider switching to https://github.com/gradle-nexus/publish-plugin
 
 publishing {
 

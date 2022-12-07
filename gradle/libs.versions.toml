@@ -3,6 +3,7 @@ dokka = "1.7.10"
 icu = "71.1"
 kotlin = "1.7.10"
 kotlin-logging = "2.1.23"
+kotlinx-datetime = "0.4.0"
 kotest = "5.4.1"
 ktor = "1.6.3"
 logback-classic = "1.2.11"
@@ -25,6 +26,8 @@ xregexp = "5.1.0"
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
 
 kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlin-logging" }
+
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-json = { module = "io.kotest:kotest-assertions-json", version.ref = "kotest" }

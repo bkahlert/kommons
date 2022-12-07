@@ -1,6 +1,7 @@
 package com.bkahlert.kommons
 
 import com.bkahlert.kommons.RoundingMode.Ceiling
+import kotlinx.datetime.Instant
 import kotlin.random.Random
 
 private const val EMPTY_STRING: String = ""

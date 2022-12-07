@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
-class JsProgramTest {
+class NativeProgramTest {
 
     @Test fun is_debugging() = testAll {
         Program.isDebugging shouldBe false
@@ -14,7 +14,7 @@ class JsProgramTest {
     @Test fun on_exit() = testAll {
         shouldNotThrowAny {
             Program.onExit {
-//                console.log("${Platform.Current.name} did unload")
+//                println("${Platform.Current.name} did unload")
             }
         }
     }

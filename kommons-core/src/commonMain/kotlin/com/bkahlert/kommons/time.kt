@@ -1,5 +1,16 @@
 package com.bkahlert.kommons
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.FixedOffsetTimeZone
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -10,60 +21,43 @@ import kotlin.time.DurationUnit.HOURS
 import kotlin.time.DurationUnit.MINUTES
 import kotlin.time.DurationUnit.SECONDS
 
-/** An instantaneous point on the time-line. */
-public expect class Instant
-
-/** A date without a time-zone in the [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601) calendar system, such as 2007-12-03. */
-public expect class LocalDate
-
-
 /** The current date and time. */
-public expect val Now: Instant
+public val Now: Instant get() = Clock.System.now()
 
 /** The current date. */
-public expect val Today: LocalDate
+public val Today: LocalDate get() = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
 /** The current date but 1 day in the past. */
-public expect val Yesterday: LocalDate
+public val Yesterday: LocalDate get() = Today - 1.days
 
 /** The current date but 1 day in the future. */
-public expect val Tomorrow: LocalDate
+public val Tomorrow: LocalDate get() = Today + 1.days
 
 /** The passed seconds since 1970-01-01T00:00:00Z. */
-public expect val Timestamp: Long
-
-
-/** Returns a copy of this [Instant] with the specified [duration] added. */
-public expect operator fun Instant.plus(duration: Duration): Instant
-
-/** Returns a copy of this [Instant] with the specified [duration] subtracted. */
-public expect operator fun Instant.minus(duration: Duration): Instant
-
-/** Returns the [Duration] between this and the specified [other]. */
-public expect operator fun Instant.minus(other: Instant): Duration
+public val Timestamp: Long get() = Now.toEpochMilliseconds()
 
 /** Returns this [Instant] formatted as a local date (e.g. May 15, 1984). */
 public expect fun Instant.toLocalDateString(): String
 
 
 /** Returns a copy of this [LocalDate] with the whole days of the specified [duration] added. */
-public expect operator fun LocalDate.plus(duration: Duration): LocalDate
+public operator fun LocalDate.plus(duration: Duration): LocalDate = plus(duration.inWholeDays, DateTimeUnit.DAY)
 
 /** Returns a copy of this [LocalDate] with the whole days of the specified [duration] subtracted. */
-public expect operator fun LocalDate.minus(duration: Duration): LocalDate
+public operator fun LocalDate.minus(duration: Duration): LocalDate = plus(-duration)
 
 /** Returns the [Duration] between this and the specified [other]. */
-public expect operator fun LocalDate.minus(other: LocalDate): Duration
+public operator fun LocalDate.minus(other: LocalDate): Duration = other.daysUntil(this).days
 
 /** Returns this [LocalDate] formatted as a local date (e.g. May 15, 1984). */
 public expect fun LocalDate.toLocalDateString(): String
 
 
 /** The hour of the month according to universal time. */
-public expect val Instant.utcHours: Int
+public val Instant.utcHours: Int get() = toLocalDateTime(FixedOffsetTimeZone(UtcOffset.ZERO)).hour
 
 /** The minutes of the month according to universal time. */
-public expect val Instant.utcMinutes: Int
+public val Instant.utcMinutes: Int get() = toLocalDateTime(FixedOffsetTimeZone(UtcOffset.ZERO)).minute
 
 
 private fun Duration.describeMoment(moment: String, descriptive: Boolean): String =
