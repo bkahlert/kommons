@@ -7,7 +7,6 @@ import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.Default
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.NonRecursively
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.Recursively
 import com.bkahlert.kommons.minus
-import com.bkahlert.kommons.plus
 import com.bkahlert.kommons.test.OneMinuteTimeout
 import com.bkahlert.kommons.test.createAnyFile
 import com.bkahlert.kommons.test.createDirectoryWithFiles
@@ -40,6 +39,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.string.shouldStartWith
+import kotlinx.datetime.toKotlinInstant
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -74,7 +74,6 @@ import java.nio.file.WatchService
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileAttributeView
-import java.nio.file.attribute.FileTime
 import java.nio.file.attribute.UserPrincipalLookupService
 import java.nio.file.spi.FileSystemProvider
 import kotlin.io.path.appendText
@@ -306,8 +305,8 @@ class PathsKtTest {
         @Test
         fun `should read created`(@TempDir tempDir: Path) = testAll {
             tempDir.createTempFile().created.toInstant() should {
-                it shouldBeLessThan (Now + 1.minutes)
-                it shouldBeGreaterThan (Now - 1.minutes)
+                it.toKotlinInstant() shouldBeLessThan (Now + 1.minutes)
+                it.toKotlinInstant() shouldBeGreaterThan (Now - 1.minutes)
             }
         }
 
@@ -328,18 +327,18 @@ class PathsKtTest {
         @Test
         fun `should read last accessed`(@TempDir tempDir: Path) = testAll {
             tempDir.createTempFile().lastAccessed.toInstant() should {
-                it shouldBeLessThan (Now + 1.minutes)
-                it shouldBeGreaterThan (Now - 1.minutes)
+                it.toKotlinInstant() shouldBeLessThan (Now + 1.minutes)
+                it.toKotlinInstant() shouldBeGreaterThan (Now - 1.minutes)
             }
         }
 
         @Test
         fun `should write last accessed`(@TempDir tempDir: Path) = testAll {
             tempDir.createTempFile().apply {
-                lastAccessed = FileTime.from(Now - 20.minutes)
+                lastAccessed = (Now - 20.minutes).toFileTime()
             }.lastAccessed.toInstant() should {
-                it shouldBeLessThan (Now + 21.minutes)
-                it shouldBeGreaterThan (Now - 21.minutes)
+                it.toKotlinInstant() shouldBeLessThan (Now + 21.minutes)
+                it.toKotlinInstant() shouldBeGreaterThan (Now - 21.minutes)
             }
         }
     }
@@ -350,18 +349,18 @@ class PathsKtTest {
         @Test
         fun `should read last modified`(@TempDir tempDir: Path) = testAll {
             tempDir.createTempFile().lastModified.toInstant() should {
-                it shouldBeLessThan (Now + 1.minutes)
-                it shouldBeGreaterThan (Now - 1.minutes)
+                it.toKotlinInstant() shouldBeLessThan (Now + 1.minutes)
+                it.toKotlinInstant() shouldBeGreaterThan (Now - 1.minutes)
             }
         }
 
         @Test
         fun `should write last modified`(@TempDir tempDir: Path) = testAll {
             tempDir.createTempFile().apply {
-                lastModified = FileTime.from(Now - 20.minutes)
+                lastModified = (Now - 20.minutes).toFileTime()
             }.lastModified.toInstant() should {
-                it shouldBeLessThan (Now + 21.minutes)
-                it shouldBeGreaterThan (Now - 21.minutes)
+                it.toKotlinInstant() shouldBeLessThan (Now + 21.minutes)
+                it.toKotlinInstant() shouldBeGreaterThan (Now - 21.minutes)
             }
         }
     }

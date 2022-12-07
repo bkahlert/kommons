@@ -20,14 +20,19 @@ class CategoryTest {
     private fun category(
         elements: MutableList<Lazy<Kaomoji>> = mutableListOf(),
     ): Category = object : Category(elements) {
-        @JsName("test01") val `(ಠ_¬)o︠・━・` by parsing()
-        val test02 by parsing("(ಠ_¬)o︠・━・")
-        @JsName("test03") val `(ಠ_¬)o︠・━・・・・・・・・・` by parts(0..0, 1..1, 2..2, 3..3, 4..4, 5..9)
-        val test04 by parts("(", "ಠ", "_", "¬", ")", "o︠・━・")
+        @JsName("test01")
+        val `〔ಠ_¬〕o︠・━・` by parsing()
+
+        val test02 by parsing("〔ಠ_¬〕o︠・━・")
+
+        @JsName("test03")
+        val `〔ಠ_¬〕o︠・━・・・・・・・・・` by parts(0..0, 1..1, 2..2, 3..3, 4..4, 5..9)
+
+        val test04 by parts("〔", "ಠ", "_", "¬", "〕", "o︠・━・")
     }
 
     @Test fun instantiate() = category().testAll {
-        it.toString() shouldBe "(ಠ_¬)o︠・━・"
+        it.toString() shouldBe "〔ಠ_¬〕o︠・━・"
     }
 
     @Test fun lazy() = testAll {

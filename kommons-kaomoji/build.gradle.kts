@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-jvm-js-library-conventions")
+    id("kommons-multiplatform-library-conventions")
 }
 
 description = "Kommons Kaomoji is a Kotlin Multiplatform Library that offers Japanese style emoticons `(つ◕౪◕)つ━☆ﾟ.*･｡ﾟ"
@@ -17,7 +17,6 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(project(":kommons-debug"))
                 implementation(project(":kommons-test"))
             }
         }

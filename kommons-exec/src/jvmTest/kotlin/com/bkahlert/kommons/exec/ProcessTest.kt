@@ -1,7 +1,7 @@
 package com.bkahlert.kommons.exec
 
 import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.minus
+import com.bkahlert.kommons.Timestamp
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
@@ -10,9 +10,9 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.comparables.shouldBeLessThan
-import io.kotest.matchers.date.shouldNotBeAfter
-import io.kotest.matchers.date.shouldNotBeBefore
+import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -40,8 +40,8 @@ class ProcessTest {
     @Test fun start() = testAll {
         val start = Now
         Process(ProcessBuilder(shellCommand, *shellArguments, "echo test")).start should {
-            it.shouldNotBeBefore(start)
-            it.shouldNotBeAfter(Now)
+            it.toEpochMilliseconds() shouldBeGreaterThanOrEqualTo start.toEpochMilliseconds()
+            it.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
         }
     }
 
@@ -128,7 +128,7 @@ class ProcessTest {
         succeededProcess.exitState.shouldBeInstanceOf<Process.Succeeded>() should {
             it.process shouldBeSameInstanceAs succeededProcess
             it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.end shouldNotBeAfter Now
+            it.end.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
             it.runtime shouldBe it.end.minus(it.start)
             it.exitCode shouldBe 0
             it.status shouldMatchGlob "Process* terminated successfully within *"
@@ -142,7 +142,7 @@ class ProcessTest {
         failedProcess.exitState.shouldBeInstanceOf<Process.Failed>() should {
             it.process shouldBeSameInstanceAs failedProcess
             it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.end shouldNotBeAfter Now
+            it.end.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
             it.runtime shouldBe it.end.minus(it.start)
             it.exitCode shouldBe 42
             it.status shouldMatchGlob "Process* terminated after * with exit code 42"

@@ -1,5 +1,5 @@
 plugins {
-    id("kommons-multiplatform-jvm-js-library-conventions")
+    id("kommons-multiplatform-library-conventions")
 }
 
 description = "Kommons IO is a Kotlin Library for simpler IO handling on the JVM."

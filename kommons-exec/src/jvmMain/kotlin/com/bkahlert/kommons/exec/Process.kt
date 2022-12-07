@@ -4,11 +4,11 @@ import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.text.startSpaced
+import kotlinx.datetime.Instant
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
-import java.time.Instant
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration
@@ -101,7 +101,7 @@ public open class Process(
         public val end: Instant
 
         /** [Duration] the process took to execute. */
-        public val runtime: Duration get() = (end.toEpochMilli() - start.toEpochMilli()).milliseconds
+        public val runtime: Duration get() = (end.toEpochMilliseconds() - start.toEpochMilliseconds()).milliseconds
 
         /** Exit code the process terminated with. */
         public val exitCode: Int get() = process.exitValue()
