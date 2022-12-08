@@ -1,5 +1,7 @@
+import com.bkahlert.kommons.gradle.Unicode
+
 plugins {
-    id("kommons-multiplatform-jvm-js-library-conventions")
+    id("kommons-multiplatform-library-conventions")
 }
 
 description = "Kommons Text is a Kotlin Multiplatform Library for Unicode-aware text manipulations."
@@ -18,12 +20,14 @@ kotlin {
                 implementation(project(":kommons-test"))
             }
         }
+
         val jvmMain by getting {
             dependencies {
                 implementation(libs.icu4j)
             }
         }
         val jvmTest by getting
+
         val jsMain by getting {
             dependencies {
                 implementation(npm("xregexp", libs.versions.xregexp.get())) { because("regex classes for char meta data") }
@@ -31,5 +35,23 @@ kotlin {
             }
         }
         val jsTest by getting
+
+        val nativeMain by getting {
+            dependencies {
+                implementation(libs.mordant)
+            }
+        }
+    }
+}
+
+tasks {
+    @Suppress("UNUSED_VARIABLE")
+    val generateUnicodeData by registering {
+        group = "build"
+        doLast {
+            val dir = projectDir.resolve("src/nativeMain/kotlin/com/bkahlert/kommons/text")
+            val generated = Unicode.UnicodeData.generate(dir.resolve("UnicodeData.kt"))
+            logger.info("Generated $generated")
+        }
     }
 }

@@ -13,21 +13,23 @@ internal actual val CodePoint.string: String
         "${high.toChar()}${low.toChar()}"
     }
 
-private val XRegExp = js("require('xregexp')")
-private val letterRegexp = XRegExp("^\\p{L}$")
-private val digitRegexp = XRegExp("^\\p{Nd}$")
-private val whitespaceRegexp = XRegExp("^\\p{Zs}$")
+private fun GeneralCategory.Companion.values(startingWith: String) =
+    GeneralCategory.values().filter { it.name.startsWith(startingWith) }.toTypedArray()
+
+private val letterClasses = GeneralCategory.values("L")
+private val digitClasses = arrayOf(GeneralCategory.Nd)
+private val whitespaceClasses = arrayOf(GeneralCategory.Zs)
 
 /** Whether this code point is a letter. */
 public actual val CodePoint.isLetter: Boolean
-    get() = letterRegexp.test(string) as Boolean
+    get() = UnicodeData[value] in letterClasses
 
 /** Whether this code point is a digit. */
 public actual val CodePoint.isDigit: Boolean
-    get() = digitRegexp.test(value.toChar().toString()) as Boolean
+    get() = UnicodeData[value] in digitClasses
 
 /** Whether this code point is a [Unicode Space Character](http://www.unicode.org/versions/Unicode13.0.0/ch06.pdf). */
 public actual val CodePoint.isWhitespace: Boolean
-    get() = whitespaceRegexp.test(value.toChar().toString()) as Boolean
+    get() = UnicodeData[value] in whitespaceClasses
 
 internal actual fun CharacterCodingException(inputLength: Int): CharacterCodingException = CharacterCodingException("Input length = $inputLength")

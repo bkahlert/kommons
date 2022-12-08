@@ -4,9 +4,12 @@ import com.bkahlert.kommons.EMPTY
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.CodePoint.Companion.codePoints
 import com.bkahlert.kommons.text.Text.ChunkedText
+import com.bkahlert.kommons.toHexadecimalString
+import io.kotest.assertions.asClue
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowWithMessage
+import io.kotest.assertions.withClue
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -270,50 +273,50 @@ class CodePointTest {
     }
 
     @Test fun is_0to9() = testAll {
-        "0123456789".asCodePointSequence().forEach { it.is0to9 shouldBe true }
-        "AzΑωष".asCodePointSequence().forEach { it.is0to9 shouldBe false }
+        "0123456789".test { it.is0to9 shouldBe true }
+        "AzΑωष".test { it.is0to9 shouldBe false }
     }
 
     @Test fun is_AtoZ() = testAll {
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".asCodePointSequence().forEach { it.isAtoZ shouldBe true }
-        "abc123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().forEach { it.isAtoZ shouldBe false }
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".test { it.isAtoZ shouldBe true }
+        "abc123🜃🜂🜁🜄𝌀𝍖ि".test { it.isAtoZ shouldBe false }
     }
 
     @Suppress("SpellCheckingInspection")
     @Test fun is_atoz() = testAll {
-        "abcdefghijklmnopqrstuvwxyz".asCodePointSequence().forEach { it.isatoz shouldBe true }
-        "ABC123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().forEach { it.isatoz shouldBe false }
+        "abcdefghijklmnopqrstuvwxyz".test { it.isatoz shouldBe true }
+        "ABC123🜃🜂🜁🜄𝌀𝍖ि".test { it.isatoz shouldBe false }
     }
 
     @Suppress("SpellCheckingInspection")
     @Test fun is_Atoz() = testAll {
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".asCodePointSequence().forEach { it.isAtoz shouldBe true }
-        "123🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().forEach { it.isAtoz shouldBe false }
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".test { it.isAtoz shouldBe true }
+        "123🜃🜂🜁🜄𝌀𝍖ि".test { it.isAtoz shouldBe false }
     }
 
     @Test fun is_ascii_alphanumeric() = testAll {
-        "Az09".asCodePointSequence().forEach { it.isAsciiAlphanumeric shouldBe true }
-        "Αωष🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().forEach { it.isAsciiAlphanumeric shouldBe false }
+        "Az09".test { it.isAsciiAlphanumeric shouldBe true }
+        "Αωष🜃🜂🜁🜄𝌀𝍖ि".test { it.isAsciiAlphanumeric shouldBe false }
     }
 
     @Test fun is_alphanumeric() = testAll {
-        "Az09Αωष".asCodePointSequence().forEach { it.isAlphanumeric shouldBe true }
-        "🜃🜂🜁🜄𝌀𝍖ि".asCodePointSequence().forEach { it.isAlphanumeric shouldBe false }
+        "Az09Αωष".test { it.isAlphanumeric shouldBe true }
+        "🜃🜂🜁🜄𝌀𝍖ि".test { it.isAlphanumeric shouldBe false }
     }
 
     @Test fun is_letter() = testAll {
-        "AzΑωष".asCodePointSequence().forEach { it.isLetter shouldBe true }
-        "🜃🜂🜁🜄𝌀𝍖ि09".asCodePointSequence().forEach { it.isLetter shouldBe false }
+        "AzΑωष".test { it.isLetter shouldBe true }
+        "🜃🜂🜁🜄𝌀𝍖ि09".test { it.isLetter shouldBe false }
     }
 
     @Test fun is_digit() = testAll {
-        "0123456789".asCodePointSequence().forEach { it.isDigit shouldBe true }
-        "AzΑωष".asCodePointSequence().forEach { it.isDigit shouldBe false }
+        "0123456789".test { it.isDigit shouldBe true }
+        "AzΑωष".test { it.isDigit shouldBe false }
     }
 
     @Test fun is_whitespace() = testAll {
         listOf(' ', '\u2000').forAll { it.codePoint.isWhitespace shouldBe true }
-        "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".asCodePointSequence().forEach { it.isWhitespace shouldBe false }
+        "Az09Αω𝌀𝍖षि🜃🜂🜁🜄".test { it.isWhitespace shouldBe false }
     }
 
     @Test fun text_unit() = testAll(emojiCharSequence, emojiString) {
@@ -360,6 +363,14 @@ class CodePointTest {
             it.start shouldBe CodePoint(0x61)
             it.endInclusive shouldBe CodePoint(0x6A)
             it.iterator().asSequence().joinToString { it.value.toString() } shouldBe (0x61..0x6A).map { it.toString() }.joinToString()
+        }
+    }
+}
+
+private fun String.test(block: (CodePoint) -> Unit) {
+    asCodePointSequence().forAll { cp ->
+        withClue("$cp / U+${cp.value.toHexadecimalString().drop(2)}") {
+            cp.asClue(block)
         }
     }
 }

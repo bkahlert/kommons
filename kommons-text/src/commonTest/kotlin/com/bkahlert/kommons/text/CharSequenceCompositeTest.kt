@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.kotest.matchers.types.shouldBeSameInstanceAs
-import org.junit.jupiter.api.Test
+import kotlin.test.Test
 
 class CharSequenceCompositeTest {
 
@@ -161,9 +161,9 @@ class CharSequenceCompositeTest {
     }
 }
 
-internal val charSequenceComposite0 = CharSequenceComposite()
-internal val charSequenceComposite1Empty = CharSequenceComposite("")
-internal val charSequenceComposite1 = CharSequenceComposite("foo")
-internal val charSequenceComposite2 = CharSequenceComposite("foo", "bar")
-internal val charSequenceComposite3 = CharSequenceComposite("foo", "bar", "baz")
-internal fun charSequenceComposite3(charSequence: CharSequence) = CharSequenceComposite("foo", charSequence, "baz")
+private val charSequenceComposite0 get() = CharSequenceComposite()
+private val charSequenceComposite1Empty get() = CharSequenceComposite("")
+private val charSequenceComposite1 get() = CharSequenceComposite("foo")
+private val charSequenceComposite2 get() = CharSequenceComposite("foo", "bar")
+private val charSequenceComposite3 get() = CharSequenceComposite("foo", "bar", "baz")
+private fun charSequenceComposite3(charSequence: CharSequence) = CharSequenceComposite("foo", charSequence, "baz")

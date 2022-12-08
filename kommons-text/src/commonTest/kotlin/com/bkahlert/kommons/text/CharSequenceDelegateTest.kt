@@ -12,6 +12,8 @@ import kotlin.test.Test
 
 class CharSequenceDelegateTest {
 
+    private val returnsIdentity = "foo".let { it === it.subSequence(0, it.length) }
+
     @Test fun of_empty() = testAll {
         val empty = ""
         val foo = CharSequenceDelegate(empty)
@@ -20,14 +22,18 @@ class CharSequenceDelegateTest {
         shouldThrow<IndexOutOfBoundsException> { foo[0] }.message shouldBe "index out of range: 0"
         foo.subSequence(0, 0) shouldBe ""
         shouldThrow<IndexOutOfBoundsException> { foo.subSequence(1, 0) }.message shouldBe "begin 1, end 0, length 0"
-        foo.toString() shouldBeSameInstanceAs empty
+        if (returnsIdentity) {
+            foo.toString() shouldBeSameInstanceAs empty
+        }
     }
 
     @Test fun of_string() = testAll {
         val string = "foo"
         val foo = CharSequenceDelegate(string)
         assertFoo(foo)
-        foo.toString() shouldBeSameInstanceAs "foo"
+        if (returnsIdentity) {
+            foo.toString() shouldBeSameInstanceAs "foo"
+        }
     }
 
     @Test fun of_string_builder() = testAll {

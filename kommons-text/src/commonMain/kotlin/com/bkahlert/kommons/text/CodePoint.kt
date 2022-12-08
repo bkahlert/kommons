@@ -92,7 +92,7 @@ public value class CodePoint(
      * if it's a [Unicode Letter](https://www.unicode.org/glossary/#letter) or
      * a [Unicode Digit](http://www.unicode.org/glossary/#digits).
      */
-    public val isAlphanumeric: Boolean get() = Regex("[\\p{L} \\p{Nd}]").matches(string)
+    public val isAlphanumeric: Boolean get() = isLetter || isDigit
 
     /** Text unit for texts consisting of [CodePoint] chunks. */
     public companion object : ChunkingTextUnit<CodePoint>("code point") {
