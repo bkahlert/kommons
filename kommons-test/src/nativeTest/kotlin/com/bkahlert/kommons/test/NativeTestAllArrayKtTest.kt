@@ -7,7 +7,7 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldContainIgnoringCase
 import kotlin.test.Test
 
-class TestAllArrayKtTest {
+class NativeTestAllArrayKtTest {
 
     @Test fun test_empty() {
         shouldThrow<IllegalArgumentException> {
@@ -83,15 +83,13 @@ class TestAllArrayKtTest {
             "foo bar" =>*
             The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
-            **
             2) "foo bar" should include substring "BAZ"
-            **
+
             "FOO BAR" =>*
             The following 2 assertions failed:
             1) "FOO BAR" should include substring "baz"
-            **
             2) "FOO BAR" should include substring "BAZ"
-            **
+
         """.trimIndent()
     }
 }

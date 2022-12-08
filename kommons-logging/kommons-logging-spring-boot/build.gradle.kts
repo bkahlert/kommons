@@ -21,7 +21,6 @@ kotlin {
                 configurations["kapt"].dependencies.add(libs.spring.boot.configuration.processor)
 
                 implementation(project(":kommons-core"))
-                implementation(project(":kommons-debug"))
                 implementation(project(":kommons-io"))
                 implementation(project(":kommons-logging:kommons-logging-core"))
                 implementation(project(":kommons-logging:kommons-logging-logback"))

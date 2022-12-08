@@ -6,7 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlin.test.Test
 
-class TestAllKtTest {
+class NativeTestAllKtTest {
 
     @Test fun test_success() {
         shouldNotThrowAny {
@@ -36,13 +36,12 @@ class TestAllKtTest {
                 "foo bar" shouldContain "baz"
                 "foo bar" shouldContain "FOO"
             }
-        }.message shouldMatchGlob """
-
+        }.message shouldBe """
+            
             The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
-            **
             2) "foo bar" should include substring "FOO"
-            **
+            
         """.trimIndent()
     }
 }

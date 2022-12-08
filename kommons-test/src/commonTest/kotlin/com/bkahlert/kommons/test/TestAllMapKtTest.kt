@@ -60,6 +60,8 @@ class TestAllMapKtTest {
     }
 
     @Test fun test_multiple_fails_multiple_subjects() {
+        if (!supportsSoftAssertions) return
+
         shouldThrow<AssertionError> {
             mapOf("a" to "foo bar", "b" to "FOO BAR").testAll { (_, value) ->
                 value shouldContain "baz"

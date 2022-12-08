@@ -129,7 +129,7 @@ class ProcessTest {
             it.process shouldBeSameInstanceAs succeededProcess
             it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
             it.end.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
-            it.runtime shouldBe it.end.minus(it.start)
+            it.runtime shouldBe it.end - it.start
             it.exitCode shouldBe 0
             it.status shouldMatchGlob "Process* terminated successfully within *"
             it.toString() shouldBe it.status
@@ -143,7 +143,7 @@ class ProcessTest {
             it.process shouldBeSameInstanceAs failedProcess
             it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
             it.end.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
-            it.runtime shouldBe it.end.minus(it.start)
+            it.runtime shouldBe it.end - it.start
             it.exitCode shouldBe 42
             it.status shouldMatchGlob "Process* terminated after * with exit code 42"
             it.toString() shouldBe it.status

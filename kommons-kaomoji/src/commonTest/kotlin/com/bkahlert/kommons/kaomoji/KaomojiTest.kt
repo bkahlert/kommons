@@ -2,7 +2,6 @@ package com.bkahlert.kommons.kaomoji
 
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.LineSeparators.LF
-import com.bkahlert.kommons.text.columns
 import io.kotest.assertions.withClue
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContain

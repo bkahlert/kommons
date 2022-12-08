@@ -12,7 +12,6 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.logging)
                 implementation(project(":kommons-core"))
-                implementation(project(":kommons-debug"))
                 implementation(kotlin("reflect"))
             }
         }
@@ -24,6 +23,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(libs.slf4j.api)
+                implementation(project(":kommons-debug"))
             }
         }
         val jvmTest by getting {
@@ -31,7 +31,11 @@ kotlin {
                 implementation(libs.logback.classic)
             }
         }
-        val jsMain by getting
+        val jsMain by getting {
+            dependencies {
+                implementation(project(":kommons-debug"))
+            }
+        }
         val jsTest by getting
     }
 }

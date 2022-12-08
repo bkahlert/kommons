@@ -60,6 +60,8 @@ class TestAllSequenceKtTest {
     }
 
     @Test fun test_multiple_fails_multiple_subjects() {
+        if (!supportsSoftAssertions) return
+
         shouldThrow<AssertionError> {
             sequenceOf("foo bar", "FOO BAR").testAll {
                 it shouldContain "baz"

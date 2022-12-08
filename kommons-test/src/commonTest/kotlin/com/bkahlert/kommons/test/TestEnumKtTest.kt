@@ -60,6 +60,8 @@ class TestEnumKtTest {
     }
 
     @Test fun test_multiple_fails_multiple_subjects() {
+        if (!supportsSoftAssertions) return
+
         shouldThrow<AssertionError> {
             testEnum<FooBarEnum> {
                 it.name shouldContain "baz"

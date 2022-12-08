@@ -7,8 +7,6 @@ import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.lines
 import com.bkahlert.kommons.text.asCodePointSequence
 import com.bkahlert.kommons.text.codePointCount
-import com.bkahlert.kommons.text.columns
-import com.bkahlert.kommons.text.padEndColumns
 import com.bkahlert.kommons.text.takeUnlessEmpty
 import kotlin.random.Random
 

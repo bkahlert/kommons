@@ -11,15 +11,21 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(project(":kommons-core"))
-                api(project(":kommons-debug"))
                 api(project(":kommons-io"))
-                api(project(":kommons-logging:kommons-logging-core"))
                 api(project(":kommons-text"))
             }
         }
         val jvmMain by getting {
             dependencies {
+                api(project(":kommons-debug"))
+                api(project(":kommons-logging:kommons-logging-core"))
                 api(project(":kommons-exec"))
+            }
+        }
+        val jsMain by getting {
+            dependencies {
+                api(project(":kommons-debug"))
+                api(project(":kommons-logging:kommons-logging-core"))
             }
         }
     }

@@ -12,7 +12,6 @@ import java.nio.charset.Charset
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 /** [java.lang.Process] wrapper with extended features such as access to its [state]. */
 public open class Process(
@@ -101,7 +100,7 @@ public open class Process(
         public val end: Instant
 
         /** [Duration] the process took to execute. */
-        public val runtime: Duration get() = (end.toEpochMilliseconds() - start.toEpochMilliseconds()).milliseconds
+        public val runtime: Duration get() = end - start
 
         /** Exit code the process terminated with. */
         public val exitCode: Int get() = process.exitValue()

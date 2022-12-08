@@ -64,6 +64,8 @@ class ForAllEnumValuesKtTest {
     }
 
     @Test fun test_multiple_fails_multiple_subjects() {
+        if (!supportsSoftAssertions) return
+
         shouldThrow<AssertionError> {
             forAllEnumValues<FooBarEnum> {
                 it.name shouldContain "baz"
