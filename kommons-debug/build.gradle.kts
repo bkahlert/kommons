@@ -12,7 +12,6 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.logging)
                 implementation(project(":kommons-core"))
-                implementation(project(":kommons-io"))
                 implementation(project(":kommons-text"))
             }
         }
@@ -25,6 +24,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("reflect"))
                 implementation(libs.slf4j.api)
+                implementation(project(":kommons-io"))
             }
         }
         val jvmTest by getting {

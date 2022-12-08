@@ -13,23 +13,27 @@ internal actual val CodePoint.string: String
         "${high.toChar()}${low.toChar()}"
     }
 
-private fun GeneralCategory.Companion.values(startingWith: String) =
-    GeneralCategory.values().filter { it.name.startsWith(startingWith) }.toTypedArray()
-
-private val letterClasses = GeneralCategory.values("L")
-private val digitClasses = arrayOf(GeneralCategory.Nd)
-private val whitespaceClasses = arrayOf(GeneralCategory.Zs)
+private val letterClass = "L"
+private val digitClass = "Nd"
+private val whitespaceClass = "Zs"
+private fun Array<IntArray>.contains(value: Int): Boolean {
+    var offset = 0
+    while (offset < size && value > get(offset)[1]) offset++
+    return offset < size && value >= get(offset)[0]
+}
 
 /** Whether this code point is a letter. */
 public actual val CodePoint.isLetter: Boolean
-    get() = UnicodeData[value] in letterClasses
+    get() = unicodeCategoryRanges.any { (cat, ranges) ->
+        cat.startsWith(letterClass) && ranges.contains(value)
+    }
 
 /** Whether this code point is a digit. */
 public actual val CodePoint.isDigit: Boolean
-    get() = UnicodeData[value] in digitClasses
+    get() = unicodeCategoryRanges[digitClass]?.contains(value) ?: false
 
 /** Whether this code point is a [Unicode Space Character](http://www.unicode.org/versions/Unicode13.0.0/ch06.pdf). */
 public actual val CodePoint.isWhitespace: Boolean
-    get() = UnicodeData[value] in whitespaceClasses
+    get() = unicodeCategoryRanges[whitespaceClass]?.contains(value) ?: false
 
 internal actual fun CharacterCodingException(inputLength: Int): CharacterCodingException = CharacterCodingException("Input length = $inputLength")

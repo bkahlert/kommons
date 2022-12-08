@@ -9,14 +9,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-kaomoji:2.3.1")
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-kaomoji:2.4.0")
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-kaomoji</artifactId>
-      <version>2.3.1</version>
+      <version>2.4.0</version>
   </dependency>
   ```
 

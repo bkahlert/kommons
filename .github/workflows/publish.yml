@@ -1,8 +1,12 @@
 name: Publish package to the Maven Central and GitHub Packages
 
-on:
-  release:
-    types: ['published']
+on: workflow_dispatch
+
+#  release:
+#    types: ['published']
+
+permissions:
+  contents: read
 
 jobs:
   publish:

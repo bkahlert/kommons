@@ -4,6 +4,9 @@ plugins {
     id("nebula.release")
 }
 
+val releaseVersion: String? = System.getenv("RELEASE_VERSION")
+if (releaseVersion != null) version = releaseVersion
+
 val dokkaPlugin by configurations
 dependencies { dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.7.10") }
 
@@ -31,9 +34,6 @@ signing {
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign(publishing.publications)
 }
-
-// getting rid of missing dependency declarations; see https://youtrack.jetbrains.com/issue/KT-46466
-tasks.withType<Sign>().forEach { tasks.withType<AbstractPublishToMaven>().configureEach { dependsOn(it) } }
 
 // TODO consider switching to https://github.com/gradle-nexus/publish-plugin
 

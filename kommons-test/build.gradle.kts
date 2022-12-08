@@ -15,7 +15,6 @@ kotlin {
                 api(libs.kotest.assertions.json)
                 implementation(libs.kotest.common)
                 implementation(project(":kommons-core"))
-                implementation(project(":kommons-io"))
                 implementation(project(":kommons-text"))
             }
         }
@@ -26,6 +25,7 @@ kotlin {
                 api(libs.bundles.junit.jupiter)
                 implementation(libs.bundles.junit.platform)
                 implementation(project(":kommons-debug"))
+                implementation(project(":kommons-io"))
                 implementation(project(":kommons-logging:kommons-logging-core"))
             }
         }

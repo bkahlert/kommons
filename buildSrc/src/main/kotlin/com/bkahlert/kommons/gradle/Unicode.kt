@@ -16,6 +16,7 @@ enum class Unicode(
     UnicodeData("UCD", "latest", "ucd", "UnicodeData.txt") {
         val sourceDirRegex = Regex("[a-z]+(?:Main|Test)")
         fun String.formatHex() = "0x${trimStart('0').takeUnless { it.isEmpty() } ?: "0"}"
+        fun Int.formatHex() = "0x${toString(16)}"
 
         fun PrintWriter.indent(levels: Int = 1) {
             check(levels > 0)
@@ -38,38 +39,39 @@ enum class Unicode(
                 out.println()
                 out.println()
 
-                val generalCategories = mutableSetOf<String>()
-                data.useLines { lines ->
-                    out.println("// @formatter:off")
-                    out.println("internal val UnicodeData: Map<Int, GeneralCategory> by lazy {")
-                    out.indent()
-                    out.println("HashMap<Int, GeneralCategory>().apply {")
-                    lines.forEach { line ->
-                        val (codePoints, _, generalCategory) = line.split(';')
-                        generalCategories.add(generalCategory)
-                        out.indent(2)
-                        out.print("put(")
-                        codePoints.split("..").joinTo(out, "..") { it.formatHex() }
-                        out.print(", ")
-                        out.print("GC.$generalCategory")
-                        out.println(")")
-                    }
-                    out.indent()
-                    out.println("}")
-                    out.println("}")
-                    out.println("// @formatter:on")
-                    out.println()
-                }
-
-                out.println("internal enum class GeneralCategory {")
-                out.indent()
-                generalCategories.joinTo(out, ", ")
-                out.println(";")
-                out.indent()
-                out.println("companion object")
-                out.println("}")
+                out.println("private inline fun a(start: Int, endInclusive: Int): IntArray = intArrayOf(start, endInclusive)")
                 out.println()
-                out.println("private typealias GC = GeneralCategory")
+                out.println("""@Suppress("LongLine")""")
+                out.println("internal val unicodeCategoryRanges: Map<String, Array<IntArray>> by lazy {")
+                out.println("    // @formatter:off")
+                out.println("    val map=mutableMapOf<String, Array<IntArray>>()")
+                val categoryRanges = data.useLines { lines ->
+                    lines.asSequence()
+                        .fold(mutableListOf<Pair<String, IntRange>>()) { groups, line ->
+                            val (idxStr, _, cat) = line.split(';')
+                            val idx = idxStr.toInt(16)
+
+                            val (lastCat, lastRange) = groups.lastOrNull() ?: (null to null)
+                            if (lastCat == cat && lastRange?.endInclusive == idx - 1) {
+                                groups[groups.lastIndex] = cat to lastRange.first..idx
+                            } else {
+                                groups.add(cat to idx..idx)
+                            }
+                            groups
+                        }.groupBy({ (cat, _) -> cat }) { (_, range) -> range }
+                }
+                categoryRanges.forEach { (cat, ranges) ->
+                    out.println("""    map["$cat"]=arrayOf(""")
+                    ranges.chunked(8).forEach{ chunk ->
+                        out.indent(2)
+                        chunk.joinTo(out) { "a(${it.start.formatHex()},${it.endInclusive.formatHex()})" }
+                        out.println(",")
+                    }
+                    out.println("""    )""")
+                }
+                out.println("    map")
+                out.println("    // @formatter:on")
+                out.println("}")
             }
         }
     },

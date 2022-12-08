@@ -12,6 +12,21 @@
 
 ### Fixed
 
+## [2.4.0] - 2022-12-09
+
+### Added
+
+- Native for ...
+    - Linux x64
+    - MinGW x64
+    - macOS x64
+    - macOS ARM 64
+- and the following modules ...
+    - Kommons Core
+    - Kommons Kaomoji
+    - Kommons Test
+    - Kommons Text
+
 ## [2.3.1] - 2022-10-26
 
 ### Fixed
@@ -70,7 +85,9 @@
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.3.1...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.4.0...HEAD
+
+[2.4.0]: https://github.com/bkahlert/kommons-test/compare/v2.3.1...v2.4.0
 
 [2.3.1]: https://github.com/bkahlert/kommons-test/compare/v2.3.0...v2.3.1
 

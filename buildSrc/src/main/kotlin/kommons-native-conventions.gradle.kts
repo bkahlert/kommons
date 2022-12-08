@@ -5,15 +5,15 @@ plugins {
 }
 
 kotlin {
-    explicitApi()
 
-    targets {
-        linuxX64()
+    if (!project.hasProperty("osArchOnly")) {
+        targets {
+            linuxX64()
 
-        mingwX64()
+            mingwX64()
 
-        macosX64()
-        macosArm64()
+            macosX64()
+            macosArm64()
 
 //        iosX64()
 //        iosArm64()
@@ -28,22 +28,22 @@ kotlin {
 //        watchosX86()
 //        watchosX64()
 //        watchosSimulatorArm64()
-    }
+        }
 
-    sourceSets {
+        sourceSets {
 
-        /*
-         * MAIN SOURCE SETS
-         */
-        val commonMain by getting
-        val nativeMain by creating { dependsOn(commonMain) }
+            /*
+             * MAIN SOURCE SETS
+             */
+            val commonMain by getting
+            val nativeMain by creating { dependsOn(commonMain) }
 
-        val linuxX64Main by getting { dependsOn(nativeMain) }
+            val linuxX64Main by getting { dependsOn(nativeMain) }
 
-        val mingwX64Main by getting { dependsOn(nativeMain) }
+            val mingwX64Main by getting { dependsOn(nativeMain) }
 
-        val macosX64Main by getting { dependsOn(nativeMain) }
-        val macosArm64Main by getting { dependsOn(nativeMain) }
+            val macosX64Main by getting { dependsOn(nativeMain) }
+            val macosArm64Main by getting { dependsOn(nativeMain) }
 
 //        val iosX64Main by getting { dependsOn(desktopMain) }
 //        val iosArm64Main by getting { dependsOn(desktopMain) }
@@ -59,18 +59,18 @@ kotlin {
 //        val watchosX64Main by getting { dependsOn(desktopMain) }
 //        val watchosSimulatorArm64Main by getting { dependsOn(desktopMain) }
 
-        /*
-         * TEST SOURCE SETS
-         */
-        val commonTest by getting
-        val nativeTest by creating { dependsOn(commonTest) }
+            /*
+             * TEST SOURCE SETS
+             */
+            val commonTest by getting
+            val nativeTest by creating { dependsOn(commonTest) }
 
-        val linuxX64Test by getting { dependsOn(nativeTest) }
+            val linuxX64Test by getting { dependsOn(nativeTest) }
 
-        val mingwX64Test by getting { dependsOn(nativeTest) }
+            val mingwX64Test by getting { dependsOn(nativeTest) }
 
-        val macosX64Test by getting { dependsOn(nativeTest) }
-        val macosArm64Test by getting { dependsOn(nativeTest) }
+            val macosX64Test by getting { dependsOn(nativeTest) }
+            val macosArm64Test by getting { dependsOn(nativeTest) }
 
 //        val iosX64Test by getting { dependsOn(nativeTest) }
 //        val iosArm64Test by getting { dependsOn(nativeTest) }
@@ -85,5 +85,26 @@ kotlin {
 //        val watchosX86Test by getting { dependsOn(nativeTest) }
 //        val watchosX64Test by getting { dependsOn(nativeTest) }
 //        val watchosSimulatorArm64Test by getting { dependsOn(nativeTest) }
+        }
+    } else {
+
+        val hostOs = System.getProperty("os.name")
+        val hostArch = System.getProperty("os.arch")
+        val nativeTarget = when {
+            hostOs == "Mac OS X" -> if (hostArch == "aarch64") macosArm64() else macosX64()
+            hostOs == "Linux" -> linuxX64()
+            hostOs.startsWith("Windows") -> mingwX64()
+            else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+        }
+
+        sourceSets {
+            val commonMain by getting
+            val nativeMain by creating { dependsOn(commonMain) }
+            val currentNativeMain = getByName("${nativeTarget.name}Main") { dependsOn(nativeMain) }
+
+            val commonTest by getting
+            val nativeTest by creating { dependsOn(commonTest) }
+            val currentNativeTest = getByName("${nativeTarget.name}Test") { dependsOn(nativeTest) }
+        }
     }
 }

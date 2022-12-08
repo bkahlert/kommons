@@ -1,0 +1,148 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version of the release"
+        required: true
+        default: '2.4-rc.1'
+      branch:
+        description: "Branch to release from"
+        required: true
+        default: 'master'
+      java-version:
+        description: "JDK version"
+        required: true
+        default: '8'
+      java-distribution:
+        description: "JDK distribution"
+        required: true
+        default: 'zulu'
+
+env:
+  RELEASE_VERSION: ${{ github.event.inputs.version }}
+  OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+  OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+  ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
+  ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
+  GITHUB_ACTOR: ${{ github.actor }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=756m -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+
+permissions:
+  contents: read
+
+jobs:
+  publish-base:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ github.event.inputs.java-version }}
+          distribution: ${{ github.event.inputs.java-distribution }}
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Publish Multiplatform release
+        run: ./gradlew publishKotlinMultiplatformPublicationToOSSRHRepository
+
+      - name: Publish JVM release
+        run: ./gradlew publishJvmPublicationToOSSRHRepository
+
+      - name: Publish JS release
+        run: ./gradlew publishJsPublicationToOSSRHRepository
+
+  publish-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ github.event.inputs.java-version }}
+          distribution: ${{ github.event.inputs.java-distribution }}
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Publish Linux x64 release
+        run: ./gradlew publishLinuxX64PublicationToOSSRHRepository
+
+  publish-mac:
+    runs-on: macos-latest
+    strategy:
+      max-parallel: 6
+      matrix:
+        target:
+          - publishMacosArm64PublicationToOSSRHRepository
+          - publishMacosX64PublicationToOSSRHRepository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ github.event.inputs.java-version }}
+          distribution: ${{ github.event.inputs.java-distribution }}
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Publish
+        run: ./gradlew ${{ matrix.target }}
+
+  publish-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ github.event.inputs.java-version }}
+          distribution: ${{ github.event.inputs.java-distribution }}
+
+      - uses: gradle/gradle-build-action@v2
+
+      - name: Publish MinGW x64 release
+        run: ./gradlew publishMingwX64PublicationToOSSRHRepository
+
+
+  release-draft:
+    needs: [publish-base,publish-linux,publish-mac,publish-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          body_path: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -14,33 +14,36 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         include:
-          #          - os: ubuntu-latest
-          #            target: jvm
-          #            java-version: 8
-          #          - os: ubuntu-latest
-          #            target: jvm
-          #            java-version: 11
-          #          - os: ubuntu-latest
-          #            target: jvm
-          #            java-version: 17
-          #          - os: macos-latest
-          #            target: jvm
-          #            java-version: 8
-          #          - os: windows-latest
-          #            target: jvm
-          #            java-version: 8
-          #          - os: windows-latest
-          #            target: jvm
-          #            java-version: 11
-          #          - os: windows-latest
-          #            target: jvm
-          #            java-version: 17
+          - os: ubuntu-latest
+            target: jvm
+            java-version: 8
+          - os: ubuntu-latest
+            target: jvm
+            java-version: 11
+          - os: ubuntu-latest
+            target: jvm
+            java-version: 17
+          - os: macos-latest
+            target: jvm
+            java-version: 8
+          - os: windows-latest
+            target: jvm
+            java-version: 8
+          - os: windows-latest
+            target: jvm
+            java-version: 11
+          - os: windows-latest
+            target: jvm
+            java-version: 17
 
           - os: ubuntu-latest
             target: js
@@ -56,10 +59,6 @@ jobs:
 
           - os: macos-latest
             target: macosX64
-            java-version: 8
-
-          - os: macos-latest
-            target: macosArm64
             java-version: 8
 
 
@@ -98,22 +97,22 @@ jobs:
             ./**/build/publications
             ./**/build/reports
             ./**/build/test-results
-
-  release-draft:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Draft release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/v')
-        with:
-          draft: true
-          body_path: CHANGELOG.md
-          files: build/libs
-          token: ${{ secrets.GITHUB_TOKEN }}
+#
+#  release-draft:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: write
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#
+#      - name: Draft release
+#        uses: softprops/action-gh-release@v1
+#        if: startsWith(github.ref, 'refs/tags/v')
+#        with:
+#          draft: true
+#          body_path: CHANGELOG.md
+#          files: build/libs
+#          token: ${{ secrets.GITHUB_TOKEN }}

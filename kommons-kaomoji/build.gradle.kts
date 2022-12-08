@@ -12,7 +12,7 @@ kotlin {
             dependencies {
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-text"))
-                implementation(libs.mordant)
+                api(libs.mordant)
             }
         }
         val commonTest by getting {

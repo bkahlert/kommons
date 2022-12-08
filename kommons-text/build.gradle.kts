@@ -38,7 +38,7 @@ kotlin {
 
         val nativeMain by getting {
             dependencies {
-                implementation(libs.mordant)
+                api(libs.mordant)
             }
         }
     }
