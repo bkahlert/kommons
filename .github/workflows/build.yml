@@ -97,22 +97,3 @@ jobs:
             ./**/build/publications
             ./**/build/reports
             ./**/build/test-results
-#
-#  release-draft:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    permissions:
-#      contents: write
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#
-#      - name: Draft release
-#        uses: softprops/action-gh-release@v1
-#        if: startsWith(github.ref, 'refs/tags/v')
-#        with:
-#          draft: true
-#          body_path: CHANGELOG.md
-#          files: build/libs
-#          token: ${{ secrets.GITHUB_TOKEN }}

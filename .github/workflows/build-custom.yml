@@ -1,0 +1,78 @@
+name: build-custom
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch"
+        required: true
+        default: 'master'
+      os:
+        description: "Operating system name"
+        required: true
+        default: 'linux'
+      arch:
+        description: "Operating system architecture"
+        required: true
+        default: 'X64'
+      java-version:
+        description: "JDK version"
+        required: true
+        default: '8'
+      java-distribution:
+        description: "JDK distribution"
+        required: true
+        default: 'zulu'
+
+env:
+  TARGET: ${{ github.event.inputs.os }}${{ github.event.inputs.arch }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      max-parallel: 3
+
+    runs-on:
+      - self-hosted
+      - ${{ github.event.inputs.os }}
+      - ${{ github.event.inputs.arch }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up JDK ${{ github.event.inputs.java-version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ github.event.inputs.java-version }}
+          distribution: ${{ github.event.inputs.java-distribution }}
+
+      - name: Build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: ${TARGET}Test -Pkotlin.tests.individualTaskReports=true
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        if: success() || failure()
+        with:
+          name: test-reports--os-${{ github.event.inputs.os }}--target-${{ github.event.inputs.target }}--java-${{ github.event.inputs.java-version }}
+          if-no-files-found: error
+          path: ./**/build/test-results/**/*.xml
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: kommons--os-${{ github.event.inputs.os }}--target-${{ github.event.inputs.target }}--java-${{ github.event.inputs.java-version }}
+          if-no-files-found: error
+          path: |
+            ./**/build/dokka
+            ./**/build/libs
+            ./**/build/publications
+            ./**/build/reports
+            ./**/build/test-results
