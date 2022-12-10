@@ -58,10 +58,10 @@ class ConfigurationMetadataIntegrationTest {
 }
 
 val ItemMetadata.kClass: KClass<*>?
-    get() = type?.let { ClassUtils.resolveClassName(it, null)?.kotlin }
+    get() = type?.let { ClassUtils.resolveClassName(it, null).kotlin }
 
 val ItemMetadata.sourceKClass: KClass<*>?
-    get() = sourceType?.let { ClassUtils.resolveClassName(it, null)?.kotlin }
+    get() = sourceType?.let { ClassUtils.resolveClassName(it, null).kotlin }
 
 class FileReadOnlyProcessingEnvironment : ProcessingEnvironment {
     override fun getOptions(): MutableMap<String, String> = throwUnsupportedOperationException()

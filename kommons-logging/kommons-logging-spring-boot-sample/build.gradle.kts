@@ -29,7 +29,9 @@ dependencies {
 
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions.freeCompilerArgs = listOf("-Xjsr305=strict")
+        kotlinOptions {
+            freeCompilerArgs = freeCompilerArgs + "-Xjsr305=strict"
+        }
     }
 
     withType<Test> { useJUnitPlatform() }

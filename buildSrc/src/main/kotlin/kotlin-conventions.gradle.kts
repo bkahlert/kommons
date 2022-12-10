@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
@@ -32,6 +34,15 @@ kotlin {
                 optIn("kotlin.experimental.ExperimentalTypeInference")
             }
         }
+    }
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs += "-Xjsr305=strict"
+        jvmTarget = "1.8"
+        apiVersion = "1.7"
+        languageVersion = "1.7"
     }
 }
 
