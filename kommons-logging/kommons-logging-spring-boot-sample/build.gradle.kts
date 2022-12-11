@@ -28,13 +28,13 @@ dependencies {
 }
 
 tasks {
-    withType<KotlinCompile> {
+    withType<KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs = freeCompilerArgs + "-Xjsr305=strict"
         }
     }
 
-    withType<Test> { useJUnitPlatform() }
+    withType<Test>().configureEach { useJUnitPlatform() }
 
     @Suppress("UnstableApiUsage")
     withType<ProcessResources>().configureEach {

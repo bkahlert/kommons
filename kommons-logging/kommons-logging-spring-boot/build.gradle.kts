@@ -45,5 +45,5 @@ kotlin {
 tasks {
     // makes sure an eventually existing additional-spring-configuration-metadata.json is copied to resources,
     // see https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/configuration-metadata.html
-    withType<KotlinCompile> { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
+    withType<KotlinCompile>().configureEach { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
 }

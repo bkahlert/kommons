@@ -51,7 +51,7 @@ tasks {
         doLast {
             val dir = projectDir.resolve("src/nativeMain/kotlin/com/bkahlert/kommons/text")
             val generated = Unicode.UnicodeData.generate(dir.resolve("UnicodeData.kt"))
-            logger.info("Generated $generated")
+            logger.lifecycle("Generated $generated")
         }
     }
 }

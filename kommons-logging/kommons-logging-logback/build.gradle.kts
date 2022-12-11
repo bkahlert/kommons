@@ -52,7 +52,7 @@ tasks {
     }
 
     @Suppress("UnstableApiUsage")
-    withType<ProcessResources> {
+    withType<ProcessResources>().configureEach {
         finalizedBy(buildLogbackAppenders)
     }
 }

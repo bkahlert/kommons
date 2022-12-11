@@ -37,7 +37,7 @@ kotlin {
     }
 }
 
-tasks.withType<KotlinCompile> {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs += "-Xjsr305=strict"
         jvmTarget = "1.8"
@@ -46,7 +46,7 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-tasks.withType<Test>() {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 
     filter {
