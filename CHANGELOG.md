@@ -19,7 +19,7 @@
 
 ### Fixed
 - fix: add back `js.Date` extension functions
-- 
+
 
 ## [2.4.0] - 2022-12-09
 

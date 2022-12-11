@@ -145,4 +145,19 @@ jobs:
         with:
           draft: true
           body_path: CHANGELOG.md
+          name: v${{ github.event.inputs.version }}
+          tag_name: v${{ github.event.inputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print summary
+        run: |
+          echo "## Release ${RELEASE_VERSION} prepared :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "To finish the release:" >> $GITHUB_STEP_SUMMARY
+          echo "- Go to [oss.sonatype.org](https://oss.sonatype.org/#stagingRepositories)" >> $GITHUB_STEP_SUMMARY
+          echo "  - Close all repositories belonging to this release" >> $GITHUB_STEP_SUMMARY
+          echo "  - Wait and refresh" >> $GITHUB_STEP_SUMMARY
+          echo "  - Release the closed repositories" >> $GITHUB_STEP_SUMMARY
+          echo "- Go to [releases](https://github.com/bkahlert/kommons/releases)" >> $GITHUB_STEP_SUMMARY
+          echo "  - Find the draft for this release" >> $GITHUB_STEP_SUMMARY
+          echo "  - Edit it and cleanup the release notes" >> $GITHUB_STEP_SUMMARY
+          echo "  - Hit \"Publish release\"" >> $GITHUB_STEP_SUMMARY
