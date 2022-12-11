@@ -8,14 +8,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-io:2.4.0") { because("print debugging") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-io:2.4.1") { because("print debugging") }`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-io</artifactId>
-      <version>2.4.0</version>
+      <version>2.4.1</version>
   </dependency>
   ```
 

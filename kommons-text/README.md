@@ -12,14 +12,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-text:2.4.0")
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-text:2.4.1")
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-text</artifactId>
-      <version>2.4.0</version>
+      <version>2.4.1</version>
   </dependency>
   ```
 
