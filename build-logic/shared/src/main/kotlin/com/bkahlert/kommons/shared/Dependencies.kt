@@ -1,3 +1,5 @@
+package com.bkahlert.kommons.shared
+
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.MinimalExternalModuleDependency

@@ -15,5 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "build-logic"
 
-include("commons")
+include("shared")
 include("kotlin-library")

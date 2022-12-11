@@ -1,22 +1,19 @@
 plugins {
     signing
-    id("maven-publish")
+    `java-library`
+    `maven-publish`
 }
 
 val releaseVersion: String? = System.getenv("RELEASE_VERSION")
 if (releaseVersion != null) version = releaseVersion
 
-val dokkaPlugin by configurations
-dependencies { dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.7.10") }
+val javadoc = tasks.named("javadoc")
 
-val javadocJar by tasks.registering(Jar::class) {
-    description = "Generates a JavaDoc JAR using Dokka"
+val javadocJar by tasks.creating(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Generates a JavaDoc JAR using Dokka"
     archiveClassifier.set("javadoc")
-    tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml").also { dokkaHtml ->
-        dependsOn(dokkaHtml)
-        from(dokkaHtml.get().outputDirectory)
-    }
+    from(javadoc)
 }
 
 val publications: PublicationContainer = (extensions.getByName("publishing") as PublishingExtension).publications

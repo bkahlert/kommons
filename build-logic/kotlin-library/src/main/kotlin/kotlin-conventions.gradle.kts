@@ -1,18 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    id("com.bkahlert.kommons.shared")
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
-}
-
-group = "com.bkahlert.kommons"
-
-repositories {
-    mavenCentral()
-    mavenLocal()
-    maven("https://oss.sonatype.org/content/repositories/snapshots/")
-    google()
-    gradlePluginPortal() // tvOS builds need to be able to fetch a kotlin gradle plugin
 }
 
 kotlin {

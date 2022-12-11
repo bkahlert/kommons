@@ -1,3 +1,4 @@
+import com.bkahlert.kommons.shared.add
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
