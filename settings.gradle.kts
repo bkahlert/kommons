@@ -3,6 +3,19 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    @Suppress("UnstableApiUsage")
+    includeBuild("build-logic")
+}
+
+dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        google()
+        gradlePluginPortal() // tvOS builds need to be able to fetch a kotlin gradle plugin
+    }
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -19,6 +32,6 @@ include("kommons-logging:kommons-logging-core")
 include("kommons-logging:kommons-logging-logback")
 include("kommons-logging:kommons-logging-spring-boot")
 include("kommons-logging:kommons-logging-spring-boot-starter")
-include("kommons-logging:kommons-logging-spring-boot-sample")
+//include("kommons-logging:kommons-logging-spring-boot-sample")
 include("kommons-test")
 include("kommons-text")
