@@ -1,6 +1,7 @@
 plugins {
     signing
     id("maven-publish")
+    id("nebula.release")
 }
 
 val releaseVersion: String? = System.getenv("RELEASE_VERSION")

@@ -13,6 +13,7 @@ jsr305 = "3.0.2"
 junit-jupiter = "5.9.0"
 junit-platform = "1.9.0"
 mordant = "2.0.0-beta9"
+nebula-release = "16.0.0"
 slf4j = "1.7.36"
 spring-dependency-management = "1.0.13.RELEASE"
 spring-boot = "2.7.3" # https://docs.spring.io/spring-boot/docs/2.7.3/
@@ -59,6 +60,7 @@ plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "ple
 # Gradle plugins
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
 spring-dependency-management-gradle-plugin = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 
