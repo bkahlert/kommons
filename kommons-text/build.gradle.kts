@@ -1,4 +1,4 @@
-import com.bkahlert.kommons.shared.Unicode
+import com.bkahlert.kommons.gradle.Unicode
 
 plugins {
     id("kommons-multiplatform-library-conventions")

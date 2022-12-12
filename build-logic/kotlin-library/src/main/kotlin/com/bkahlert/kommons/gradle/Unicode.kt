@@ -1,4 +1,4 @@
-package com.bkahlert.kommons.shared
+package com.bkahlert.kommons.gradle
 
 import java.io.File
 import java.io.OutputStream
