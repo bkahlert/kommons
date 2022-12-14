@@ -8,14 +8,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-spring-boot:2.4.1")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-spring-boot:2.5.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-logging-spring-boot</artifactId>
-      <version>2.4.1</version>
+      <version>2.5.0</version>
   </dependency>
   ```
 

@@ -27,7 +27,7 @@ class JvmRenderTest {
                 get() = error("no entries")
 
             override fun toString(): String {
-                return StackTrace.get().findOrNull { it.function == "toCustomStringOrNull" }?.toString()
+                return StackTrace.get().findOrNull { it.methodName == "toCustomStringOrNull" }?.toString()
                     ?: error("no string")
             }
         }

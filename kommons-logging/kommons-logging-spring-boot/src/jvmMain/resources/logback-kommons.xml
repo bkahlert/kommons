@@ -1,6 +1,6 @@
 <configuration scan="false" debug="false">
-    <property name="CONSOLE_LOG_PRESET_INIT" value="${CONSOLE_LOG_PRESET}"/>
-    <property name="FILE_LOG_PRESET_INIT" value="${FILE_LOG_PRESET}"/>
+    <property name="CONSOLE_LOG_PRESET_INIT" value="${CONSOLE_LOG_PRESET:-spring}"/>
+    <property name="FILE_LOG_PRESET_INIT" value="${FILE_LOG_PRESET:-off}"/>
     <springProperty scope="context" name="CONSOLE_LOG_PRESET" source="logging.preset.console" defaultValue="${CONSOLE_LOG_PRESET_INIT}"/>
     <springProperty scope="context" name="FILE_LOG_PRESET" source="logging.preset.file" defaultValue="${FILE_LOG_PRESET_INIT}"/>
 

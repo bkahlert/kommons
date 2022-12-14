@@ -4,9 +4,30 @@ plugins {
     id("kotlin-conventions")
 }
 
+val osArchOnly:Boolean? by project
+
 kotlin {
 
-    if (!project.hasProperty("osArchOnly")) {
+    if (osArchOnly==true) {
+        val hostOs = System.getProperty("os.name")
+        val hostArch = System.getProperty("os.arch")
+        val nativeTarget = when {
+            hostOs == "Mac OS X" -> if (hostArch == "aarch64") macosArm64() else macosX64()
+            hostOs == "Linux" -> linuxX64()
+            hostOs.startsWith("Windows") -> mingwX64()
+            else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+        }
+
+        sourceSets {
+            val commonMain by getting
+            val nativeMain by creating { dependsOn(commonMain) }
+            val currentNativeMain = getByName("${nativeTarget.name}Main") { dependsOn(nativeMain) }
+
+            val commonTest by getting
+            val nativeTest by creating { dependsOn(commonTest) }
+            val currentNativeTest = getByName("${nativeTarget.name}Test") { dependsOn(nativeTest) }
+        }
+    } else {
         targets {
             linuxX64()
 
@@ -85,26 +106,6 @@ kotlin {
 //        val watchosX86Test by getting { dependsOn(nativeTest) }
 //        val watchosX64Test by getting { dependsOn(nativeTest) }
 //        val watchosSimulatorArm64Test by getting { dependsOn(nativeTest) }
-        }
-    } else {
-
-        val hostOs = System.getProperty("os.name")
-        val hostArch = System.getProperty("os.arch")
-        val nativeTarget = when {
-            hostOs == "Mac OS X" -> if (hostArch == "aarch64") macosArm64() else macosX64()
-            hostOs == "Linux" -> linuxX64()
-            hostOs.startsWith("Windows") -> mingwX64()
-            else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-        }
-
-        sourceSets {
-            val commonMain by getting
-            val nativeMain by creating { dependsOn(commonMain) }
-            val currentNativeMain = getByName("${nativeTarget.name}Main") { dependsOn(nativeMain) }
-
-            val commonTest by getting
-            val nativeTest by creating { dependsOn(commonTest) }
-            val currentNativeTest = getByName("${nativeTarget.name}Test") { dependsOn(nativeTest) }
         }
     }
 }

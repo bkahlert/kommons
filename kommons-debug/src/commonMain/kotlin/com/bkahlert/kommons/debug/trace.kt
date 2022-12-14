@@ -1,7 +1,5 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.Platform
-import com.bkahlert.kommons.Platform.JVM
 import com.bkahlert.kommons.debug.Typing.SimplyTyped
 import com.bkahlert.kommons.text.LineSeparators.LF
 import com.bkahlert.kommons.text.LineSeparators.isMultiline
@@ -61,38 +59,12 @@ public val <T> T.trace: T get(): T = trace()
  */
 @Suppress("DEPRECATION")
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
-public fun <T> T.trace(
+public expect fun <T> T.trace(
     caption: CharSequence? = null,
-    highlight: Boolean = Platform.Current == JVM,
-    includeCallSite: Boolean = true,
-    render: Renderer = { it.render() },
+    render: Renderer? = null,
     out: Printer? = null,
-    inspect: Inspector<T>? = null
-): T {
-    val call = if (includeCallSite) StackTrace.get().findByLastKnownCallsOrNull(::inspect, ::trace) else null
-    buildString {
-        if (call != null) {
-            append(".ͭ ")
-            append("(${call.file}:${call.line}) ")
-        }
-        caption?.also {
-            append(caption.let { if (highlight) it.highlighted else it })
-            append(' ')
-        }
-        appendWrapped(
-            render(this@trace).let { if (highlight) it.highlightedStrongly else it },
-            if (highlight) "⟨".highlighted to "⟩".highlighted else "⟨" to "⟩",
-        )
-        inspect?.also {
-            append(" ")
-            appendWrapped(
-                render(inspect(this@trace)).let { if (highlight) it.highlightedStrongly else it },
-                if (highlight) "{".highlighted to "}".highlighted else "{" to "}",
-            )
-        }
-    }.also { out?.invoke(it) ?: println(it) }
-    return this
-}
+    inspect: Inspector<T>? = null,
+): T
 
 /**
  * Special version of [trace] that inspects the structure of
@@ -110,12 +82,10 @@ public val <T> T.inspect: T get(): T = inspect()
 @Deprecated("Don't forget to remove after you finished debugging.", replaceWith = ReplaceWith("this"))
 public fun <T> T.inspect(
     caption: CharSequence? = null,
-    highlight: Boolean = Platform.Current == JVM,
-    includeCallSite: Boolean = true,
     typing: Typing = SimplyTyped,
     out: Printer? = null,
-    inspect: Inspector<T>? = null
-): T = trace(caption, highlight, includeCallSite, { it.render { this.typing = typing; customToString = CustomToString.Ignore } }, out, inspect)
+    inspect: Inspector<T>? = null,
+): T = trace(caption, { it.render { this.typing = typing; customToString = CustomToString.Ignore } }, out, inspect)
 
 internal fun StringBuilder.appendWrapped(value: String, brackets: Pair<String, String>) {
     val separator = if (value.isMultiline()) LF else ' '

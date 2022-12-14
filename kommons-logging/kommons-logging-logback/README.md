@@ -9,18 +9,20 @@ nothing but system properties, and provides support for JSON.
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-logback:2.4.1")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-logback:2.5.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-logging-logback</artifactId>
-      <version>2.4.1</version>
+      <version>2.5.0</version>
   </dependency>
   ```
 
 ## Features
+
+### System property based configuration
 
 You can configure logging to the console and to a file using system properties.
 
@@ -40,7 +42,7 @@ Those settings make your application
 
 You can choose from the following presets:
 
-### Spring Preset: `spring`
+#### Spring Preset: `spring`
 
 Configures the log to use the default Spring Boot logging settings:
 
@@ -50,7 +52,7 @@ Configures the log to use the default Spring Boot logging settings:
 
 This is the default preset for **console logging**.
 
-### Minimal Preset: `minimal`
+#### Minimal Preset: `minimal`
 
 Configures the log to only include the time, log level, logger, and message:
 
@@ -58,7 +60,7 @@ Configures the log to only include the time, log level, logger, and message:
 08:52.917  INFO TestLogger                     : message
 ```
 
-### JSON Preset: `json`
+#### JSON Preset: `json`
 
 Configures the log to use the JSON format:
 
@@ -74,7 +76,7 @@ Configures the log to use the JSON format:
 }
 ```
 
-### Off Preset: `off`
+#### Off Preset: `off`
 
 The `off` preset turns off logging.
 
@@ -91,6 +93,80 @@ You can set the following system properties to customize file logging:
 - `LOG_PATH`: directory used for logging, default: `$TMP`
 - `LOGBACK_ROLLINGPOLICY_*`: check [rolling-policy.xml](src/jvmMain/resources/com/bkahlert/kommons/logging/logback/includes/rolling-policy.xml) for available
   properties and default values
+
+### Convenient structured arguments
+
+Given you wanted to log the successful creation of these objects:
+
+```kotlin
+data class FooBar(val foo: String, val bar: String = "baz")
+
+val createdObjects = listOf(
+    FooBar("1"),
+    FooBar("2"),
+)
+```
+
+You could do it the old-fashioned way:
+
+```kotlin
+logger.info("Successfully created {}", createdObjects)
+```
+
+```json
+{
+  "@timestamp": "2022-12-14T14:41:42.777+01:00",
+  "level": "INFO",
+  "message": "Successfully created [FooBar(foo=1, bar=baz), FooBar(foo=2, bar=baz)]"
+}
+```
+
+Or, you could log your arguments structured, making your log files
+far more valuable:
+
+```kotlin
+logger.info("Successfully created {}", StructuredArguments.objects("objects", createdObjects))
+```
+
+```json
+{
+  "@timestamp": "2022-12-14T14:41:42.778+01:00",
+  "level": "INFO",
+  "message": "Successfully created objects=[FooBar(foo=1, bar=baz), FooBar(foo=2, bar=baz)]",
+  "objects": [
+    {
+      "foo": "1",
+      "bar": "baz"
+    },
+    {
+      "foo": "2",
+      "bar": "baz"
+    }
+  ]
+}
+```
+
+You can even auto-derive the JSON key from the type of your objects, or
+customize their serialization:
+
+```kotlin
+logger.info("Successfully created {}", StructuredArguments.objects(createdObjects) { "foo-${it.foo}" })
+```
+
+```json
+{
+  "@timestamp": "2022-12-14T14:51:57.583+01:00",
+  "level": "INFO",
+  "message": "Successfully created foo-bars=[foo-1, foo-2]",
+  "foo-bars": [
+    "foo-1",
+    "foo-2"
+  ]
+}
+```
+
+Explore the [StructuredArguments](src/jvmMain/kotlin/com/bkahlert/kommons/logging/logback/StructuredArguments.kt) for more options.
+
 
 ## Contributing
 

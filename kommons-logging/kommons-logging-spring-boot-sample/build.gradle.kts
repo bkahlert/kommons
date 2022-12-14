@@ -4,7 +4,7 @@ plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("jvm")
-    kotlin("plugin.spring") version "1.7.10"
+    kotlin("plugin.spring") version @Suppress("DSL_SCOPE_VIOLATION") libs.versions.kotlin.asProvider().get()
 //    kotlin("kapt")
 }
 
@@ -15,14 +15,14 @@ repositories {
 }
 
 dependencies {
-    // implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:2.4.1")
+    // implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:2.5.0")
     implementation(project(":kommons-logging:kommons-logging-spring-boot-starter"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
 //    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
-    // testImplementation("com.bkahlert.kommons:kommons-test:2.4.1")
+    // testImplementation("com.bkahlert.kommons:kommons-test:2.5.0")
     testImplementation(project(":kommons-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
