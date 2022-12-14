@@ -3,6 +3,7 @@ package com.bkahlert.kommons.logging.spring
 import com.bkahlert.kommons.Program
 import com.bkahlert.kommons.logging.LoggingPreset
 import com.bkahlert.kommons.logging.spring.LoggingProperties.PresetProperties
+import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.testAll
 import io.kotest.inspectors.forAny
 import io.kotest.matchers.shouldBe
@@ -33,6 +34,7 @@ import kotlin.reflect.KClass
 
 class ConfigurationMetadataIntegrationTest {
 
+    @Slow
     @Test fun logging_preset_console() = testAll {
         configuredProperties.forAny {
             it.name shouldBe LoggingProperties.CONSOLE_LOG_PRESET_PROPERTY
@@ -42,6 +44,7 @@ class ConfigurationMetadataIntegrationTest {
         }
     }
 
+    @Slow
     @Test fun logging_preset_file() = testAll {
         configuredProperties.forAny {
             it.name shouldBe LoggingProperties.FILE_LOG_PRESET_PROPERTY
@@ -96,7 +99,7 @@ class ReadOnlyFiler : Filer {
 
 class ReadOnlyFileObject(
     private val resource: URL,
-    private val name: String
+    private val name: String,
 ) : FileObject {
     override fun toUri(): URI = resource.toURI()
     override fun getName(): String = name
