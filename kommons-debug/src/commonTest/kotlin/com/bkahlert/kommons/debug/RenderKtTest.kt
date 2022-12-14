@@ -10,11 +10,12 @@ import com.bkahlert.kommons.debug.CustomToString.Ignore
 import com.bkahlert.kommons.debug.CustomToString.IgnoreForPlainCollectionsAndMaps
 import com.bkahlert.kommons.debug.Typing.SimplyTyped
 import com.bkahlert.kommons.debug.Typing.Untyped
+import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlin.test.Test
-import kotlin.test.fail
 
 class RenderTest {
 
@@ -548,12 +549,10 @@ class RenderTest {
     }
 
     @Test fun render_function() = testAll {
-        ({ }).render() shouldBe when (Platform.Current) {
-            Browser, NodeJS -> """
-                function () {
-                      return Unit_getInstance();
-                    }
-            """.trimIndent()
+        ({ }).render() shouldMatchGlob when (Platform.Current) {
+            Browser, NodeJS -> "function RenderTest\$render_function\$lambda*() {\n" +
+                "    return Unit_getInstance();\n" +
+                "  }"
 
             JVM -> """
                 () -> kotlin.Unit
