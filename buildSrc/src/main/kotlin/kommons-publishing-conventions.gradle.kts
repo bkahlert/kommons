@@ -8,7 +8,7 @@ val isSnapshot = version.toString().endsWith("-SNAPSHOT")
 if (isSnapshot) {
     logger.lifecycle("Snapshot version: $version")
     tasks.withType<Sign>().configureEach {
-        logger.lifecycle("Disabling $name")
+        logger.info("Disabling task $name")
         enabled = false
     }
 }
