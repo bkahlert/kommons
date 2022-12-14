@@ -20,7 +20,7 @@ class JvmTraceKtTest {
         buildString {
             "subject".trace(out = this::append) { it.length.toString() }
         }.traceTestPostProcess() shouldBe """
-                    .ͭ (JvmTraceKtTest.kt:20) ⟨ "subject" ⟩ { "7" }
+                    .ͭ (JvmTraceKtTest.kt:21) ⟨ "subject" ⟩ { "7" }
                 """.trimIndent()
     }
 
@@ -28,7 +28,7 @@ class JvmTraceKtTest {
         buildString {
             "subject".inspect(out = this::append)
         }.traceTestPostProcess() shouldBe """
-                    .ͭ (JvmTraceKtTest.kt:28) ⟨ !String "subject" ⟩
+                    .ͭ (JvmTraceKtTest.kt:29) ⟨ !String "subject" ⟩
                 """.trimIndent()
     }
 }

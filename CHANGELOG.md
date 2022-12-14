@@ -6,22 +6,55 @@
 
 ### Changed
 
-- chore: upgrade to Kotlin 1.7.21
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+## [2.5.0] - 2022-12-14
+
+### Added
+
+#### Kotlin-specific structured logging
+
+```kotlin
+data class Bar(val bar: Int) {
+    override fun toString(): String = "bar-$bar"
+}
+
+logger.info("Successfully created {}", array(Bar(1), Bar(2)))
+```
+
+```json
+{
+  "@timestamp": "2022-12-14T14:51:57.583+01:00",
+  "level": "INFO",
+  "message": "Successfully created bars=[bar-1, bar-2]",
+  "bars": [
+    {
+      "bar": 1
+    },
+    {
+      "bar": 2
+    }
+  ]
+}
+```
+
+### Changed
+
+- chore: upgrade to Kotlin 1.7.21
+
 ## [2.4.1] - 2022-12-11
 
 ### Changed
+
 - chore: upgrade to Gradle 7.6
 
 ### Fixed
-- fix: add back `js.Date` extension functions
 
+- fix: add back `js.Date` extension functions
 
 ## [2.4.0] - 2022-12-09
 
@@ -96,7 +129,9 @@
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.4.1...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.5.0...HEAD
+
+[2.5.0]: https://github.com/bkahlert/kommons-test/compare/v2.4.1...v2.5.0
 
 [2.4.1]: https://github.com/bkahlert/kommons-test/compare/v2.4.0...v2.4.1
 
