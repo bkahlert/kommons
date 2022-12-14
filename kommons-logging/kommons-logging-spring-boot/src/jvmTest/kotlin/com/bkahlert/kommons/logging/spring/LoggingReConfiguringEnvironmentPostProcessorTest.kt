@@ -7,6 +7,7 @@ import com.bkahlert.kommons.logging.LoggingSystemProperties
 import com.bkahlert.kommons.logging.MINIMAL_PRESET_VALUE
 import com.bkahlert.kommons.logging.SPRING_PRESET_VALUE
 import com.bkahlert.kommons.logging.logback.Logback
+import com.bkahlert.kommons.test.Slow
 import com.bkahlert.kommons.test.junit.SystemProperty
 import com.bkahlert.kommons.test.logging.lastLog
 import com.bkahlert.kommons.test.logging.lastOutLog
@@ -34,6 +35,7 @@ import org.springframework.boot.test.system.CapturedOutput
 import java.nio.file.Path
 
 @Isolated
+@Slow
 class LoggingReConfiguringEnvironmentPostProcessorTest {
 
     @BeforeEach
