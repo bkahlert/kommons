@@ -31,7 +31,7 @@ class JsDelegateKtTest {
     }
 
     @Test fun file_class_with_derived_logger_field() {
-        logger.name shouldBe "<global>"
+        logger.name shouldBe "init_properties_fixtures_kt"
     }
 
     @Test fun locally_derived_logger_field() {

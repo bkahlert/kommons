@@ -6,7 +6,6 @@ internal actual inline fun calledBy(function: String, vararg callers: String): B
     val callerPatterns = callers.flatMap { it.patterns() }
 
     return stackTrace()
-        .dropWhile { it.startsWith("RuntimeException") || it.startsWith("captureStack ") }
         .dropWhile { callerPatterns.any { pattern -> it.contains(pattern) } }
         .firstOrNull()?.let { functionPatterns.any { pattern -> it.contains(pattern) } } ?: false
 }
@@ -19,3 +18,4 @@ private inline fun stackTrace() = try {
 } catch (ex: Throwable) {
     ex.stackTraceToString().removeSuffix("\n")
 }.lineSequence()
+    .dropWhile { it.startsWith("RuntimeException") || it.startsWith("captureStack ") }

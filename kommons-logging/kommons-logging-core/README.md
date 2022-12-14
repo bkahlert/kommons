@@ -50,7 +50,6 @@ The name of the logger is always the name of the enclosing class or
 the file class if there is no regular enclosing class.
 
 *Due to limited reflection support in Kotlin/JS,
-file-level loggers have the name `<global>` and
 companion-level loggers have the name `Companion`.*
 
 ### Loggers of Proxied Classes
