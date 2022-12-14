@@ -90,7 +90,7 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ matrix.target }}Test -Pkotlin.tests.individualTaskReports=true ${{ github.event.inputs.additional-gradle-args }} --info --tests "com.bkahlert.kommons.logging.*"
+          arguments: ${{ matrix.target }}Test -Pkotlin.tests.individualTaskReports=true ${{ github.event.inputs.additional-gradle-args }} --info
 
       - name: Upload test reports
         uses: actions/upload-artifact@v3
