@@ -44,10 +44,10 @@ class StructuredArgumentsTest {
 
     @Test fun @receiver:Captured CapturedOutput.key_value() = testAll {
         forAll(
-            { info("{}", StructuredArguments.keyValue("key", ClassWithCustomToString(), "{0}/{1}") { it.x() }) },
-            { info("{}", StructuredArguments.kv("key", ClassWithCustomToString(), "{0}/{1}") { it.x() }) },
+            { info("{}", StructuredArguments.keyValue("key", ClassWithCustomToString()) { it.x() }) },
+            { info("{}", StructuredArguments.kv("key", ClassWithCustomToString()) { it.x() }) },
         ) {
-            it.shouldContainJsonKeyValue("message", "key/x-value")
+            it.shouldContainJsonKeyValue("message", "key=x-value")
             it.shouldContainJsonKeyValue("key.foo", "x-null")
             it.shouldContainJsonKeyValue("key.bar", "baz")
         }
@@ -59,15 +59,6 @@ class StructuredArgumentsTest {
             it.shouldContainJsonKeyValue("message", "key=value")
             it.shouldContainJsonKeyNullValue("key.foo")
             it.shouldContainJsonKeyValue("key.bar", "baz")
-        }
-
-        forAll(
-            { info("{}", StructuredArguments.keyValue(ClassWithCustomToString(), messageFormatPattern = "{0}/{1}")) },
-            { info("{}", StructuredArguments.kv(ClassWithCustomToString(), messageFormatPattern = "{0}/{1}")) },
-        ) {
-            it.shouldContainJsonKeyValue("message", "class-with-custom-to-string/value")
-            it.shouldContainJsonKeyNullValue("class-with-custom-to-string.foo")
-            it.shouldContainJsonKeyValue("class-with-custom-to-string.bar", "baz")
         }
 
         forAll(

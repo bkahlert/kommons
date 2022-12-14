@@ -6,7 +6,6 @@ import com.bkahlert.kommons.logging.logback.StructuredArguments.toString
 import com.bkahlert.kommons.text.pluralize
 import com.bkahlert.kommons.text.simpleKebabCasedName
 import net.logstash.logback.argument.StructuredArgument
-import net.logstash.logback.argument.StructuredArguments.DEFAULT_KEY_VALUE_MESSAGE_FORMAT_PATTERN
 import net.logstash.logback.marker.MapEntriesAppendingMarker
 import net.logstash.logback.marker.ObjectAppendingMarker
 import net.logstash.logback.marker.ObjectFieldsAppendingMarker
@@ -34,7 +33,6 @@ public object StructuredArguments {
      *
      * @param key the key/field name
      * @param value the value
-     * @param messageFormatPattern if specified, it will be used instead of the `{0}={1}` pattern for the formatted message
      * @param transform if specified, the values are based on its return values
      * @return a pre-populated [StructuredArgument] instance
      *
@@ -43,10 +41,9 @@ public object StructuredArguments {
     public inline fun <T> keyValue(
         key: String,
         value: T,
-        messageFormatPattern: String = DEFAULT_KEY_VALUE_MESSAGE_FORMAT_PATTERN,
         transform: (T) -> Any? = { it },
     ): StructuredArgument =
-        LogbackStructuredArguments.keyValue(key, transform(value), messageFormatPattern)
+        LogbackStructuredArguments.keyValue(key, transform(value))
 
     /**
      * With key being the derived kebab-case name of [T], adds
@@ -64,7 +61,6 @@ public object StructuredArguments {
      * ```
      *
      * @param value the value
-     * @param messageFormatPattern if specified, it will be used instead of the `{0}={1}` pattern for the formatted message
      * @param transform if specified, the values are based on its return values
      * @return a pre-populated [StructuredArgument] instance
      *
@@ -72,10 +68,9 @@ public object StructuredArguments {
      */
     public inline fun <reified T> keyValue(
         value: T,
-        messageFormatPattern: String = DEFAULT_KEY_VALUE_MESSAGE_FORMAT_PATTERN,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
-        keyValue(key = deriveFieldNameFrom<T>(), value = value, messageFormatPattern = messageFormatPattern, transform = transform)
+        keyValue(key = deriveFieldNameFrom<T>(), value = value, transform = transform)
 
     /**
      * Abbreviated convenience method for calling [keyValue].
@@ -85,10 +80,9 @@ public object StructuredArguments {
     public inline fun <T> kv(
         key: String,
         value: T,
-        messageFormatPattern: String = DEFAULT_KEY_VALUE_MESSAGE_FORMAT_PATTERN,
         transform: (T) -> Any? = { it },
     ): StructuredArgument =
-        keyValue(key = key, value = value, messageFormatPattern = messageFormatPattern, transform = transform)
+        keyValue(key = key, value = value, transform = transform)
 
     /**
      * Abbreviated convenience method for calling [keyValue].
@@ -97,10 +91,9 @@ public object StructuredArguments {
      */
     public inline fun <reified T> kv(
         value: T,
-        messageFormatPattern: String = DEFAULT_KEY_VALUE_MESSAGE_FORMAT_PATTERN,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
-        keyValue(key = deriveFieldNameFrom<T>(), value = value, messageFormatPattern = messageFormatPattern, transform = transform)
+        keyValue(key = deriveFieldNameFrom<T>(), value = value, transform = transform)
 
 
     /**
@@ -155,7 +148,7 @@ public object StructuredArguments {
      */
     public inline fun <reified T> value(
         value: T,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
         value(key = deriveFieldNameFrom<T>(), value = value, transform = transform)
 
@@ -178,7 +171,7 @@ public object StructuredArguments {
      */
     public inline fun <reified T> v(
         value: T,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
         value(key = deriveFieldNameFrom<T>(), value = value, transform = transform)
 
@@ -375,7 +368,7 @@ public object StructuredArguments {
     public inline fun <reified T> objects(
         key: String,
         objects: Collection<T>,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
         array(key = key, objects = objects.toTypedArray(), transform = transform)
 
@@ -386,7 +379,7 @@ public object StructuredArguments {
      */
     public inline fun <reified T> objects(
         objects: Collection<T>,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
         array(objects = objects.toTypedArray(), transform = transform)
 
@@ -398,7 +391,7 @@ public object StructuredArguments {
     public inline fun <reified T> o(
         fieldName: String,
         objects: Collection<T>,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
         a(key = fieldName, objects = objects.toTypedArray(), transform = transform)
 
@@ -409,7 +402,7 @@ public object StructuredArguments {
      */
     public inline fun <reified T> o(
         objects: Collection<T>,
-        noinline transform: (T) -> Any? = { it },
+        transform: (T) -> Any? = { it },
     ): StructuredArgument =
         a(objects = objects.toTypedArray(), transform = transform)
 
