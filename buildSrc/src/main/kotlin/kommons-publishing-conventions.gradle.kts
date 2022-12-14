@@ -4,6 +4,15 @@ plugins {
     id("nebula.release")
 }
 
+val isSnapshot = version.toString().endsWith("-SNAPSHOT")
+if (isSnapshot) {
+    logger.lifecycle("Snapshot version: $version")
+    tasks.withType<Sign>().configureEach {
+        logger.lifecycle("Disabling $name")
+        enabled = false
+    }
+}
+
 val releaseVersion: String? = System.getenv("RELEASE_VERSION")
 if (releaseVersion != null) version = releaseVersion
 

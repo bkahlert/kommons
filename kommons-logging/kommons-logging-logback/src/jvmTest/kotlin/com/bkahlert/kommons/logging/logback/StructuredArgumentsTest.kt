@@ -35,6 +35,7 @@ class StructuredArgumentsTest {
         assertion: (String) -> Unit,
     ) {
         invocations.map {
+            Thread.sleep(50)
             logger.it()
             lastLog.log
         }.forAll { log ->
