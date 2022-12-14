@@ -32,6 +32,8 @@ public actual fun <T> T.trace(
 ): T {
     val includeCallSite = true
     val highlight = true
+
+    @Suppress("DEPRECATION")
     val call = if (includeCallSite) StackTrace.get().findByLastKnownCallsOrNull(::inspect, ::trace) else null
     val actualRender = render ?: { it.render() }
     buildString {

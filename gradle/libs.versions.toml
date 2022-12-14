@@ -16,7 +16,7 @@ mordant = "2.0.0-beta9"
 nebula-release = "16.0.0"
 slf4j = "1.7.36"
 spring-dependency-management = "1.1.0"
-spring-boot = "2.7.3" # https://docs.spring.io/spring-boot/docs/2.7.3/
+spring-boot = "2.7.6" # https://docs.spring.io/spring-boot/docs/2.7.6/
 stdlib-js = "0.0.9"
 plexus = "3.4.2"
 xregexp = "5.1.0"
@@ -51,8 +51,6 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
-
-spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
 
 plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexus" }
 

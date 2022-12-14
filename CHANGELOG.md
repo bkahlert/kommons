@@ -6,6 +6,8 @@
 
 ### Changed
 
+- chore: upgrade to Kotlin 1.7.21
+
 ### Deprecated
 
 ### Removed

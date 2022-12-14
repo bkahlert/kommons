@@ -4,8 +4,8 @@ plugins {
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     kotlin("jvm")
-    kotlin("plugin.spring") version "1.7.10"
-//    kotlin("kapt")
+    kotlin("plugin.spring") version @Suppress("DSL_SCOPE_VIOLATION") libs.versions.kotlin.asProvider().get()
+    kotlin("kapt")
 }
 
 description = "Spring Boot sample application for Kommons Logging: Spring Boot"
@@ -20,7 +20,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
-//    kapt("org.springframework.boot:spring-boot-configuration-processor")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
     // testImplementation("com.bkahlert.kommons:kommons-test:2.4.1")
     testImplementation(project(":kommons-test"))

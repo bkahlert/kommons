@@ -5,6 +5,7 @@ import com.bkahlert.kommons.test.testAll
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
+@Suppress("DEPRECATION")
 class JvmTraceKtTest {
 
     @Test fun trace_with_highlighting() = testAll {
