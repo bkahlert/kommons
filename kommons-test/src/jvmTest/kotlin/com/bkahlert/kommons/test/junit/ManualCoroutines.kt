@@ -1,71 +1,89 @@
 package com.bkahlert.kommons.test.junit
 
+import com.bkahlert.kommons.logging.SLF4J
+import com.bkahlert.kommons.test.junit.xxx.iterator2
+import io.kotest.matchers.longs.shouldBeEven
+import io.kotest.mpp.timeInMillis
+import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
+import kotlin.random.Random
+import kotlin.streams.asStream
+import kotlin.time.Duration.Companion.milliseconds
+
+val logger by SLF4J
 
 class Coroutines {
-
     @Test
-    fun testCoroutine() {
-        val operation: (Block) -> Unit = {
+    fun testCoroutine2() {
+        val blockIterator = build2 {
+            foo()
+            bar()
+            foo()
+            foo()
+            bar()
+        }
+
+        blockIterator.forEach {
             it.execute()
         }
+    }
 
-        val blockIterator = build(operation) {
-            foo()
-            bar()
-            foo()
-            foo()
-            bar()
-        }
+    fun tests() = build2 {
+        foo()
+        bar()
+        foo()
+        foo()
+        bar()
+    }.asSequence().asStream()
 
-        while (blockIterator.hasNext()) {
-            val block = blockIterator.next()
-            block.execute()
-        }
+    @TestFactory
+    fun testCoroutineSequential() = tests()
+
+    @Execution(CONCURRENT)
+    @TestFactory
+    fun testCoroutineConcurrent() = tests()
+}
+
+fun build2(block: suspend Builder.() -> Unit): Iterator<DynamicTest> {
+
+    var completed = false
+
+    return iterator2<DynamicTest> {
+        Builder { yield(it) }.block()
     }
 }
 
-fun build(operation: (Block) -> Unit, block: Builder.() -> Unit): Iterator<Block> {
-    val list = mutableListOf<Block>()
-    val callback: (Block) -> Unit = {
-        operation(it)
-        list.add(it)
-    }
-    Builder(callback).block()
-    return object : Iterator<Block> {
-        var i = 0
-        override fun hasNext(): Boolean {
-            return i < list.size
-        }
+val random = Random(timeInMillis())
 
-        override fun next(): Block {
-            return list[i++]
-        }
-    }
-}
+fun DynamicTest(
+    name: String,
+): DynamicTest {
+    logger.info("Creating test $name")
 
-data class Block(private val name: String) {
-    init {
-        println("Creating block $name")
-    }
-
-    fun execute() {
-        println("Executing block $name")
+    return DynamicTest.dynamicTest(name) {
+        val timeout = 500 + random.nextLong(500)
+        logger.info("Executing test $name in ${timeout.milliseconds}")
+        Thread.sleep(timeout)
+        timeout.shouldBeEven()
+        logger.info("Finished test $name")
     }
 }
 
 
 class Builder(
-    private val callback: (Block) -> Unit,
+    val callback: suspend (DynamicTest) -> Unit,
 ) {
 
-    fun foo(): Unit {
-        val block = Block("foo")
+    suspend fun foo(): Unit {
+        val block = DynamicTest("foo")
         callback(block)
     }
 
-    fun bar(): Unit {
-        val block = Block("bar")
+    suspend fun bar(): Unit {
+        val block = DynamicTest("bar")
         callback(block)
     }
 }
