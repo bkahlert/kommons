@@ -6,7 +6,11 @@ class Coroutines {
 
     @Test
     fun testCoroutine() {
-        val blockIterator = build {
+        val operation: (Block) -> Unit = {
+            it.execute()
+        }
+
+        val blockIterator = build(operation) {
             foo()
             bar()
             foo()
@@ -21,9 +25,10 @@ class Coroutines {
     }
 }
 
-fun build(block: Builder.() -> Unit): Iterator<Block> {
+fun build(operation: (Block) -> Unit, block: Builder.() -> Unit): Iterator<Block> {
     val list = mutableListOf<Block>()
     val callback: (Block) -> Unit = {
+        operation(it)
         list.add(it)
     }
     Builder(callback).block()
