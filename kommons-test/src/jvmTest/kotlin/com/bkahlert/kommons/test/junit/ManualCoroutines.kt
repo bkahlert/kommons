@@ -6,37 +6,44 @@ class Coroutines {
 
     @Test
     fun testCoroutine() {
-        build {
+        val blockIterator = build {
             foo()
             bar()
             foo()
             foo()
             bar()
-        }.forEach {
-            it.execute()
         }
-        /*
-         Prints:
 
-         Executing block foo
-         Executing block bar
-         Executing block foo
-         Executing block foo
-         Executing block bar
-         */
+        while (blockIterator.hasNext()) {
+            val block = blockIterator.next()
+            block.execute()
+        }
     }
 }
 
-fun build(block: Builder.() -> Unit): Sequence<Block> {
+fun build(block: Builder.() -> Unit): Iterator<Block> {
     val list = mutableListOf<Block>()
     val callback: (Block) -> Unit = {
         list.add(it)
     }
     Builder(callback).block()
-    return list.asSequence()
+    return object : Iterator<Block> {
+        var i = 0
+        override fun hasNext(): Boolean {
+            return i < list.size
+        }
+
+        override fun next(): Block {
+            return list[i++]
+        }
+    }
 }
 
 data class Block(private val name: String) {
+    init {
+        println("Creating block $name")
+    }
+
     fun execute() {
         println("Executing block $name")
     }
@@ -44,7 +51,7 @@ data class Block(private val name: String) {
 
 
 class Builder(
-    private val callback: (Block) -> Unit
+    private val callback: (Block) -> Unit,
 ) {
 
     fun foo(): Unit {
