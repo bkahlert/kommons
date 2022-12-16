@@ -171,6 +171,13 @@ class DynamicTestBuilderTest {
     inner class DynamicTestsWithoutSubjectBuilderTest {
 
         @Test
+        fun `should throw for zero tests`() {
+            val tests = testing { }
+            shouldThrow<IllegalStateException> { tests.execute() }
+                .message shouldContain "No tests were created."
+        }
+
+        @Test
         fun `should run evaluating it`() {
             var testSucceeded = false
             val tests = testing {
@@ -249,6 +256,13 @@ class DynamicTestBuilderTest {
 
     @Nested
     inner class DynamicTestsWithSubjectBuilderTest {
+
+        @Test
+        fun `should throw for zero tests`() {
+            val tests = testingAll<Any?> { }
+            shouldThrow<IllegalStateException> { tests.execute() }
+                .message shouldContain "No tests were created."
+        }
 
         @Test
         fun `should run asserting it`() {

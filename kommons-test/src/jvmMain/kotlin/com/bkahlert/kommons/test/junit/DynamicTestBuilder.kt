@@ -11,8 +11,6 @@ import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.throwingD
 import com.bkahlert.kommons.test.junit.Mode.CREATE
 import com.bkahlert.kommons.test.junit.Mode.REPLACE
 import com.bkahlert.kommons.test.junit.PathSource.Companion.sourceUri
-import com.bkahlert.kommons.test.junit.SimpleIdResolver.Companion.simpleId
-import com.bkahlert.kommons.test.junit.xxx.sequence2
 import io.kotest.assertions.asClue
 import io.kotest.assertions.assertionCounter
 import io.kotest.assertions.failure
@@ -22,10 +20,15 @@ import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
-import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.ExtensionContext
 import java.net.URI
 import java.util.stream.Stream
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.intrinsics.createCoroutineUnintercepted
+import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
+import kotlin.coroutines.resume
 import kotlin.reflect.KClass
 import kotlin.streams.asStream
 
@@ -48,12 +51,9 @@ public value class AssertionsBuilder<T>(
 }
 
 
-public enum class Mode { CREATE, REPLACE }
-
-
 /** Builds tests with no subjects using a [TestsWithoutSubjectScope]. */
 public fun testing(init: suspend TestsWithoutSubjectScope.() -> Unit): Stream<DynamicNode> =
-    xxx(init) { DynamicTestsWithoutSubjectBuilder(it) }
+    buildTestNodeSequence(init) { DynamicTestsWithoutSubjectBuilder(it) }.asNonEmptyStream()
 
 /** Scope for building tests (and test containers) with no subjects. */
 public interface TestsWithoutSubjectScope {
@@ -106,37 +106,41 @@ public suspend inline fun <reified E : Throwable> TestsWithoutSubjectScope.expec
 
 /** Builder for tests (and test containers) with no subjects. */
 private class DynamicTestsWithoutSubjectBuilder(
-    public val addDynamicNode: suspend (Mode, DynamicNode) -> Unit,
+    val yieldNode: suspend (Mode, DynamicNode) -> Unit,
 ) : TestsWithoutSubjectScope {
 
     override suspend fun <R> expecting(description: String?, action: () -> R): AssertionsBuilder<R> {
         val caller = KommonsTest.locateCall()
         val displayName = description ?: caller.expectingDisplayName(action)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expecting", caller.sourceUri) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expecting", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<R> ->
-            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { action().asClue(assertions) })
+            yieldNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { action().asClue(assertions) })
         }
     }
 
     override suspend fun <R> expectCatching(action: () -> R): AssertionsBuilder<Result<R>> {
         val caller = KommonsTest.locateCall()
         val displayName = caller.catchingDisplayName(action)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expectCatching", caller.sourceUri) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expectCatching", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<Result<R>> ->
-            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { runCatching(action).asClue(assertions) })
+            yieldNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { runCatching(action).asClue(assertions) })
         }
     }
 
-    public override suspend fun <E : Throwable> expectThrows(type: KClass<E>, action: () -> Any?): AssertionsBuilder<E> {
+    override suspend fun <E : Throwable> expectThrows(type: KClass<E>, action: () -> Any?): AssertionsBuilder<E> {
         val caller = KommonsTest.locateCall()
         val displayName = throwingDisplayName(type)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { shouldThrow(type, action).asClue({}) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { shouldThrow(type, action).asClue({}) })
         return AssertionsBuilder { assertions: Assertions<E> ->
-            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { shouldThrow(type, action).asClue(assertions) })
+            yieldNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { shouldThrow(type, action).asClue(assertions) })
         }
     }
 }
 
+/**
+ * Copy of [io.kotest.assertions.throwables.shouldThrow] that allows passing
+ * the [expectedExceptionClass] as a [KClass] instance.
+ */
 private fun <T : Throwable> shouldThrow(expectedExceptionClass: KClass<T>, block: () -> Any?): T {
     assertionCounter.inc()
     val thrownThrowable = try {
@@ -170,36 +174,11 @@ private fun <T : Throwable> shouldThrow(expectedExceptionClass: KClass<T>, block
     }
 }
 
-public fun <C> xxx(
-    init: suspend C.() -> Unit,
-    initBuilder: (suspend (Mode, DynamicNode) -> Unit) -> C,
-): Stream<DynamicNode> = sequence2<DynamicNode> {
-    var nextNode: DynamicNode? = null
-    initBuilder { mode, newNode ->
-        when (mode) {
-            CREATE -> {
-                nextNode?.also { yield(it) }
-                nextNode = newNode
-            }
-
-            REPLACE -> {
-                nextNode?.also {
-                    if (!it.testSourceUri.equals(newNode.testSourceUri)) {
-                        throw IllegalStateException("${newNode.testSourceUri} attempts to replace the supposedly not fully built test ${it.testSourceUri}")
-                    }
-                }
-                nextNode = newNode
-            }
-        }
-    }.init()
-    nextNode?.also { yield(it) }
-}.asStream()
-
 /**
  * Builds tests with the specified [subject] using a [TestsWithSubjectScope].
  */
 public fun <T> testing(subject: T, init: suspend TestsWithSubjectScope<T>.() -> Unit): Stream<DynamicNode> =
-    xxx(init) { DynamicTestsWithSubjectBuilder(subject, it) }
+    buildTestNodeSequence(init) { DynamicTestsWithSubjectBuilder(subject, it) }.asNonEmptyStream()
 
 /**
  * Builds tests for each of the specified [subjects] using a [TestsWithSubjectScope].
@@ -211,7 +190,7 @@ public fun <T> testingAll(
     vararg subjects: T,
     containerNamePattern: String? = null,
     init: suspend TestsWithSubjectScope<T>.() -> Unit,
-): Stream<DynamicContainer> = subjects.asList().testingAll(containerNamePattern, init)
+): Stream<DynamicContainer> = subjects.asIterable().testingAll(containerNamePattern, init)
 
 /**
  * Builds tests for each subject of this [Collection] using a [TestsWithSubjectScope].
@@ -222,15 +201,13 @@ public fun <T> testingAll(
 public fun <T> Iterable<T>.testingAll(
     containerNamePattern: String? = null,
     init: suspend TestsWithSubjectScope<T>.() -> Unit,
-): Stream<DynamicContainer> = toList()
-    .also { require(it.isNotEmpty()) { "At least one subject must be provided for testing." } }
-    .map { subject ->
-        dynamicContainer(
-            "$FOR ${displayNameFor(subject, containerNamePattern)}",
-            PathSource.currentUri,
-            testing(subject, init)
-        )
-    }.stream()
+): Stream<DynamicContainer> = map { subject ->
+    dynamicContainer(
+        "$FOR ${displayNameFor(subject, containerNamePattern)}",
+        PathSource.currentUri,
+        testing(subject, init)
+    )
+}.asSequence().asNonEmptyStream()
 
 /**
  * Builds tests for each subject of this [Sequence] using a [TestsWithSubjectScope].
@@ -241,7 +218,7 @@ public fun <T> Iterable<T>.testingAll(
 public fun <T> Sequence<T>.testingAll(
     containerNamePattern: String? = null,
     init: TestsWithSubjectScope<T>.() -> Unit,
-): Stream<DynamicContainer> = toList().testingAll(containerNamePattern, init)
+): Stream<DynamicContainer> = asIterable().testingAll(containerNamePattern, init)
 
 /**
  * Builds tests for each entry of this [Map] using a [TestsWithSubjectScope].
@@ -319,28 +296,28 @@ public suspend inline fun <reified E : Throwable, T> TestsWithSubjectScope<T>.ex
 
 /** Builder for tests (and test containers) with the specified [subject]. */
 private class DynamicTestsWithSubjectBuilder<T>(
-    public val subject: T,
-    public val addDynamicNode: suspend (Mode, DynamicNode) -> Unit,
+    val subject: T,
+    val yieldNode: suspend (Mode, DynamicNode) -> Unit,
 ) : TestsWithSubjectScope<T> {
 
     override suspend fun it(assertions: T.() -> Unit) {
         val caller = KommonsTest.locateCall()
         val displayName = caller.assertingDisplayName(subject, assertions)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { subject.asClue(assertions) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { subject.asClue(assertions) })
     }
 
     override suspend fun that(assertions: Assertions<T>) {
         val caller = KommonsTest.locateCall()
         val displayName = caller.assertingDisplayName(subject, assertions)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { subject.asClue(assertions) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { subject.asClue(assertions) })
     }
 
     override suspend fun <R> expecting(description: String?, action: T.() -> R): AssertionsBuilder<R> {
         val caller = KommonsTest.locateCall()
         val displayName = description ?: caller.expectingDisplayName(action)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expecting", caller.sourceUri) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expecting", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<R> ->
-            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
+            yieldNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
                 withClue(subject) { subject.action().asClue(assertions) }
             })
         }
@@ -349,9 +326,9 @@ private class DynamicTestsWithSubjectBuilder<T>(
     override suspend fun <R> expectCatching(action: T.() -> R): AssertionsBuilder<Result<R>> {
         val caller = KommonsTest.locateCall()
         val displayName = caller.catchingDisplayName(action)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expectCatching", caller.sourceUri) })
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expectCatching", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<Result<R>> ->
-            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
+            yieldNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
                 withClue(subject) { subject.runCatching(action).asClue(assertions) }
             })
         }
@@ -360,11 +337,11 @@ private class DynamicTestsWithSubjectBuilder<T>(
     override suspend fun <E : Throwable> expectThrows(type: KClass<E>, action: T.() -> Any?): AssertionsBuilder<E> {
         val caller = KommonsTest.locateCall()
         val displayName = throwingDisplayName(type)
-        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) {
+        yieldNode(CREATE, dynamicTest(displayName, caller.sourceUri) {
             withClue(subject) { shouldThrow(type) { subject.action() }.asClue({}) }
         })
         return AssertionsBuilder { assertions: Assertions<E> ->
-            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
+            yieldNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
                 withClue(subject) { shouldThrow(type) { subject.action() }.asClue(assertions) }
             })
         }
@@ -379,27 +356,171 @@ public class IllegalUsageException(function: String, caller: URI?) : IllegalArgu
     }
 )
 
+private fun <T : DynamicNode> Sequence<T>.asNonEmptyStream() =
+    ifEmpty { throw IllegalStateException("No tests were created.") }.asStream()
+
+
+private enum class Mode { CREATE, REPLACE }
 
 /**
- * Extension that checks if [DynamicTestsWithSubjectBuilder.expecting] or [DynamicTestsWithSubjectBuilder.expectCatching]
- * where incorrectly used.
+ * Builds a sequence of dynamic nodes using [init]
+ * operating on the scope/builder [S].
  *
- * ***Important:**
- * For this extension to work, it needs to be registered.*
- *
- * > The most convenient way to register this extension
- * > for all tests is by adding the line **`com.bkahlert.kommons.test.junit.IllegalUsageCheck`** to the
- * > file **`resources/META-INF/services/org.junit.jupiter.api.extension.Extension`**.
+ * [initBuilder] has to provide a new builder
+ * that can use the passed suspend function to yield
+ * dynamic nodes and if necessary, [REPLACE] the
+ * previously yielded one.
  */
-internal class IllegalUsageCheck : AfterEachCallback {
+private fun <S> buildTestNodeSequence(
+    init: suspend S.() -> Unit,
+    initBuilder: (suspend (Mode, DynamicNode) -> Unit) -> S,
+): Sequence<DynamicNode> = unrestrictedSequence<DynamicNode> {
+    var scheduledNode: DynamicNode? = null
+    initBuilder { mode, newNode ->
+        when (mode) {
+            CREATE -> {
+                scheduledNode?.also { yield(it) }
+                scheduledNode = newNode
+            }
 
-    override fun afterEach(context: ExtensionContext) {
-        val id: SimpleId = context.simpleId
-        val illegalUsage = illegalUsages[id]
-        if (illegalUsage != null) throw illegalUsage
+            REPLACE -> {
+                scheduledNode?.also {
+                    if (!it.testSourceUri.equals(newNode.testSourceUri)) {
+                        throw IllegalStateException("${newNode.testSourceUri} attempts to replace the supposedly not fully built test ${it.testSourceUri}")
+                    }
+                }
+                scheduledNode = newNode
+            }
+        }
+    }.init()
+    scheduledNode?.also { yield(it) }
+}
+
+
+/**
+ * Simplified copy of [kotlin.sequences.SequenceScope] to
+ * support building tests while streaming them.
+ */
+private abstract class SequenceScope<in T> {
+    /** @see kotlin.sequences.SequenceScope.yield */
+    abstract suspend fun yield(value: T)
+
+    /** @see kotlin.sequences.SequenceScope.yieldAll */
+    abstract suspend fun yieldAll(iterator: Iterator<T>)
+
+    /** @see kotlin.sequences.SequenceScope.yieldAll */
+    suspend fun yieldAll(elements: Iterable<T>) {
+        if (elements is Collection && elements.isEmpty()) return
+        return yieldAll(elements.iterator())
     }
 
-    companion object {
-        val illegalUsages: MutableMap<SimpleId, IllegalUsageException> = mutableMapOf()
+    /** @see kotlin.sequences.SequenceScope.yieldAll */
+    suspend fun yieldAll(sequence: Sequence<T>): Unit = yieldAll(sequence.iterator())
+}
+
+private fun <T> unrestrictedSequence(@BuilderInference block: suspend SequenceScope<T>.() -> Unit): Sequence<T> = Sequence { unrestrictedIterator(block) }
+
+private fun <T> unrestrictedIterator(@BuilderInference block: suspend SequenceScope<T>.() -> Unit): Iterator<T> {
+    val iterator = SequenceBuilderIterator<T>()
+    iterator.nextStep = block.createCoroutineUnintercepted(receiver = iterator, completion = iterator)
+    return iterator
+}
+
+private typealias State = Int
+
+private const val State_NotReady: State = 0
+private const val State_ManyNotReady: State = 1
+private const val State_ManyReady: State = 2
+private const val State_Ready: State = 3
+private const val State_Done: State = 4
+private const val State_Failed: State = 5
+
+private class SequenceBuilderIterator<T> : SequenceScope<T>(), Iterator<T>, Continuation<Unit> {
+    private var state = State_NotReady
+    private var nextValue: T? = null
+    private var nextIterator: Iterator<T>? = null
+    var nextStep: Continuation<Unit>? = null
+
+    override fun hasNext(): Boolean {
+        while (true) {
+            when (state) {
+                State_NotReady -> {}
+                State_ManyNotReady ->
+                    if (nextIterator!!.hasNext()) {
+                        state = State_ManyReady
+                        return true
+                    } else {
+                        nextIterator = null
+                    }
+
+                State_Done -> return false
+                State_Ready, State_ManyReady -> return true
+                else -> throw exceptionalState()
+            }
+
+            state = State_Failed
+            val step = nextStep!!
+            nextStep = null
+            step.resume(Unit)
+        }
     }
+
+    override fun next(): T {
+        when (state) {
+            State_NotReady, State_ManyNotReady -> return nextNotReady()
+            State_ManyReady -> {
+                state = State_ManyNotReady
+                return nextIterator!!.next()
+            }
+
+            State_Ready -> {
+                state = State_NotReady
+                @Suppress("UNCHECKED_CAST")
+                val result = nextValue as T
+                nextValue = null
+                return result
+            }
+
+            else -> throw exceptionalState()
+        }
+    }
+
+    private fun nextNotReady(): T {
+        if (!hasNext()) throw NoSuchElementException() else return next()
+    }
+
+    private fun exceptionalState(): Throwable = when (state) {
+        State_Done -> NoSuchElementException()
+        State_Failed -> IllegalStateException("Iterator has failed.")
+        else -> IllegalStateException("Unexpected state of the iterator: $state")
+    }
+
+
+    override suspend fun yield(value: T) {
+        nextValue = value
+        state = State_Ready
+        return suspendCoroutineUninterceptedOrReturn { c ->
+            nextStep = c
+            COROUTINE_SUSPENDED
+        }
+    }
+
+    override suspend fun yieldAll(iterator: Iterator<T>) {
+        if (!iterator.hasNext()) return
+        nextIterator = iterator
+        state = State_ManyReady
+        return suspendCoroutineUninterceptedOrReturn { c ->
+            nextStep = c
+            COROUTINE_SUSPENDED
+        }
+    }
+
+    // Completion continuation implementation
+    override fun resumeWith(result: Result<Unit>) {
+        result.getOrThrow() // just rethrow exception if it's there
+        state = State_Done
+    }
+
+    override val context: CoroutineContext
+        get() = EmptyCoroutineContext
 }
