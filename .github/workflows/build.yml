@@ -9,6 +9,19 @@ on:
     branches: ['master']
     tags: ['dependencies']
     paths-ignore: ['**.md']
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch"
+        required: true
+        default: 'master'
+      additional-gradle-args:
+        description: "Additional Gradle arguments to add to the command line"
+        required: false
+        default: '--info --tests "com.bkahlert.kommons.logging.*"'
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.configureondemand=false -Dorg.gradle.parallel=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Dfile.encoding=UTF-8 -Xmx3g -XX:MaxMetaspaceSize=756m -XX:+HeapDumpOnOutOfMemoryError"
 
 concurrency:
   group: ${{ github.ref }}
@@ -77,7 +90,7 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: ${{ matrix.target }}Test -Pkotlin.tests.individualTaskReports=true
+          arguments: ${{ matrix.target }}Test -Pkotlin.tests.individualTaskReports=true ${{ github.event.inputs.additional-gradle-args }}
 
       - name: Upload test reports
         uses: actions/upload-artifact@v3

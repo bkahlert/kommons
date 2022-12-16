@@ -1,3 +1,4 @@
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,16 +10,18 @@ description = "Spring Boot auto-configuration for Kommons Logging: Logback"
 kotlin {
 
     jvm {
-        apply(plugin = "org.springframework.boot")
-        apply(plugin = "io.spring.dependency-management")
         apply(plugin = "org.jetbrains.kotlin.kapt")
     }
 
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        val springBootVersion = libs.versions.spring.boot.get()
+
         val jvmMain by getting {
             dependencies {
-                configurations["kapt"].dependencies.add(libs.spring.boot.configuration.processor)
+                configurations["kapt"].dependencies.add(
+                    DefaultExternalModuleDependency("org.springframework.boot", "spring-boot-configuration-processor", springBootVersion)
+                )
 
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-io"))
@@ -26,7 +29,7 @@ kotlin {
                 implementation(project(":kommons-logging:kommons-logging-logback"))
                 implementation(project(":kommons-text"))
 
-                implementation("org.springframework.boot:spring-boot-autoconfigure")
+                implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
 
                 // resolves 'warning: unknown enum constant When.MAYBE'
                 compileOnly(libs.jsr305)
@@ -34,9 +37,9 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(libs.spring.boot.configuration.processor) // configuration metadata testing
-                implementation("org.springframework.boot:spring-boot-starter-actuator") { because("LogFileWebEndpoint testing") }
-                implementation("org.springframework.boot:spring-boot-starter-test") { because("output capturing") }
+                implementation("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion") // configuration metadata testing
+                implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion") { because("LogFileWebEndpoint testing") }
+                implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
             }
         }
     }

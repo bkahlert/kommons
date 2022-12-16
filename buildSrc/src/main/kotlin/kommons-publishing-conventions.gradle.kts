@@ -1,7 +1,22 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 plugins {
     signing
     id("maven-publish")
     id("nebula.release")
+}
+
+val isSnapshot = version.toString().endsWith("-SNAPSHOT")
+if (isSnapshot) {
+    logger.lifecycle("Snapshot version: $version")
+    tasks.withType<Sign>().configureEach {
+        logger.info("Disabling task $name")
+        enabled = false
+    }
+    tasks.withType<DokkaTask>().configureEach {
+        logger.info("Disabling task $name")
+        enabled = false
+    }
 }
 
 val releaseVersion: String? = System.getenv("RELEASE_VERSION")
@@ -14,7 +29,7 @@ val javadocJar by tasks.registering(Jar::class) {
     description = "Generates a JavaDoc JAR using Dokka"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     archiveClassifier.set("javadoc")
-    tasks.named<org.jetbrains.dokka.gradle.DokkaTask>("dokkaHtml").also { dokkaHtml ->
+    tasks.named<DokkaTask>("dokkaHtml").also { dokkaHtml ->
         dependsOn(dokkaHtml)
         from(dokkaHtml.get().outputDirectory)
     }

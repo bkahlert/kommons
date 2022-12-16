@@ -57,7 +57,7 @@ public interface RenderingSettings {
         /** Builds a [RenderingSettings] using the specified [init] and optional [template]. */
         public fun build(
             template: RenderingSettings = Default,
-            init: (RenderingSettingsBuilder.() -> Unit)? = null
+            init: (RenderingSettingsBuilder.() -> Unit)? = null,
         ): RenderingSettings =
             (object : RenderingSettingsBuilder {
                 val settings: MutableMap<String, Any?> = mutableMapOf()
@@ -95,7 +95,7 @@ public sealed class Compression {
     /** Compress output if the output doesn't exceed the specified [maxLength] (default: 60). */
     public class Auto(
         /** The maximum length compressed output is allowed to have. */
-        public val maxLength: Int = 60
+        public val maxLength: Int = 60,
     ) : Compression()
 }
 
@@ -156,7 +156,7 @@ internal class RenderingContext(
     fun render(
         init: (RenderingSettingsBuilder.() -> Unit)? = null,
         isolated: Boolean = false,
-        block: RenderingContext.(StringBuilder) -> Unit
+        block: RenderingContext.(StringBuilder) -> Unit,
     ): String = buildString { copy(init, isolated).block(this) }
 
     fun renderTo(out: StringBuilder, obj: Any?) {
@@ -181,13 +181,15 @@ internal class RenderingContext(
             when (obj) {
                 is CharSequence -> renderStringTo(out, obj)
 
-                is Boolean, is kotlin.Char, is Float, is Double,
+                is Boolean, is Char, is Float, is Double,
                 is UByte, is UShort, is UInt, is ULong,
-                is Byte, is Short, is Int, is Long -> renderPrimitiveTo(out, obj)
+                is Byte, is Short, is Int, is Long,
+                -> renderPrimitiveTo(out, obj)
 
                 is BooleanArray, is CharArray, is FloatArray, is DoubleArray,
                 is UByteArray, is UShortArray, is UIntArray, is ULongArray,
-                is ByteArray, is ShortArray, is IntArray, is LongArray -> renderPrimitiveArrayTo(out, obj)
+                is ByteArray, is ShortArray, is IntArray, is LongArray,
+                -> renderPrimitiveArrayTo(out, obj)
 
                 is Array<*> -> renderArrayTo(out, obj)
 
@@ -205,8 +207,7 @@ internal class RenderingContext(
                             obj is Collection<*> && obj.isPlain -> renderCollectionTo(out, obj)
                             obj is Map<*, *> && obj.isPlain -> renderObjectTo(out, obj)
                             else -> {
-                                val likelyRenderInvokingToString =
-                                    StackTrace.get().findByLastKnownCallsOrNull("render", "renderTo")?.function == "toString"
+                                val likelyRenderInvokingToString = calledBy("toString", "render", "renderTo")
 
                                 when (customToString) {
                                     IgnoreForPlainCollectionsAndMaps -> if (likelyRenderInvokingToString) null else obj.toCustomStringOrNull()
@@ -224,6 +225,8 @@ internal class RenderingContext(
         }
     }
 }
+
+internal expect inline fun calledBy(function: String, vararg callers: String): Boolean
 
 internal fun renderString(
     string: CharSequence,

@@ -10,7 +10,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(libs.kotlin.logging)
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-text"))
             }
@@ -23,6 +22,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("reflect"))
+                implementation(libs.kotlin.logging)
                 implementation(libs.slf4j.api)
                 implementation(project(":kommons-io"))
             }

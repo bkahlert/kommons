@@ -6,26 +6,24 @@ description = "Kommons Logging Logback is a Kotlin Library for configuring Logba
 
 kotlin {
 
-    jvm {
-        apply(plugin = "org.springframework.boot")
-        apply(plugin = "io.spring.dependency-management")
-    }
-
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
+        val springBootVersion = libs.versions.spring.boot.get()
+
         val jvmMain by getting {
             dependencies {
                 implementation(project(":kommons-core"))
                 implementation(project(":kommons-io"))
+                implementation(project(":kommons-text"))
                 implementation(project(":kommons-logging:kommons-logging-core"))
-                implementation("org.springframework.boot:spring-boot") { because("ColorConverter") }
+                implementation("org.springframework.boot:spring-boot:$springBootVersion") { because("ColorConverter") }
                 api(libs.logback.classic)
                 api(libs.logstash.logback.encoder)
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.springframework.boot:spring-boot-starter-test") { because("output capturing") }
+                implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
             }
         }
     }
