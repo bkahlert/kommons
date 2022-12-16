@@ -8,6 +8,18 @@ import kotlin.coroutines.intrinsics.createCoroutineUnintercepted
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
 
+/**
+ * Builds a [Sequence] lazily yielding values one by one.
+ *
+ * @see kotlin.sequences.generateSequence
+ *
+ * @sample samples.collections.Sequences.Building.buildSequenceYieldAll
+ * @sample samples.collections.Sequences.Building.buildFibonacciSequence
+ */
+@SinceKotlin("1.3")
+@Suppress("DEPRECATION")
+public fun <T> sequence2(@BuilderInference block: suspend SequenceScope<T>.() -> Unit): Sequence<T> = Sequence { iterator2(block) }
+
 public fun <T> iterator2(@BuilderInference block: suspend SequenceScope<T>.() -> Unit): Iterator<T> {
     val iterator = SequenceBuilderIterator<T>()
     iterator.nextStep = block.createCoroutineUnintercepted(receiver = iterator, completion = iterator)
@@ -63,7 +75,7 @@ public abstract class SequenceScope<in T> internal constructor() {
      *
      * @sample samples.collections.Sequences.Building.buildSequenceYieldAll
      */
-    public suspend fun yieldAll(sequence: Sequence<T>) = yieldAll(sequence.iterator())
+    public suspend fun yieldAll(sequence: Sequence<T>): Unit = yieldAll(sequence.iterator())
 }
 
 private typealias State = Int

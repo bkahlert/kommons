@@ -7,8 +7,11 @@ import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.catchingD
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.displayNameFor
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.expectingDisplayName
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.throwingDisplayName
+import com.bkahlert.kommons.test.junit.Mode.CREATE
+import com.bkahlert.kommons.test.junit.Mode.REPLACE
 import com.bkahlert.kommons.test.junit.PathSource.Companion.sourceUri
 import com.bkahlert.kommons.test.junit.SimpleIdResolver.Companion.simpleId
+import com.bkahlert.kommons.test.junit.xxx.sequence2
 import io.kotest.assertions.asClue
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
@@ -20,6 +23,8 @@ import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import java.net.URI
 import java.util.stream.Stream
+import kotlin.streams.asStream
+
 
 /** Assertions that can be applied to a subject. */
 public typealias Assertions<T> = (T) -> Unit
@@ -28,23 +33,29 @@ public typealias Assertions<T> = (T) -> Unit
 @JvmInline
 public value class AssertionsBuilder<T>(
     /** Function that can be used to verify assertions passed to [it] or [that]. */
-    public val applyAssertions: (Assertions<T>) -> Unit,
+    public val applyAssertions: suspend (Assertions<T>) -> Unit,
 ) {
+
     /** Specifies [assertions] with the subject in the receiver `this`. */
-    public infix fun it(assertions: T.() -> Unit): Unit = applyAssertions(assertions)
+    public suspend infix fun it(assertions: T.() -> Unit): Unit = applyAssertions(assertions)
 
     /** Specifies [assertions] with the subject passed the single parameter `it`. */
-    public infix fun that(assertions: (T) -> Unit): Unit = applyAssertions(assertions)
+    public suspend infix fun that(assertions: (T) -> Unit): Unit = applyAssertions(assertions)
 }
 
 
+public enum class Mode { CREATE, REPLACE }
+
+
+
 /** Builds tests with no subjects using a [DynamicTestsWithoutSubjectBuilder]. */
-public fun testing(init: DynamicTestsWithoutSubjectBuilder.() -> Unit): Stream<DynamicNode> =
-    DynamicTestsWithoutSubjectBuilder.build(init)
+public fun testing(init: suspend DynamicTestsWithoutSubjectBuilder.() -> Unit): Stream<DynamicNode> =
+    xxx(init) { DynamicTestsWithoutSubjectBuilder(it) }
+
 
 /** Builder for tests (and test containers) with no subjects. */
 public class DynamicTestsWithoutSubjectBuilder(
-    public val addDynamicNode: (DynamicNode) -> Unit,
+    public val addDynamicNode: suspend (Mode, DynamicNode) -> Unit,
 ) {
 
     /**
@@ -55,18 +66,12 @@ public class DynamicTestsWithoutSubjectBuilder(
      *
      * **Usage:** `expecting { <action> } that { it.<assertions> }`
      */
-    public fun <R> expecting(description: String? = null, action: () -> R): AssertionsBuilder<R> {
-        var additionalAssertions: Assertions<R>? = null
+    public suspend fun <R> expecting(description: String? = null, action: () -> R): AssertionsBuilder<R> {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(description ?: caller.expectingDisplayName(action), caller.sourceUri) {
-            additionalAssertions?.also {
-                val subject = action()
-                subject.asClue(it)
-            } ?: throw IllegalUsageException("expecting", caller.sourceUri)
-        }
-        addDynamicNode(test)
+        val displayName = description ?: caller.expectingDisplayName(action)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expecting", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<R> ->
-            additionalAssertions = assertions
+            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { action().asClue(assertions) })
         }
     }
 
@@ -78,18 +83,12 @@ public class DynamicTestsWithoutSubjectBuilder(
      *
      * **Usage:** `expectCatching { <action> } that { it.<assertions> }`
      */
-    public fun <R> expectCatching(action: () -> R): AssertionsBuilder<Result<R>> {
-        var additionalAssertions: Assertions<Result<R>>? = null
+    public suspend fun <R> expectCatching(action: () -> R): AssertionsBuilder<Result<R>> {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(caller.catchingDisplayName(action), caller.sourceUri) {
-            additionalAssertions?.also {
-                val subject = runCatching(action)
-                subject.asClue(it)
-            } ?: throw IllegalUsageException("expectCatching", caller.sourceUri)
-        }
-        addDynamicNode(test)
+        val displayName = caller.catchingDisplayName(action)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expectCatching", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<Result<R>> ->
-            additionalAssertions = assertions
+            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { runCatching(action).asClue(assertions) })
         }
     }
 
@@ -103,32 +102,46 @@ public class DynamicTestsWithoutSubjectBuilder(
      *
      * **Usage:** `expectThrows<Exception> { <action> } that { it.<assertions> }`
      */
-    public inline fun <reified E : Throwable> expectThrows(noinline action: () -> Any?): AssertionsBuilder<E> {
-        var additionalAssertions: Assertions<E>? = null
+    public suspend inline fun <reified E : Throwable> expectThrows(noinline action: () -> Any?): AssertionsBuilder<E> {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(throwingDisplayName(E::class), caller.sourceUri) {
-            shouldThrow<E>(action).asClue(additionalAssertions ?: {})
-        }
-        addDynamicNode(test)
+        val displayName = throwingDisplayName(E::class)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { shouldThrow<E>(action).asClue({}) })
         return AssertionsBuilder { assertions: Assertions<E> ->
-            additionalAssertions = assertions
+            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) { shouldThrow<E>(action).asClue(assertions) })
         }
-    }
-
-    public companion object {
-        public inline fun build(
-            init: DynamicTestsWithoutSubjectBuilder.() -> Unit,
-        ): Stream<DynamicNode> = buildList {
-            DynamicTestsWithoutSubjectBuilder { add(it) }.init()
-        }.stream()
     }
 }
+
+public fun <C> xxx(
+    init: suspend C.() -> Unit,
+    initBuilder: (suspend (Mode, DynamicNode) -> Unit) -> C,
+): Stream<DynamicNode> = sequence2<DynamicNode> {
+    var nextNode: DynamicNode? = null
+    initBuilder { mode, newNode ->
+        when (mode) {
+            CREATE -> {
+                nextNode?.also { yield(it) }
+                nextNode = newNode
+            }
+
+            REPLACE -> {
+                nextNode?.also {
+                    if (!it.testSourceUri.equals(newNode.testSourceUri)) {
+                        throw IllegalStateException("${newNode.testSourceUri} attempts to replace the supposedly not fully built test ${it.testSourceUri}")
+                    }
+                }
+                nextNode = newNode
+            }
+        }
+    }.init()
+    nextNode?.also { yield(it) }
+}.asStream()
 
 /**
  * Builds tests with the specified [subject] using a [DynamicTestsWithSubjectBuilder].
  */
-public fun <T> testing(subject: T, init: DynamicTestsWithSubjectBuilder<T>.() -> Unit): Stream<DynamicNode> =
-    DynamicTestsWithSubjectBuilder.build(subject, init)
+public fun <T> testing(subject: T, init: suspend DynamicTestsWithSubjectBuilder<T>.() -> Unit): Stream<DynamicNode> =
+    xxx(init) { DynamicTestsWithSubjectBuilder(subject, it) }
 
 /**
  * Builds tests for each of the specified [subjects] using a [DynamicTestsWithSubjectBuilder].
@@ -139,7 +152,7 @@ public fun <T> testing(subject: T, init: DynamicTestsWithSubjectBuilder<T>.() ->
 public fun <T> testingAll(
     vararg subjects: T,
     containerNamePattern: String? = null,
-    init: DynamicTestsWithSubjectBuilder<T>.() -> Unit,
+    init: suspend DynamicTestsWithSubjectBuilder<T>.() -> Unit,
 ): Stream<DynamicContainer> = subjects.asList().testingAll(containerNamePattern, init)
 
 /**
@@ -150,7 +163,7 @@ public fun <T> testingAll(
  */
 public fun <T> Iterable<T>.testingAll(
     containerNamePattern: String? = null,
-    init: DynamicTestsWithSubjectBuilder<T>.() -> Unit,
+    init: suspend DynamicTestsWithSubjectBuilder<T>.() -> Unit,
 ): Stream<DynamicContainer> = toList()
     .also { require(it.isNotEmpty()) { "At least one subject must be provided for testing." } }
     .map { subject ->
@@ -186,7 +199,7 @@ public fun <K, V> Map<K, V>.testingAll(
 /** Builder for tests (and test containers) with the specified [subject]. */
 public class DynamicTestsWithSubjectBuilder<T>(
     public val subject: T,
-    public val addDynamicNode: (DynamicNode) -> Unit,
+    public val addDynamicNode: suspend (Mode, DynamicNode) -> Unit,
 ) {
 
     /**
@@ -194,12 +207,10 @@ public class DynamicTestsWithSubjectBuilder<T>(
      *
      * **Usage:** `it { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<assertions> }`
      */
-    public fun it(assertions: T.() -> Unit) {
+    public suspend fun it(assertions: T.() -> Unit) {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(caller.assertingDisplayName(subject, assertions), caller.sourceUri) {
-            subject.asClue(assertions)
-        }
-        addDynamicNode(test)
+        val displayName = caller.assertingDisplayName(subject, assertions)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { subject.asClue(assertions) })
     }
 
     /**
@@ -207,12 +218,10 @@ public class DynamicTestsWithSubjectBuilder<T>(
      *
      * **Usage:** `that { it.<assertions> }`
      */
-    public fun that(assertions: Assertions<T>) {
+    public suspend fun that(assertions: Assertions<T>) {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(caller.assertingDisplayName(subject, assertions), caller.sourceUri) {
-            subject.asClue(assertions)
-        }
-        addDynamicNode(test)
+        val displayName = caller.assertingDisplayName(subject, assertions)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { subject.asClue(assertions) })
     }
 
     /**
@@ -223,20 +232,14 @@ public class DynamicTestsWithSubjectBuilder<T>(
      *
      * **Usage:** `expecting { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { it.<assertions> }`
      */
-    public fun <R> expecting(description: String? = null, action: T.() -> R): AssertionsBuilder<R> {
-        var additionalAssertions: Assertions<R>? = null
+    public suspend fun <R> expecting(description: String? = null, action: T.() -> R): AssertionsBuilder<R> {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(description ?: caller.expectingDisplayName(action), caller.sourceUri) {
-            additionalAssertions?.also {
-                withClue(subject) {
-                    val aspect = subject.action()
-                    aspect.asClue(it)
-                }
-            } ?: throw IllegalUsageException("expecting", caller.sourceUri)
-        }
-        addDynamicNode(test)
+        val displayName = description ?: caller.expectingDisplayName(action)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expecting", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<R> ->
-            additionalAssertions = assertions
+            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
+                withClue(subject) { subject.action().asClue(assertions) }
+            })
         }
     }
 
@@ -248,20 +251,14 @@ public class DynamicTestsWithSubjectBuilder<T>(
      *
      * **Usage:** `expectCatching { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { it.<assertions> }`
      */
-    public fun <R> expectCatching(action: T.() -> R): AssertionsBuilder<Result<R>> {
-        var additionalAssertions: Assertions<Result<R>>? = null
+    public suspend fun <R> expectCatching(action: T.() -> R): AssertionsBuilder<Result<R>> {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(caller.catchingDisplayName(action), caller.sourceUri) {
-            additionalAssertions?.also {
-                withClue(subject) {
-                    val aspect = subject.runCatching(action)
-                    aspect.asClue(it)
-                }
-            } ?: throw IllegalUsageException("expectCatching", caller.sourceUri)
-        }
-        addDynamicNode(test)
+        val displayName = caller.catchingDisplayName(action)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) { throw IllegalUsageException("expectCatching", caller.sourceUri) })
         return AssertionsBuilder { assertions: Assertions<Result<R>> ->
-            additionalAssertions = assertions
+            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
+                withClue(subject) { subject.runCatching(action).asClue(assertions) }
+            })
         }
     }
 
@@ -275,28 +272,17 @@ public class DynamicTestsWithSubjectBuilder<T>(
      *
      * **Usage:** `expectThrows<Exception> { 𝘴𝘶𝘣𝘫𝘦𝘤𝘵.<action> } that { it.<assertions> }`
      */
-    public inline fun <reified E : Throwable> expectThrows(noinline action: T.() -> Any?): AssertionsBuilder<E> {
-        var additionalAssertions: Assertions<E>? = null
+    public suspend inline fun <reified E : Throwable> expectThrows(noinline action: T.() -> Any?): AssertionsBuilder<E> {
         val caller = KommonsTest.locateCall()
-        val test = dynamicTest(throwingDisplayName(E::class), caller.sourceUri) {
-            withClue(subject) {
-                shouldThrow<E> { subject.action() }.asClue(additionalAssertions ?: {})
-            }
-        }
-        addDynamicNode(test)
+        val displayName = throwingDisplayName(E::class)
+        addDynamicNode(CREATE, dynamicTest(displayName, caller.sourceUri) {
+            withClue(subject) { shouldThrow<E> { subject.action() }.asClue({}) }
+        })
         return AssertionsBuilder { assertions: Assertions<E> ->
-            additionalAssertions = assertions
+            addDynamicNode(REPLACE, dynamicTest(displayName, caller.sourceUri) {
+                withClue(subject) { shouldThrow<E> { subject.action() }.asClue(assertions) }
+            })
         }
-    }
-
-    public companion object {
-
-        public fun <T> build(
-            subject: T,
-            init: DynamicTestsWithSubjectBuilder<T>.() -> Unit,
-        ): Stream<DynamicNode> = buildList {
-            DynamicTestsWithSubjectBuilder(subject) { add(it) }.init()
-        }.stream()
     }
 }
 
