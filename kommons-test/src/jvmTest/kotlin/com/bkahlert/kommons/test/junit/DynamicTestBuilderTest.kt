@@ -50,9 +50,9 @@ class DynamicTestBuilderTest {
             expecting { length } that { it.shouldBeGreaterThan(5) }
             expectCatching { length } it { isSuccess.shouldBeTrue() }
             expectCatching { length } that { it.isSuccess.shouldBeTrue() }
-            expectThrows<RuntimeException> { throw RuntimeException() }
-            expectThrows<RuntimeException> { throw RuntimeException() } it { message.isNullOrEmpty() }
-            expectThrows<RuntimeException> { throw RuntimeException() } that { it.message.isNullOrEmpty() }
+            expectThrows<RuntimeException, _> { throw RuntimeException() }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } it { message.isNullOrEmpty() }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } that { it.message.isNullOrEmpty() }
         }
 
     private val failingTestsWithSubject
@@ -63,9 +63,9 @@ class DynamicTestBuilderTest {
             expecting { length } that { it.shouldBe("fail") }
             expectCatching { length } it { shouldBe("fail") }
             expectCatching { length } that { it.shouldBe("fail") }
-            expectThrows<RuntimeException> { shouldBe("fail") }
-            expectThrows<RuntimeException> { throw RuntimeException() } it { shouldBe("fail") }
-            expectThrows<RuntimeException> { throw RuntimeException() } that { it.shouldBe("fail") }
+            expectThrows<RuntimeException, _> { shouldBe("fail") }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } it { shouldBe("fail") }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } that { it.shouldBe("fail") }
         }
 
     private val testsWithSubjects
@@ -76,9 +76,9 @@ class DynamicTestBuilderTest {
             expecting { length } that { it.shouldBeGreaterThan(5) }
             expectCatching { length } it { isSuccess.shouldBeTrue() }
             expectCatching { length } that { it.isSuccess.shouldBeTrue() }
-            expectThrows<RuntimeException> { throw RuntimeException() }
-            expectThrows<RuntimeException> { throw RuntimeException() } it { message.isNullOrEmpty() }
-            expectThrows<RuntimeException> { throw RuntimeException() } that { it.message.isNullOrEmpty() }
+            expectThrows<RuntimeException, _> { throw RuntimeException() }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } it { message.isNullOrEmpty() }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } that { it.message.isNullOrEmpty() }
         }
 
     private val failingTestsWithSubjects
@@ -89,9 +89,9 @@ class DynamicTestBuilderTest {
             expecting { length } that { it.shouldBe("fail") }
             expectCatching { length } it { shouldBe("fail") }
             expectCatching { length } that { it.shouldBe("fail") }
-            expectThrows<RuntimeException> { shouldBe("fail") }
-            expectThrows<RuntimeException> { throw RuntimeException() } it { shouldBe("fail") }
-            expectThrows<RuntimeException> { throw RuntimeException() } that { it.shouldBe("fail") }
+            expectThrows<RuntimeException, _> { shouldBe("fail") }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } it { shouldBe("fail") }
+            expectThrows<RuntimeException, _> { throw RuntimeException() } that { it.shouldBe("fail") }
         }
 
 
@@ -169,6 +169,13 @@ class DynamicTestBuilderTest {
 
     @Nested
     inner class DynamicTestsWithoutSubjectBuilderTest {
+
+        @Test
+        fun `should throw for zero tests`() {
+            val tests = testing { }
+            shouldThrow<IllegalStateException> { tests.execute() }
+                .message shouldContain "No tests were created."
+        }
 
         @Test
         fun `should run evaluating it`() {
@@ -249,6 +256,13 @@ class DynamicTestBuilderTest {
 
     @Nested
     inner class DynamicTestsWithSubjectBuilderTest {
+
+        @Test
+        fun `should throw for zero tests`() {
+            val tests = testingAll<Any?> { }
+            shouldThrow<IllegalStateException> { tests.execute() }
+                .message shouldContain "No tests were created."
+        }
 
         @Test
         fun `should run asserting it`() {
@@ -332,7 +346,7 @@ class DynamicTestBuilderTest {
         fun `should run expectThrows`() {
             var testSucceeded = false
             val tests = testingAll("subject") {
-                expectThrows<RuntimeException> { throw RuntimeException(this) } that { testSucceeded = it.message == "subject" }
+                expectThrows<RuntimeException, _> { throw RuntimeException(this) } that { testSucceeded = it.message == "subject" }
             }
             tests.execute()
             testSucceeded.shouldBeTrue()
@@ -341,7 +355,7 @@ class DynamicTestBuilderTest {
         @Test
         fun `should not throw on evaluating only throwable type`() {
             val tests = testingAll("subject") {
-                expectThrows<RuntimeException> { throw RuntimeException(this) }
+                expectThrows<RuntimeException, _> { throw RuntimeException(this) }
             }
             shouldNotThrowAny { tests.execute() }
         }

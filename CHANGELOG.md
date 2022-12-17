@@ -6,6 +6,9 @@
 
 ### Changed
 
+- Kommons Test's dynamic test builders `testing`/`testingAll` now lazily
+  build tests as they're consumed by JUnit
+
 ### Deprecated
 
 ### Removed
