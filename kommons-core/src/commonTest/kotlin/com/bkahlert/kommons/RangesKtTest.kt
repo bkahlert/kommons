@@ -77,6 +77,7 @@ class RangesKtTest {
             repeat(100) { range.random().shouldBeBetween(-4.2, 42.0, 0.1) }
             repeat(100) { range.random(Random(123)).shouldBeBetween(-4.2, 42.0, 0.1) }
         }
+        @Suppress("EmptyRange")
         (42.0..-4.2) should { range ->
             shouldThrow<NoSuchElementException> { range.random().shouldBeNull() }
             shouldThrow<NoSuchElementException> { range.random(Random(123)).shouldBeNull() }
@@ -88,6 +89,7 @@ class RangesKtTest {
             repeat(100) { range.randomOrNull().shouldNotBeNull().shouldBeBetween(-4.2, 42.0, 0.1) }
             repeat(100) { range.randomOrNull(Random(123)).shouldNotBeNull().shouldBeBetween(-4.2, 42.0, 0.1) }
         }
+        @Suppress("EmptyRange")
         (42.0..-4.2) should { range ->
             range.randomOrNull().shouldBeNull()
             range.randomOrNull(Random(123)).shouldBeNull()
@@ -97,6 +99,7 @@ class RangesKtTest {
     @Test fun as_iterable() = testAll {
         (-4..42).asIterable { it + 9 }.map { it }.shouldContainExactly(-4, 5, 14, 23, 32, 41)
         (-4.2..42.0).asIterable { it + 9 }.map { it.toInt() }.shouldContainExactly(-4, 4, 13, 22, 31, 40)
+        @Suppress("EmptyRange")
         (42.0..-4.2).asIterable { it + 9 }.map { it.toInt() }.shouldBeEmpty()
     }
 }

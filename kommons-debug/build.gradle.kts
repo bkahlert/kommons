@@ -26,15 +26,13 @@ kotlin {
                 implementation(libs.slf4j.api)
                 implementation(project(":kommons-io"))
             }
+
+            languageSettings.optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")
         }
         val jvmTest by getting {
             dependencies {
                 implementation(libs.slf4j.simple)
             }
-        }
-
-        jvmMain.languageSettings.apply {
-            optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")
         }
     }
 }

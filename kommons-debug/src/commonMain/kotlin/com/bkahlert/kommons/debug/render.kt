@@ -17,9 +17,9 @@ import com.bkahlert.kommons.toHexadecimalString
 public fun Any?.render(settings: RenderingSettings = RenderingSettings.Default): String =
     buildString { RenderingContext(settings).renderTo(this, this@render) }
 
-/** Renders this object using the [RenderingSettings] built with the specified [template] and [init]. */
-public fun Any?.render(template: RenderingSettings = RenderingSettings.Default, init: RenderingSettingsBuilder.() -> Unit): String =
-    render(RenderingSettings.build(template, init))
+/** Renders this object using the [RenderingSettings] built with the specified [settings] and [init]. */
+public fun Any?.render(settings: RenderingSettings = RenderingSettings.Default, init: RenderingSettingsBuilder.() -> Unit): String =
+    render(RenderingSettings.build(settings, init))
 
 /** Renders this object using the optionally specified [settings] to the specified [out]. */
 public fun Any?.renderTo(out: StringBuilder, settings: RenderingSettings = RenderingSettings.Default) {

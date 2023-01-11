@@ -28,10 +28,8 @@ kotlin {
                 implementation(project(":kommons-io"))
                 implementation(project(":kommons-logging:kommons-logging-core"))
             }
-        }
 
-        jvmMain.languageSettings.apply {
-            optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")
+            languageSettings.optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")
         }
     }
 }

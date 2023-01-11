@@ -16,22 +16,39 @@ public sealed class ValueRange<T : Comparable<T>>(
     /** Synonym for [endInclusive] */
     public inline val max: T get() = endInclusive
 
+    /** Returns the string representation of the specified value. */
+    protected abstract fun formatValue(value: T): String
+
+    override fun toString(): String = "${formatValue(start)}..${formatValue(endInclusive)}"
+
     /** Values with allowed values `0.0..1.0` */
-    public object Normalized : ValueRange<Double>(0.0, 1.0)
+    public object Normalized : ValueRange<Double>(0.0, 1.0) {
+        override fun formatValue(value: Double): String = value.toString()
+    }
 
     /** Values with allowed values `0..255` */
-    public object Bytes : ValueRange<Int>(0, 255)
+    public object Bytes : ValueRange<Int>(0, 255) {
+        override fun formatValue(value: Int): String = value.toString(16).padStart(2, '0')
+    }
 
     /** Values with allowed values `0.0..360.0`° */
-    public object Angle : ValueRange<Double>(0.0, 360.0)
+    public object Angle : ValueRange<Double>(0.0, 360.0) {
+        override fun formatValue(value: Double): String = "${value}°"
+    }
 
     /** Values with allowed values `0.0..100.0`% */
-    public object Percent : ValueRange<Double>(0.0, 100.0)
+    public object Percent : ValueRange<Double>(0.0, 100.0) {
+        override fun formatValue(value: Double): String = "${value}%"
+    }
 
     /** Values with allowed values `-1.0..+1.0` */
     public object Scaling : ValueRange<Double>(-1.0, +1.0) {
         /** Value that signifies no scaling */
         public const val None: Double = 0.0
+        override fun formatValue(value: Double): String = when {
+            value > None -> "+$value"
+            else -> "$value"
+        }
     }
 }
 

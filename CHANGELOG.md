@@ -15,6 +15,8 @@
 
 ### Fixed
 
+- Add ValueRange.toString
+
 ## [2.5.0] - 2022-12-14
 
 ### Added

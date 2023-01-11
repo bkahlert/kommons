@@ -27,12 +27,12 @@ kotlin {
         }
 
         all {
-            languageSettings.apply {
-                optIn("kotlin.ExperimentalUnsignedTypes")
-                optIn("kotlin.time.ExperimentalTime")
-                optIn("kotlin.contracts.ExperimentalContracts")
-                optIn("kotlin.experimental.ExperimentalTypeInference")
-            }
+            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+            languageSettings.optIn("kotlin.contracts.ExperimentalContracts")
+            languageSettings.optIn("kotlin.experimental.ExperimentalTypeInference")
+            languageSettings.progressiveMode = true // false by default
         }
     }
 }
