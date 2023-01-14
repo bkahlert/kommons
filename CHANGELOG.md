@@ -4,6 +4,9 @@
 
 ### Added
 
+- Clock builder
+- Clock.fixed
+
 ### Changed
 
 - Upgrade to Kotlin 1.8.0

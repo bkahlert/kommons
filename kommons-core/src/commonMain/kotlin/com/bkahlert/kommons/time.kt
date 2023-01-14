@@ -21,6 +21,14 @@ import kotlin.time.DurationUnit.HOURS
 import kotlin.time.DurationUnit.MINUTES
 import kotlin.time.DurationUnit.SECONDS
 
+/**
+ * Returns a [Clock] with its [Clock.now]
+ * using the specified [now].
+ */
+public operator fun Clock.Companion.invoke(now: () -> Instant): Clock = object : Clock {
+    override fun now(): Instant = now()
+}
+
 /** The current date and time. */
 public val Now: Instant get() = Clock.System.now()
 

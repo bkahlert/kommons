@@ -22,6 +22,11 @@ import kotlin.time.Duration.Companion.seconds
 class TimeKtTest {
 
     @Test
+    fun clock() = testAll(instant0202, instant2232) {
+        Clock { it }.now() shouldBe it
+    }
+
+    @Test
     fun now() = testAll {
         Now should {
             it shouldBeLessThanOrEqualTo Clock.System.now()
