@@ -6,6 +6,8 @@
 
 ### Changed
 
+- Upgrade to Kotlin 1.8.0
+
 - Kommons Test's dynamic test builders `testing`/`testingAll` now lazily
   build tests as they're consumed by JUnit
 
@@ -33,17 +35,17 @@ logger.info("Successfully created {}", array(Bar(1), Bar(2)))
 
 ```json
 {
-  "@timestamp": "2022-12-14T14:51:57.583+01:00",
-  "level": "INFO",
-  "message": "Successfully created bars=[bar-1, bar-2]",
-  "bars": [
-    {
-      "bar": 1
-    },
-    {
-      "bar": 2
-    }
-  ]
+    "@timestamp": "2022-12-14T14:51:57.583+01:00",
+    "level": "INFO",
+    "message": "Successfully created bars=[bar-1, bar-2]",
+    "bars": [
+        {
+            "bar": 1
+        },
+        {
+            "bar": 2
+        }
+    ]
 }
 ```
 

@@ -1,5 +1,5 @@
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("kommons-multiplatform-jvm-library-conventions")
@@ -48,5 +48,5 @@ kotlin {
 tasks {
     // makes sure an eventually existing additional-spring-configuration-metadata.json is copied to resources,
     // see https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/configuration-metadata.html
-    withType<KotlinCompile>().configureEach { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
+    withType<KotlinJvmCompile>().configureEach { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
 }

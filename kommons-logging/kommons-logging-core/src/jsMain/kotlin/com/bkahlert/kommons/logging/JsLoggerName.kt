@@ -15,7 +15,7 @@ internal actual fun Any?.loggerName(fn: KFunction<*>): String =
     }
 
 @Suppress("NOTHING_TO_INLINE") // inline to avoid impact on stack trace
-internal inline fun caller(vararg callers: String): String? {
+private inline fun caller(vararg callers: String): String? {
     val callerPatterns = callers.flatMap { it.patterns() }
 
     val stackTraceItem = stackTrace()
@@ -31,7 +31,7 @@ internal inline fun caller(vararg callers: String): String? {
         }
 }
 
-private fun String.patterns() = listOf(".$this", " $this")
+private fun String.patterns() = listOf(".$this", " $this", "$this@")
 
 @Suppress("NOTHING_TO_INLINE") // inline to avoid impact on stack trace
 private inline fun stackTrace() = try {
@@ -39,4 +39,4 @@ private inline fun stackTrace() = try {
 } catch (ex: Throwable) {
     ex.stackTraceToString().removeSuffix("\n")
 }.lineSequence()
-    .dropWhile { it.startsWith("RuntimeException") || it.startsWith("captureStack ") }
+    .dropWhile { it.startsWith("RuntimeException") || it.startsWith("captureStack") }

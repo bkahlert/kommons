@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("org.springframework.boot")
@@ -27,23 +27,21 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-tasks {
-    withType<KotlinCompile>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs = freeCompilerArgs + "-Xjsr305=strict"
-        }
+tasks.withType<KotlinJvmCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.set(freeCompilerArgs.get() + "-Xjsr305=strict")
     }
+}
 
-    withType<Test>().configureEach { useJUnitPlatform() }
+tasks.withType<Test>().configureEach { useJUnitPlatform() }
 
-    @Suppress("UnstableApiUsage")
-    withType<ProcessResources>().configureEach {
-        doLast {
-            copy {
-                from(layout.projectDirectory.file("src/main/resources/banner.txt"))
-                into(layout.buildDirectory.dir("resources/main"))
-                expand("project" to project)
-            }
+@Suppress("UnstableApiUsage")
+tasks.withType<ProcessResources>().configureEach {
+    doLast {
+        copy {
+            from(layout.projectDirectory.file("src/main/resources/banner.txt"))
+            into(layout.buildDirectory.dir("resources/main"))
+            expand("project" to project)
         }
     }
 }

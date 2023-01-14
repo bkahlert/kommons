@@ -33,7 +33,7 @@ class GraphemeTest {
         GraphemeBreakIterator("👩‍👩‍👦‍👦").asSequence().shouldContainExactly(11) // long ZWJ sequence
 
         listOf("", "a", "¶", "☰", "𝕓", "a̳o", "🫠", "🇩🇪", "👨🏾‍🦱", "👩‍👩‍👦‍👦").forAll {
-            GraphemeBreakIterator(it.cs).asSequence().toList() shouldBe GraphemeBreakIterator(it).asSequence().toList()
+            GraphemeBreakIterator(it.cs).asSequence().toList() shouldContainExactly GraphemeBreakIterator(it).asSequence().toList()
         }
     }
 
@@ -152,11 +152,11 @@ class GraphemeTest {
     }
 
     @Test fun code_points() = testAll {
-        Grapheme("a").codePoints shouldBe "a".toCodePointList()
-        Grapheme("¶").codePoints shouldBe "¶".toCodePointList()
-        Grapheme("☰").codePoints shouldBe "☰".toCodePointList()
-        Grapheme("𝕓").codePoints shouldBe "𝕓".toCodePointList()
-        Grapheme("a̳").codePoints shouldBe "a̳".toCodePointList()
+        Grapheme("a").codePoints shouldContainExactly "a".toCodePointList()
+        Grapheme("¶").codePoints shouldContainExactly "¶".toCodePointList()
+        Grapheme("☰").codePoints shouldContainExactly "☰".toCodePointList()
+        Grapheme("𝕓").codePoints shouldContainExactly "𝕓".toCodePointList()
+        Grapheme("a̳").codePoints shouldContainExactly "a̳".toCodePointList()
     }
 
     @Test fun as_grapheme() = testAll {

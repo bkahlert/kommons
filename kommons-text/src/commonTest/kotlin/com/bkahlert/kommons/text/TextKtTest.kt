@@ -338,7 +338,7 @@ inline fun <T, reified A : Throwable> havePropFailure(
     name: String,
     details: String?,
     messageGlob: String? = null,
-    noinline resolve: (T) -> Any?
+    noinline resolve: (T) -> Any?,
 ): Matcher<T> = havePropFailure(name, details, A::class, messageGlob, resolve)
 
 fun <T> havePropFailure(
@@ -346,7 +346,7 @@ fun <T> havePropFailure(
     details: String?,
     expected: KClass<out Throwable>,
     messageGlob: String? = null,
-    resolve: (T) -> Any?
+    resolve: (T) -> Any?,
 ): Matcher<T> = Matcher {
     runCatching { resolve(it) }.fold(
         { actual ->

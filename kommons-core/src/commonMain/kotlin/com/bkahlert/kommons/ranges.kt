@@ -23,7 +23,7 @@ public sealed class ValueRange<T : Comparable<T>>(
 
     /** Values with allowed values `0.0..1.0` */
     public object Normalized : ValueRange<Double>(0.0, 1.0) {
-        override fun formatValue(value: Double): String = value.toString()
+        override fun formatValue(value: Double): String = value.toString(1)
     }
 
     /** Values with allowed values `0..255` */
@@ -33,12 +33,12 @@ public sealed class ValueRange<T : Comparable<T>>(
 
     /** Values with allowed values `0.0..360.0`° */
     public object Angle : ValueRange<Double>(0.0, 360.0) {
-        override fun formatValue(value: Double): String = "${value}°"
+        override fun formatValue(value: Double): String = "${value.toString(1)}°"
     }
 
     /** Values with allowed values `0.0..100.0`% */
     public object Percent : ValueRange<Double>(0.0, 100.0) {
-        override fun formatValue(value: Double): String = "${value}%"
+        override fun formatValue(value: Double): String = "${value.toString(1)}%"
     }
 
     /** Values with allowed values `-1.0..+1.0` */
@@ -46,9 +46,20 @@ public sealed class ValueRange<T : Comparable<T>>(
         /** Value that signifies no scaling */
         public const val None: Double = 0.0
         override fun formatValue(value: Double): String = when {
-            value > None -> "+$value"
-            else -> "$value"
+            value > None -> "+${value.toString(1)}"
+            else -> value.toString(1)
         }
+    }
+}
+
+private fun Double.toString(minDecimals: Int): String {
+    val string = toString()
+    val decimals = string.substringAfter('.', missingDelimiterValue = "").length
+    val missing = (minDecimals - decimals).coerceAtLeast(0)
+    val suffix = "".padStart(missing, '0')
+    return when (decimals) {
+        0 -> "$string.$suffix"
+        else -> "$string$suffix"
     }
 }
 
