@@ -4,6 +4,19 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [2.6.0] - 2023-01-14
+
+### Added
+
+- Kommons Bill of Materials
 - Clock builder
 - Clock.fixed
 
@@ -139,7 +152,9 @@ logger.info("Successfully created {}", array(Bar(1), Bar(2)))
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.5.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.6.0...HEAD
+
+[2.6.0]: https://github.com/bkahlert/kommons-test/compare/v2.5.0...v2.6.0
 
 [2.5.0]: https://github.com/bkahlert/kommons-test/compare/v2.4.1...v2.5.0
 

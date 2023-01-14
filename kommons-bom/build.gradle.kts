@@ -58,7 +58,7 @@ publishing {
     }
 
     publications {
-        create<MavenPublication>("KommonsBom") {
+        create<MavenPublication>("Bom") {
             from(components["javaPlatform"])
             pom {
                 name.set("Kommons Bill of Materials")

@@ -60,6 +60,9 @@ jobs:
       - name: Publish JS release
         run: ./gradlew publishJsPublicationToOSSRHRepository
 
+      - name: Publish BOM release
+        run: ./gradlew publishBomPublicationToOSSRHRepository
+
   publish-linux:
     runs-on: ubuntu-latest
     steps:
