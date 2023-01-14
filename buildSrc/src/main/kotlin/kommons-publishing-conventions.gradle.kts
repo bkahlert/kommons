@@ -43,22 +43,16 @@ publishing {
     }
 }
 
-signing {
-    val signingKey: String? by project
-    val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications)
-}
-
 // TODO consider switching to https://github.com/gradle-nexus/publish-plugin
 
 publishing {
-
     repositories {
         @Suppress("SpellCheckingInspection")
         maven {
+            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
             name = "OSSRH"
-            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            url = if (releaseVersion != null) releasesRepoUrl else snapshotsRepoUrl
             credentials {
                 username = System.getenv("OSSRH_USERNAME")
                 password = System.getenv("OSSRH_PASSWORD")
@@ -82,25 +76,12 @@ publishing {
             // otherwise description of Kotlin Multiplatform publication stays empty, and repo gets refused by Maven Central
             afterEvaluate { pom.description.set(description) }
             url.set("https://github.com/bkahlert/kommons/tree/master/${project.name}")
-            licenses {
-                license {
-                    name.set("MIT")
-                    url.set("https://github.com/bkahlert/kommons/blob/master/LICENSE")
-                }
-            }
-            scm {
-                connection.set("scm:git:https://github.com/bkahlert/kommons")
-                developerConnection.set("scm:git:https://github.com/bkahlert")
-                url.set("https://github.com/bkahlert/kommons")
-            }
-            issueManagement {
-                url.set("https://github.com/bkahlert/kommons/issues")
-                system.set("GitHub")
-            }
+
             ciManagement {
                 url.set("https://github.com/bkahlert/kommons/issues")
                 system.set("GitHub")
             }
+
             developers {
                 developer {
                     id.set("bkahlert")
@@ -110,11 +91,31 @@ publishing {
                     timezone.set("Europe/Berlin")
                 }
             }
+
+            issueManagement {
+                url.set("https://github.com/bkahlert/kommons/issues")
+                system.set("GitHub")
+            }
+
+            licenses {
+                license {
+                    name.set("MIT")
+                    url.set("https://github.com/bkahlert/kommons/blob/master/LICENSE")
+                }
+            }
+
+            scm {
+                connection.set("scm:git:https://github.com/bkahlert/kommons")
+                developerConnection.set("scm:git:https://github.com/bkahlert")
+                url.set("https://github.com/bkahlert/kommons")
+            }
         }
     }
 }
 
-
-// TODO snapshot publishToMavenLocal -x signKotlinMultiplatformPublication -x signJsPublication -x signJvmPublication -x check
-
-// TODO -Prelease.useLastTag=true candidate publish -x publishJsPublicationToGitHubPackagesRepository -x publishJvmPublicationToGitHubPackagesRepository -x publishKotlinMultiplatformPublicationToGitHubPackagesRepository
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications)
+}
