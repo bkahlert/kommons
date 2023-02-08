@@ -23,11 +23,11 @@ kotlin {
                     DefaultExternalModuleDependency("org.springframework.boot", "spring-boot-configuration-processor", springBootVersion)
                 )
 
-                implementation(project(":kommons-core"))
-                implementation(project(":kommons-io"))
-                implementation(project(":kommons-logging:kommons-logging-core"))
-                implementation(project(":kommons-logging:kommons-logging-logback"))
-                implementation(project(":kommons-text"))
+                api(project(":kommons-core"))
+                api(project(":kommons-io"))
+                api(project(":kommons-logging:kommons-logging-core"))
+                api(project(":kommons-logging:kommons-logging-logback"))
+                api(project(":kommons-text"))
 
                 implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
 

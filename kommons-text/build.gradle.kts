@@ -12,7 +12,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":kommons-core"))
+                api(project(":kommons-core"))
             }
         }
         val commonTest by getting {
@@ -23,7 +23,7 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation(libs.icu4j)
+                api(libs.icu4j)
             }
         }
         val jvmTest by getting

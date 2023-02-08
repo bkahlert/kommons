@@ -10,7 +10,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(libs.kotlin.logging)
                 api(libs.kotlinx.datetime)
             }
         }
@@ -21,7 +20,6 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(kotlin("reflect"))
                 implementation(libs.slf4j.api)
             }
         }

@@ -9,13 +9,7 @@ plugins {
 
 kotlin {
     targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = "1.8"
-                }
-            }
-        }
+        jvm()
     }
 
     sourceSets {

@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.test.junit
 
-import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.test.KommonsTest
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.FOR
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.assertingDisplayName

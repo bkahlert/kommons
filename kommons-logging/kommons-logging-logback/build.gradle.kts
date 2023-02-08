@@ -12,10 +12,10 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation(project(":kommons-core"))
-                implementation(project(":kommons-io"))
-                implementation(project(":kommons-text"))
-                implementation(project(":kommons-logging:kommons-logging-core"))
+                api(project(":kommons-core"))
+                api(project(":kommons-io"))
+                api(project(":kommons-text"))
+                api(project(":kommons-logging:kommons-logging-core"))
                 implementation("org.springframework.boot:spring-boot:$springBootVersion") { because("ColorConverter") }
                 api(libs.logback.classic)
                 api(libs.logstash.logback.encoder)

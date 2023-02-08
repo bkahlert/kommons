@@ -6,6 +6,9 @@
 
 ### Changed
 
+- cleanup dependencies
+- change implementation dependency of SLF4J to api dependency
+
 ### Deprecated
 
 ### Removed
@@ -26,10 +29,6 @@
 
 - Kommons Test's dynamic test builders `testing`/`testingAll` now lazily
   build tests as they're consumed by JUnit
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 

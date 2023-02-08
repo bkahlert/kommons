@@ -4,6 +4,10 @@ import com.bkahlert.kommons.Either.Left
 import com.bkahlert.kommons.Either.Right
 import com.bkahlert.kommons.test.testAll
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.result.shouldBeFailure
+import io.kotest.matchers.result.shouldBeSuccess
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -125,5 +129,25 @@ class EitherKtTest {
         kotlin.runCatching { 42 }.getOrException() shouldBe (42 to null)
         val ex = IllegalStateException()
         kotlin.runCatching { throw ex }.getOrException<Nothing?>() shouldBe (null to ex)
+    }
+
+    @Test
+    fun nullable_result() = testAll {
+        var result: Result<String?>? = null
+        result.shouldBeNull()
+
+        result = kotlin.runCatching { null }
+        result.shouldNotBeNull()
+        result.shouldBeSuccess()
+        result.getOrDefault("bar").shouldBeNull()
+
+        result = kotlin.runCatching { "foo" }
+        result.shouldNotBeNull()
+        result.shouldBeSuccess()
+        result.getOrDefault("bar").shouldBe("foo")
+
+        result = kotlin.runCatching { error("error") }
+        result.shouldNotBeNull()
+        result.shouldBeFailure<IllegalStateException>()
     }
 }

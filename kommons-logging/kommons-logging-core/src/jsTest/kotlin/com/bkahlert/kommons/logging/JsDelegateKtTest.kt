@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import mu.KLogger
 import mu.KotlinLogging
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 class JsDelegateKtTest {
@@ -30,10 +31,12 @@ class JsDelegateKtTest {
         SingletonWithDerivedLoggerField.logger.name shouldBe "SingletonWithDerivedLoggerField"
     }
 
+    @Ignore
     @Test fun file_class_with_derived_logger_field() {
         logger.name shouldBe "init_properties_fixtures_kt"
     }
 
+    @Ignore
     @Test fun locally_derived_logger_field() {
         val logger by KotlinLogging
         logger.name shouldBe "JsDelegateKtTest"

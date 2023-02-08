@@ -2,7 +2,6 @@ package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.ansiRemoved
 import com.bkahlert.kommons.debug.renderType
-import com.bkahlert.kommons.logging.SLF4J
 import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.rootCause
 import com.bkahlert.kommons.test.KommonsTest
@@ -11,6 +10,8 @@ import com.bkahlert.kommons.test.UnicodeFont
 import com.bkahlert.kommons.text.LineSeparators
 import com.bkahlert.kommons.text.decapitalize
 import java.nio.file.Path
+import java.text.MessageFormat
+import java.util.regex.Pattern
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -54,7 +55,7 @@ public object DynamicTestDisplayNameGenerator {
      */
     public fun <T> displayNameFor(subject: T, testNamePattern: String? = null): String {
         val (fallbackPattern: String, args: Array<*>) = displayNameFallback(subject)
-        return SLF4J.format(testNamePattern ?: fallbackPattern, *args).ansiRemoved
+        return slf4jFormat(testNamePattern ?: fallbackPattern, *args).ansiRemoved
     }
 
     /**
@@ -258,7 +259,7 @@ internal fun Throwable?.toCompactString(): String {
     if (this == null) return ""
     val messagePart = message?.let { ": " + it.lines()[0] } ?: ""
     return rootCause.run {
-        this::class.simpleName + messagePart + stackTrace?.firstOrNull()
+        this::class.simpleName + messagePart + stackTrace.firstOrNull()
             ?.let { element -> " at.(${element.fileName}:${element.lineNumber})" }
     }
 }
@@ -267,4 +268,27 @@ internal fun Result<*>?.toCompactString(): String {
     if (this == null) return ""
     return if (isSuccess) getOrNull().toCompactString()
     else exceptionOrNull().toCompactString()
+}
+
+
+private const val SLF4J_ANCHOR = "{}"
+private val SLF4J_PATTERN = Pattern.compile(Pattern.quote(SLF4J_ANCHOR))
+private const val MESSAGE_FORMAT_REPLACEMENT = "{%d}"
+
+/**
+ * Formats the specified [message] by replacing `{}` placeholders with the
+ * specified [args].
+ */
+private fun slf4jFormat(message: String, vararg args: Any?): String {
+    var messageFormatPattern = message
+    var index = 0
+
+    var matcher = SLF4J_PATTERN.matcher(messageFormatPattern)
+    while (matcher.find()) {
+        messageFormatPattern = matcher.replaceFirst(String.format(MESSAGE_FORMAT_REPLACEMENT, index))
+        matcher = SLF4J_PATTERN.matcher(messageFormatPattern)
+        index++
+    }
+    val messageFormat = MessageFormat(messageFormatPattern)
+    return messageFormat.format(args, StringBuffer(message.length shl 1), null).toString()
 }

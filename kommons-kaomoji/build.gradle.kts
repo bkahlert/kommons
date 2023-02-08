@@ -10,8 +10,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":kommons-core"))
-                implementation(project(":kommons-text"))
+                api(project(":kommons-core"))
+                api(project(":kommons-text"))
                 api(libs.mordant)
             }
         }

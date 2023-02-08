@@ -1,15 +1,14 @@
 package com.bkahlert.kommons.debug
 
-import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.io.toFileOrNull
-import mu.KotlinLogging
+import org.slf4j.LoggerFactory
 import java.awt.Desktop
 import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 
-private val logger = KotlinLogging.logger {}
+private val logger = LoggerFactory.getLogger("kommons-debug")
 
 /** Attempts to open locally this URL locally. */
 public fun URL.open() {
@@ -30,8 +29,8 @@ public fun Path.open() {
 public fun File.open() {
     kotlin.runCatching {
         if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(this)
-    }.onFailure {
-        logger.error(it) { "failed to open $quoted" }
+    }.onFailure { exception ->
+        logger.error("Failed to open {}", this, exception)
     }
 }
 

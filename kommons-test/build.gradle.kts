@@ -13,9 +13,9 @@ kotlin {
                 api(kotlin("test"))
                 api(libs.kotest.assertions.core)
                 api(libs.kotest.assertions.json)
-                implementation(libs.kotest.common)
-                implementation(project(":kommons-core"))
-                implementation(project(":kommons-text"))
+                implementation(libs.kotest.common) // TODO needed? commonTest sufficient?
+                api(project(":kommons-core"))
+                api(project(":kommons-text"))
             }
         }
         val jvmMain by getting {
@@ -24,9 +24,8 @@ kotlin {
                 api(kotlin("test-junit5"))
                 api(libs.bundles.junit.jupiter)
                 implementation(libs.bundles.junit.platform)
-                implementation(project(":kommons-debug"))
-                implementation(project(":kommons-io"))
-                implementation(project(":kommons-logging:kommons-logging-core"))
+                api(project(":kommons-debug"))
+                api(project(":kommons-io"))
             }
 
             languageSettings.optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")

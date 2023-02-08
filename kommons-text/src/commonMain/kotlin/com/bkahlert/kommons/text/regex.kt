@@ -310,12 +310,16 @@ private val anyCharacterRegex = Regex(anyCharacterPattern)
 /** A [Regex] that matches any character including line breaks. */
 public val Regex.Companion.AnyCharacterRegex: Regex get() = anyCharacterRegex
 
-
+@Deprecated("will be removed")
 private val urlRegex = Regex("(?<schema>https?|ftp|file)://[-a-zA-Z\\d+&@#/%?=~_|!:,.;]*[-a-zA-Z\\d+&@#/%=~_|]")
+
+@Deprecated("will be removed; use uri module")
 private val uriRegex = Regex("\\w+:/?/?\\S+")
 
 /** A [Regex] that matches URLs. */
+@Deprecated("will be removed")
 public val Regex.Companion.UrlRegex: Regex get() = urlRegex
 
 /** A [Regex] that matches URIs. */
+@Deprecated("will be removed; use uri module")
 public val Regex.Companion.UriRegex: Regex get() = uriRegex

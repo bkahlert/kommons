@@ -10,8 +10,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":kommons-core"))
-                implementation(project(":kommons-text"))
+                api(project(":kommons-core"))
+                api(project(":kommons-text"))
             }
         }
         val commonTest by getting {
@@ -21,10 +21,9 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(kotlin("reflect"))
-                implementation(libs.kotlin.logging)
-                implementation(libs.slf4j.api)
-                implementation(project(":kommons-io"))
+                api(kotlin("reflect"))
+                api(libs.slf4j.api)
+                api(project(":kommons-io"))
             }
 
             languageSettings.optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")
