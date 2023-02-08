@@ -15,6 +15,8 @@
 
 ### Fixed
 
+- logger name computation in Firefox
+
 ## [2.6.0] - 2023-01-14
 
 ### Added

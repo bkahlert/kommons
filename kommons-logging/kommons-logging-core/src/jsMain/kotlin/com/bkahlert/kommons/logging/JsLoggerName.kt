@@ -18,20 +18,29 @@ internal actual fun Any?.loggerName(fn: KFunction<*>): String =
 private inline fun caller(vararg callers: String): String? {
     val callerPatterns = callers.flatMap { it.patterns() }
 
+//    println("Caller patterns:\n${callerPatterns.joinToString("\n")}\n")
+
     val stackTraceItem = stackTrace()
+//        .toList().also { println("STACK I---\n${it.joinToString("\n")}\n------") }.asSequence()
         .dropWhile { callerPatterns.any { pattern -> it.contains(pattern) } }
+//        .toList().also { println("STACK II---\n${it.joinToString("\n")}\n------") }.asSequence()
         .firstOrNull()
 
     return stackTraceItem
-        ?.replaceFirst(Regex("\\s*at\\s*"), "")
+        ?.replaceFirst(Regex("^(?:\\s*at\\s+|[^<]*</)"), "") // Remove `  at ` (Node, Chrome) resp. `./path/file.js/</` (Firefox) prefix
+//        ?.also { println("CANDIDATE---\n$it\n------") }
         ?.split('.', ' ', limit = 2)
         ?.first()
-        ?.replace(Regex("(.*_kt)_[a-z0-9]+$")) {
+        ?.replace(Regex("(.*_kt)_[a-z0-9]+(?:@.*)?$")) {
             it.groupValues[1]
         }
 }
 
-private fun String.patterns() = listOf(".$this", " $this", "$this@")
+private fun String.patterns() = listOf(
+    ".$this",
+    " $this",
+    "$this@",
+)
 
 @Suppress("NOTHING_TO_INLINE") // inline to avoid impact on stack trace
 private inline fun stackTrace() = try {
@@ -39,4 +48,8 @@ private inline fun stackTrace() = try {
 } catch (ex: Throwable) {
     ex.stackTraceToString().removeSuffix("\n")
 }.lineSequence()
-    .dropWhile { it.startsWith("RuntimeException") || it.startsWith("captureStack") }
+    .dropWhile {
+        it.startsWith("RuntimeException") ||
+            it.startsWith("captureStack@") || // Firefox
+            it.startsWith("captureStack ") // Chrome
+    }

@@ -12,6 +12,7 @@ kotlin {
                     testLogging.showStandardStreams = true
                     useKarma {
                         useChromeHeadless()
+                        useFirefoxHeadless()
                     }
                 }
             }
