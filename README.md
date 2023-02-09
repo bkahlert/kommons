@@ -14,6 +14,7 @@
 - [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
 - [Kommons Test](kommons-test) … to ease testing
 - **[Kommons Text](kommons-text) … for Unicode-aware text operations**
+- **[Kommons URI](kommons-uri) …  for handling (Data) URIs**
 
 The modules in **bold** are included in the `Kommons` module.  
 The other modules need to be added individually to use them.
@@ -24,16 +25,16 @@ This library is hosted on GitHub with releases provided on Maven Central.
 
 To use a module individually, see the corresponding instructions linked in [About](#about).
 
-The following dependency adds the `core`, `debug`, `exec`, `io`, `logging-core`, and `text` module:
+The following dependency adds the `core`, `debug`, `exec`, `io`, `logging-core`, `text`, and `uri` module:
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.6.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.7.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons</artifactId>
-      <version>2.6.0</version>
+      <version>2.7.0</version>
   </dependency>
   ```
 

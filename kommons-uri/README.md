@@ -14,14 +14,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-uri:2.6.0")
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-uri:2.7.0")
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-uri</artifactId>
-      <version>2.6.0</version>
+      <version>2.7.0</version>
   </dependency>
   ```
 

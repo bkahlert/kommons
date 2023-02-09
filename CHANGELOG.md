@@ -6,18 +6,25 @@
 
 ### Changed
 
-- cleanup dependencies
-- change implementation dependency of SLF4J to api dependency
-- kommons-uri:
-  - parse and serialize [Uniform Resource Identifiers (RFC3986)](https://www.rfc-editor.org/rfc/rfc3986)
-  - support for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
-  - support for [data URIs (RFC2397)](https://www.rfc-editor.org/rfc/rfc2397) with an
-   appropriate [URL stream handler provider](https://docs.oracle.com/javase/9/docs/api/java/net/spi/URLStreamHandlerProvider.html)
-   registered on the JVM
-
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+
+## [2.7.0] - 2023-02-09
+
+### Changed
+
+- cleanup dependencies
+- change implementation dependency of SLF4J to api dependency
+- kommons-uri:
+    - parse and serialize [Uniform Resource Identifiers (RFC3986)](https://www.rfc-editor.org/rfc/rfc3986)
+    - support for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
+    - support for [data URIs (RFC2397)](https://www.rfc-editor.org/rfc/rfc2397) with an
+      appropriate [URL stream handler provider](https://docs.oracle.com/javase/9/docs/api/java/net/spi/URLStreamHandlerProvider.html)
+      registered on the JVM
 
 ### Fixed
 
@@ -159,7 +166,9 @@ logger.info("Successfully created {}", array(Bar(1), Bar(2)))
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.6.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.7.0...HEAD
+
+[2.7.0]: https://github.com/bkahlert/kommons-test/compare/v2.6.0...v2.7.0
 
 [2.6.0]: https://github.com/bkahlert/kommons-test/compare/v2.5.0...v2.6.0
 

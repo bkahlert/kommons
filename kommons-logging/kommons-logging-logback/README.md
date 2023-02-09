@@ -9,14 +9,14 @@ nothing but system properties, and provides support for JSON.
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-logback:2.6.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-logback:2.7.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-logging-logback</artifactId>
-      <version>2.6.0</version>
+      <version>2.7.0</version>
   </dependency>
   ```
 
