@@ -21,7 +21,7 @@ if (releaseVersion != null) version = releaseVersion
 val bomProject = project
 
 // Explicitly exclude subprojects that will never be published
-// so that when configuring this project we don't force their
+// so that when configuring this project, we don't force their
 // configuration and do unecessary work.
 val excludeFromBom: List<String> = emptyList()
 fun projectsFilter(candidateProject: Project) =

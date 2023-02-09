@@ -1,18 +1,17 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.Program
 import com.bkahlert.kommons.io.createTempDirectory
+import com.bkahlert.kommons.io.useBufferedOutputStream
+import com.bkahlert.kommons.io.useBufferedWriter
+import com.bkahlert.kommons.test.fixtures.EmojiTextDocumentFixture
 import com.bkahlert.kommons.test.fixtures.GifImageFixture
 import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.fixtures.ResourceFixture
 import com.bkahlert.kommons.test.fixtures.SvgImageFixture
 import com.bkahlert.kommons.test.fixtures.TextResourceFixture
 import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
-import com.bkahlert.kommons.io.useBufferedOutputStream
-import com.bkahlert.kommons.io.useBufferedWriter
 import java.io.InputStream
 import java.io.StringReader
-import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -30,12 +29,6 @@ public val ResourceFixture<*>.fileName: Path get() = Paths.get(name)
 
 /** Returns an [InputStream] for reading the [ResourceFixture.contents] of this [ResourceFixture]. */
 public fun ResourceFixture<*>.inputStream(): InputStream = bytes.inputStream()
-
-/** Returns an [URL] pointing to a resource with the same [ResourceFixture.name] and [ResourceFixture.contents] as this fixture. */
-public val ResourceFixture<*>.url: URL
-    get() = checkNotNull(Program.contextClassLoader.getResource("fixtures/$name")) {
-        "Missing fixture $name"
-    }
 
 /** Returns a [StringReader] for reading the [TextResourceFixture.contents] of this [ResourceFixture]. */
 public fun TextResourceFixture.reader(): StringReader = contents.reader()
@@ -108,7 +101,7 @@ public fun Path.createAnyFile(fileName: String? = null): Path =
  * to this directory.
  */
 public fun Path.createRandomFile(
-    vararg fixtures: ResourceFixture<*> = arrayOf(GifImageFixture, HtmlDocumentFixture, SvgImageFixture, UnicodeTextDocumentFixture),
+    vararg fixtures: ResourceFixture<*> = arrayOf(GifImageFixture, EmojiTextDocumentFixture, SvgImageFixture, UnicodeTextDocumentFixture),
 ): Path = fixtures.random().let { it.copyTo(resolve(it.name)) }
 
 /**
@@ -118,7 +111,7 @@ public fun Path.createRandomFile(
  */
 public fun Path.createRandomFile(
     fileName: String,
-    vararg fixtures: ResourceFixture<*> = arrayOf(GifImageFixture, HtmlDocumentFixture, SvgImageFixture, UnicodeTextDocumentFixture),
+    vararg fixtures: ResourceFixture<*> = arrayOf(GifImageFixture, EmojiTextDocumentFixture, SvgImageFixture, UnicodeTextDocumentFixture),
 ): Path = fixtures.random().copyTo(resolve(fileName))
 
 /**
@@ -136,7 +129,7 @@ public fun Path.createDirectoryWithFiles(
     GifImageFixture.copyToDirectory(this)
     SvgImageFixture.copyToDirectory(this)
     resolve("docs").createDirectories().apply {
-        HtmlDocumentFixture.copyToDirectory(this)
+        EmojiTextDocumentFixture.copyToDirectory(this)
         UnicodeTextDocumentFixture.copyToDirectory(this)
     }
 }

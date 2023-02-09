@@ -4,7 +4,6 @@ import com.bkahlert.kommons.io.deleteOnExit
 import com.bkahlert.kommons.io.listDirectoryEntriesRecursively
 import com.bkahlert.kommons.test.fixtures.EmojiTextDocumentFixture
 import com.bkahlert.kommons.test.fixtures.GifImageFixture
-import com.bkahlert.kommons.test.fixtures.HtmlDocumentFixture
 import com.bkahlert.kommons.test.fixtures.SvgImageFixture
 import com.bkahlert.kommons.test.fixtures.UnicodeTextDocumentFixture
 import io.kotest.assertions.throwables.shouldThrow
@@ -37,20 +36,6 @@ class JvmFixturesKtTest {
     @Test fun input_stream() = testAll {
         GifImageFixture.inputStream().readBytes() shouldBe GifImageFixture.bytes
         SvgImageFixture.inputStream().readBytes() shouldBe SvgImageFixture.bytes
-    }
-
-    // TODO move to common
-    @Test fun url() = testAll(
-        EmojiTextDocumentFixture,
-        GifImageFixture,
-        HtmlDocumentFixture,
-        SvgImageFixture,
-        UnicodeTextDocumentFixture,
-    ) { fixture ->
-        fixture.url should {
-            it.toString() shouldEndWith fixture.name
-            it.readBytes() shouldBe fixture.bytes
-        }
     }
 
     @Test fun reader() = testAll {
@@ -129,15 +114,15 @@ class JvmFixturesKtTest {
     @Test fun create_random_file(@TempDir tempDir: Path) {
         tempDir.createRandomFile("my.file") should {
             it.exists() shouldBe true
-            listOf(GifImageFixture, HtmlDocumentFixture, SvgImageFixture, UnicodeTextDocumentFixture).forAny { fixture ->
+            listOf(GifImageFixture, EmojiTextDocumentFixture, SvgImageFixture, UnicodeTextDocumentFixture).forAny { fixture ->
                 it.readBytes() shouldBe fixture.bytes
             }
             it.fileName.pathString shouldBe "my.file"
         }
 
-        tempDir.createRandomFile(GifImageFixture, HtmlDocumentFixture) should {
+        tempDir.createRandomFile(GifImageFixture, EmojiTextDocumentFixture) should {
             it.exists() shouldBe true
-            listOf(GifImageFixture, HtmlDocumentFixture).forAny { fixture ->
+            listOf(GifImageFixture, EmojiTextDocumentFixture).forAny { fixture ->
                 it.readBytes() shouldBe fixture.bytes
                 it.fileName.pathString shouldBe fixture.name
             }
@@ -155,7 +140,7 @@ class JvmFixturesKtTest {
             it.resolve("kommons.svg").readText() shouldBe SvgImageFixture.contents
             it.resolve("docs") should { docs ->
                 docs.shouldBeADirectory()
-                docs.resolve("hello-world.html").readText() shouldBe HtmlDocumentFixture.contents
+                docs.resolve("emoji.txt").readText() shouldBe EmojiTextDocumentFixture.contents
                 docs.resolve("unicode.txt").readText() shouldBe UnicodeTextDocumentFixture.contents
             }
         }

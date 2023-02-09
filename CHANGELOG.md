@@ -8,6 +8,12 @@
 
 - cleanup dependencies
 - change implementation dependency of SLF4J to api dependency
+- kommons-uri:
+  - parse and serialize [Uniform Resource Identifiers (RFC3986)](https://www.rfc-editor.org/rfc/rfc3986)
+  - support for [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization)
+  - support for [data URIs (RFC2397)](https://www.rfc-editor.org/rfc/rfc2397) with an
+   appropriate [URL stream handler provider](https://docs.oracle.com/javase/9/docs/api/java/net/spi/URLStreamHandlerProvider.html)
+   registered on the JVM
 
 ### Deprecated
 

@@ -17,8 +17,9 @@ internal actual inline fun calledBy(function: String, vararg callers: String): B
 private fun String.patterns() = listOf(
     ".$this",
     " $this",
-    "${this}_",
     "${this}$",
+    "${this}_0",
+    "${this}_1",
 )
 
 @Suppress("NOTHING_TO_INLINE") // inline to avoid impact on stack trace

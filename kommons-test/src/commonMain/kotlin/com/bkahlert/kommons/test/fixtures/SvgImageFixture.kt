@@ -1,12 +1,14 @@
 package com.bkahlert.kommons.test.fixtures
 
+import io.ktor.http.ContentType
+
 /**
  * A [TextResourceFixture] encompassing a Scalable Vector Graphic (SVG)
  * showing the [Kommons](https://github.com/bkahlert/kommons) logo.
  */
-public object SvgImageFixture : TextResourceFixture(
+public val SvgImageFixture: TextResourceFixture = TextResourceFixture(
     "kommons.svg",
-    "image/svg+xml",
+    ContentType.Image.SVG,
     """
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-label="Kommons" role="img" viewBox="0 0 375 60" style="cursor: default;">
         <style>

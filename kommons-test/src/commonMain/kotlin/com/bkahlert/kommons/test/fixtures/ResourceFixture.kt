@@ -1,7 +1,8 @@
 package com.bkahlert.kommons.test.fixtures
 
 import com.bkahlert.kommons.decodeFromBase64
-import com.bkahlert.kommons.encodeToBase64
+import com.bkahlert.kommons.uri.DataUri
+import io.ktor.http.ContentType
 
 /** Defined fixed resource for testing purposes. */
 public interface ResourceFixture<out T> {
@@ -10,7 +11,7 @@ public interface ResourceFixture<out T> {
     public val name: String
 
     /** The MIME type of this fixture. */
-    public val mimeType: String
+    public val contentType: ContentType
 
     /** The content of this fixture. */
     public val contents: T
@@ -19,36 +20,36 @@ public interface ResourceFixture<out T> {
     public val bytes: ByteArray
 
     /**
-     * The fixture as a [data URI](https://en.wikipedia.org/wiki/Data_URI_scheme)
-     * of the form `data:[<media type>][;base64],<data>`, e.g. `data:image/gif;base64,…`.
+     * The fixture as a [DataUri].
      */
-    public val dataURI: String get() = "data:$mimeType;base64,${bytes.encodeToBase64(chunked = false)}"
+    public val dataUri: DataUri
 }
 
 /** Textual resource for testing purposes. */
-public open class TextResourceFixture(
+public class TextResourceFixture(
     override val name: String,
-    override val mimeType: String,
+    override val contentType: ContentType,
     override val contents: String,
 ) : ResourceFixture<String> {
-    /** Creates an instance with the specified [name], [mimeType], and the specified [bytes]. */
-    public constructor(name: String, mimeType: String, vararg bytes: Byte) : this(name, mimeType, bytes.decodeToString())
+
+    /** Creates an instance with the specified [name], [contentType], and the specified [bytes]. */
+    public constructor(name: String, contentType: ContentType, bytes: ByteArray) : this(name, contentType, bytes.decodeToString())
 
     override val bytes: ByteArray by lazy { contents.encodeToByteArray() }
 
-    override val dataURI: String by lazy { super.dataURI }
+    override val dataUri: DataUri by lazy { DataUri(contentType, bytes) }
 }
 
 /** Binary resource for testing purposes. */
-public open class BinaryResourceFixture(
+public class BinaryResourceFixture(
     override val name: String,
-    override val mimeType: String,
+    override val contentType: ContentType,
     override val contents: ByteArray,
 ) : ResourceFixture<ByteArray> {
-    /** Creates an instance with the specified [name], [mimeType], and the specified [base64EncodedString]. */
-    public constructor(name: String, mimeType: String, base64EncodedString: String) : this(name, mimeType, base64EncodedString.decodeFromBase64())
+    /** Creates an instance with the specified [name], [contentType], and the specified [base64EncodedString]. */
+    public constructor(name: String, contentType: ContentType, base64EncodedString: String) : this(name, contentType, base64EncodedString.decodeFromBase64())
 
     override val bytes: ByteArray get() = contents
 
-    override val dataURI: String by lazy { super.dataURI }
+    override val dataUri: DataUri by lazy { DataUri(contentType, bytes) }
 }

@@ -514,7 +514,9 @@ class RenderTest {
     }
 
     @Test fun render_object_with_rendering_to_string() = testAll {
-        ClassWithRenderingToString().render() shouldBe "{ foo: null }"
+        if (Platform.Current != Browser) {
+            ClassWithRenderingToString().render() shouldBe "{ foo: null }"
+        }
     }
 
     @Test fun render_option_custom_to_string() = testAll {

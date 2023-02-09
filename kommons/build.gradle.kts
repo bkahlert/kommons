@@ -12,6 +12,7 @@ kotlin {
             dependencies {
                 api(project(":kommons-core"))
                 api(project(":kommons-text"))
+                api(project(":kommons-uri"))
             }
         }
         val jvmMain by getting {

@@ -1,8 +1,7 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.test.fixtures.EmojiTextDocumentFixture
+import com.bkahlert.kommons.Program
 import com.bkahlert.kommons.test.testAll
-import com.bkahlert.kommons.test.url
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
@@ -331,9 +330,9 @@ internal val fileBasedFileUrl = checkNotNull(Thread.currentThread().contextClass
 }
 internal val fileBasedFileBytes = fileBasedFileUrl.readBytes()
 
-internal val jarBasedFileResource = "fixtures/${EmojiTextDocumentFixture.name}"
+internal val jarBasedFileResource = "fixtures/emoji.txt"
 internal val jarBasedFileClassPathUri = URI("classpath:$jarBasedFileResource")
-internal val jarBasedFileUrl = EmojiTextDocumentFixture.url
+internal val jarBasedFileUrl = checkNotNull(Program.contextClassLoader.getResource(jarBasedFileResource)) { "Missing $jarBasedFileResource" }
 internal val jarBasedFileBytes = jarBasedFileUrl.readBytes()
 
 internal const val jarBasedClassResource = "kotlin.text.Regex.class"

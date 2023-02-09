@@ -4,11 +4,11 @@ plugins {
     id("kotlin-conventions")
 }
 
-val osArchOnly:Boolean? by project
+val osArchOnly: Boolean? by project
 
 kotlin {
 
-    if (osArchOnly==true) {
+    if (osArchOnly == true) {
         val hostOs = System.getProperty("os.name")
         val hostArch = System.getProperty("os.arch")
         val nativeTarget = when {
@@ -35,6 +35,8 @@ kotlin {
 
             macosX64()
             macosArm64()
+
+            // TODO sync with https://kotlinlang.org/docs/native-target-support.html#for-library-authors
 
 //        iosX64()
 //        iosArm64()

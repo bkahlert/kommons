@@ -417,7 +417,7 @@ class RegexKtTest {
                file:///some/triple-slash/uri/path/to/file.sh
                mailto:someone@somewhere
                abc://example.net
-               ${GifImageFixture.dataURI}
+               ${GifImageFixture.dataUri}
                crap
            """.trimIndent()
         ).toList().shouldContainExactly(
@@ -438,7 +438,7 @@ class RegexKtTest {
                file:///some/triple-slash/uri/path/to/file.sh
                mailto:someone@somewhere
                abc://example.net
-               ${GifImageFixture.dataURI}
+               ${GifImageFixture.dataUri}
                crap
            """.trimIndent()
         ).toList().shouldContainExactly(
@@ -448,7 +448,7 @@ class RegexKtTest {
             "file:///some/triple-slash/uri/path/to/file.sh",
             "mailto:someone@somewhere",
             "abc://example.net",
-            GifImageFixture.dataURI,
+            GifImageFixture.dataUri,
         )
     }
 }

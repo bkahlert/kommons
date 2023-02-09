@@ -5,7 +5,8 @@ kotlin = "1.8.0"
 kotlin-logging = "2.1.23"
 kotlinx-datetime = "0.4.0"
 kotest = "5.5.4"
-ktor = "1.6.3"
+kotlinx-serialization = "1.4.1"
+ktor = "2.2.2"
 logback-classic = "1.2.11"
 logstash-logback-encoder = "7.2"
 jvm = "1.8"
@@ -33,8 +34,8 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.
 kotest-assertions-json = { module = "io.kotest:kotest-assertions-json", version.ref = "kotest" }
 kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 
-ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
-ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serialization-bom", version.ref = "kotlinx-serialization" }
+ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
 logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback-encoder" }
@@ -58,6 +59,7 @@ plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "ple
 # Gradle plugins
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
 spring-dependency-management-gradle-plugin = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }

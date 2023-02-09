@@ -464,7 +464,7 @@ class PathsKtTest {
             dir.resolve("pixels.gif").pathString,
             dir.resolve("kommons.svg").pathString,
             dir.resolve("docs").pathString,
-            dir.resolve("docs/hello-world.html").pathString,
+            dir.resolve("docs/emoji.txt").pathString,
             dir.resolve("docs/unicode.txt").pathString,
         )
 
@@ -472,7 +472,7 @@ class PathsKtTest {
             .map { it.pathString } shouldContainExactlyInAnyOrder listOf(
             dir.resolve("pixels.gif").pathString,
             dir.resolve("kommons.svg").pathString,
-            dir.resolve("docs/hello-world.html").pathString,
+            dir.resolve("docs/emoji.txt").pathString,
             dir.resolve("docs/unicode.txt").pathString,
         )
 
@@ -512,10 +512,10 @@ class PathsKtTest {
         val dir = tempDir.createDirectoryWithFiles()
 
         dir.useDirectoryEntriesRecursively { seq -> seq.map { it.fileName.pathString }.sorted().joinToString() }
-            .shouldBe("docs, hello-world.html, kommons.svg, pixels.gif, unicode.txt")
+            .shouldBe("docs, emoji.txt, kommons.svg, pixels.gif, unicode.txt")
 
         dir.useDirectoryEntriesRecursively("**/*.*") { seq -> seq.map { it.fileName.pathString }.sorted().joinToString() }
-            .shouldBe("hello-world.html, kommons.svg, pixels.gif, unicode.txt")
+            .shouldBe("emoji.txt, kommons.svg, pixels.gif, unicode.txt")
 
         shouldThrow<NotDirectoryException> { tempDir.createTempFile().useDirectoryEntriesRecursively { } }
     }
@@ -529,7 +529,7 @@ class PathsKtTest {
             dir.resolve("pixels.gif").pathString,
             dir.resolve("kommons.svg").pathString,
             dir.resolve("docs").pathString,
-            dir.resolve("docs/hello-world.html").pathString,
+            dir.resolve("docs/emoji.txt").pathString,
             dir.resolve("docs/unicode.txt").pathString,
         )
 
@@ -537,7 +537,7 @@ class PathsKtTest {
             .map { it.pathString } shouldContainExactlyInAnyOrder listOf(
             dir.resolve("pixels.gif").pathString,
             dir.resolve("kommons.svg").pathString,
-            dir.resolve("docs/hello-world.html").pathString,
+            dir.resolve("docs/emoji.txt").pathString,
             dir.resolve("docs/unicode.txt").pathString,
         )
 
