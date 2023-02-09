@@ -50,7 +50,23 @@ class EnumKtTest {
         shouldThrow<NoSuchElementException> { firstEnumValueOf<InterfaceImplementingEnum, Int>(EnumInterface::prop, 99) }
             .message shouldBe "InterfaceImplementingEnum contains no value of which the property \"prop\" is \"99\"."
     }
+
+
+    @Test
+    fun predecessor() = testAll {
+        TestEnum.Foo.predecessor shouldBe TestEnum.Baz
+        TestEnum.Bar.predecessor shouldBe TestEnum.Foo
+        TestEnum.Baz.predecessor shouldBe TestEnum.Bar
+    }
+
+    @Test
+    fun successor() = testAll {
+        TestEnum.Foo.successor shouldBe TestEnum.Bar
+        TestEnum.Bar.successor shouldBe TestEnum.Baz
+        TestEnum.Baz.successor shouldBe TestEnum.Foo
+    }
 }
+
 
 internal interface EnumInterface {
     val prop: Int
@@ -60,4 +76,9 @@ private enum class InterfaceImplementingEnum(
     override val prop: Int
 ) : EnumInterface {
     Foo(42), Bar(37)
+}
+
+
+enum class TestEnum {
+    Foo, Bar, Baz
 }

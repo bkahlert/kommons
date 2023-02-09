@@ -21,6 +21,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                api(kotlin("reflect")) { because("isCompanion") }
                 api(libs.slf4j.api)
             }
         }

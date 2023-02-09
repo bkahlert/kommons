@@ -20,6 +20,7 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
+                api(kotlin("reflect")) { because("sealedSubclasses and objectInstance") }
                 implementation(libs.slf4j.api)
             }
         }

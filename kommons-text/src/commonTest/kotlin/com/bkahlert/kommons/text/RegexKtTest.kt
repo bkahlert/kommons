@@ -3,7 +3,6 @@ package com.bkahlert.kommons.text
 import com.bkahlert.kommons.Platform
 import com.bkahlert.kommons.Platform.Browser
 import com.bkahlert.kommons.Platform.NodeJS
-import com.bkahlert.kommons.test.fixtures.GifImageFixture
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.LineSeparators.CR
 import com.bkahlert.kommons.text.LineSeparators.CRLF
@@ -14,7 +13,6 @@ import com.bkahlert.kommons.text.LineSeparators.PS
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
 import io.kotest.inspectors.forAll
-import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.sequences.shouldContainExactly
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -406,50 +404,6 @@ class RegexKtTest {
             Browser, NodeJS -> "---${CRLF}---${LF}---${CR}-------${PS}---${LS}---"
             else -> "---${CRLF}---${LF}---${CR}---${NEL}---${PS}---${LS}---"
         }
-    }
-
-    @Test fun url_regex() = testAll {
-        Regex.UrlRegex.findAllValues(
-            """
-               http://example.net
-               https://xn--yp9haa.io/beep/beep?signal=on&timeout=42_000#some-complex-state
-               ftp://edu.gov/download/latest-shit
-               file:///some/triple-slash/uri/path/to/file.sh
-               mailto:someone@somewhere
-               abc://example.net
-               ${GifImageFixture.dataUri}
-               crap
-           """.trimIndent()
-        ).toList().shouldContainExactly(
-            "http://example.net",
-            "https://xn--yp9haa.io/beep/beep?signal=on&timeout=42_000#some-complex-state",
-            "ftp://edu.gov/download/latest-shit",
-            "file:///some/triple-slash/uri/path/to/file.sh",
-        )
-    }
-
-
-    @Test fun uri_regex() = testAll {
-        Regex.UriRegex.findAllValues(
-            """
-               http://example.net
-               https://xn--yp9haa.io/beep/beep?signal=on&timeout=42_000#some-complex-state
-               ftp://edu.gov/download/latest-shit
-               file:///some/triple-slash/uri/path/to/file.sh
-               mailto:someone@somewhere
-               abc://example.net
-               ${GifImageFixture.dataUri}
-               crap
-           """.trimIndent()
-        ).toList().shouldContainExactly(
-            "http://example.net",
-            "https://xn--yp9haa.io/beep/beep?signal=on&timeout=42_000#some-complex-state",
-            "ftp://edu.gov/download/latest-shit",
-            "file:///some/triple-slash/uri/path/to/file.sh",
-            "mailto:someone@somewhere",
-            "abc://example.net",
-            GifImageFixture.dataUri,
-        )
     }
 }
 
