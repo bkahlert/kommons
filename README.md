@@ -6,6 +6,7 @@
 
 **Kommons** is a family of the following Kotlin—most of them multiplatform libraries:
 
+- [Kommons BOM](kommons-bom) … Bill of Materials
 - **[Kommons Core](kommons-core) … for runtime information, simple byte and string operations**
 - **[Kommons Debug](kommons-debug) … for print debugging**
 - **[Kommons Exec](kommons-exec) … to execute command lines and shell scripts**
@@ -14,7 +15,7 @@
 - [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
 - [Kommons Test](kommons-test) … to ease testing
 - **[Kommons Text](kommons-text) … for Unicode-aware text operations**
-- **[Kommons URI](kommons-uri) …  for handling (Data) URIs**
+- **[Kommons URI](kommons-uri) … for handling (Data) URIs**
 
 The modules in **bold** are included in the `Kommons` module.  
 The other modules need to be added individually to use them.

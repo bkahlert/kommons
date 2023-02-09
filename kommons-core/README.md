@@ -15,7 +15,7 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-core:2.7.0")
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-core:2.7.0")`
 
 * **Maven**
   ```xml
