@@ -16,5 +16,5 @@ public fun Uri.toJavaUrl(): URL = URL(toString())
  * Returns a copy of this [URL] with the specified [pathSegment]
  * added to the [URL.path].
  */
-public infix operator fun URL.div(pathSegment: String): URL =
+public operator fun URL.div(pathSegment: String): URL =
     toURI().div(pathSegment).toURL()

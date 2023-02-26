@@ -1,21 +1,21 @@
 package com.bkahlert.kommons.uri
 
-import io.ktor.http.Parameters
-import io.ktor.http.ParametersBuilder
+import io.ktor.util.StringValues
+import io.ktor.util.StringValuesBuilder
 import io.ktor.http.formUrlEncode as ktorFormUrlEncode
 
 /**
- * Builds a [Parameters] instance with the given [builder] function, and
- * the [ParametersBuilder] initialized with the given [parameters].
+ * Builds a [StringValues] instance with the given [builder] function, and
+ * the [StringValuesBuilder] initialized with the given [parameters].
  */
-public fun Parameters.Companion.build(parameters: Parameters = Empty, builder: ParametersBuilder.() -> Unit): Parameters =
+public fun StringValues.Companion.build(parameters: StringValues = Empty, builder: StringValuesBuilder.() -> Unit): StringValues =
     build { appendAll(parameters); builder() }
 
 /**
  * Appends the specified [name] without any values.
  */
 @Suppress("NOTHING_TO_INLINE")
-public inline fun ParametersBuilder.append(name: String): Unit = appendAll(name, emptyList())
+public inline fun StringValuesBuilder.append(name: String): Unit = appendAll(name, emptyList())
 
 /**
  * Returns the parameters form-URL-encoded, that is, in the form `key=value`.
@@ -23,7 +23,7 @@ public inline fun ParametersBuilder.append(name: String): Unit = appendAll(name,
  * If [keepEmptyValues] is enabled—in contrast to [ktorFormUrlEncode]—a key with
  * no value is encoded as `key` (e.g. https://example.com/?key).
  */
-public fun Parameters.formUrlEncode(keepEmptyValues: Boolean = true): String = entries()
+public fun StringValues.formUrlEncode(keepEmptyValues: Boolean = true): String = entries()
     .flatMap { (key, values) ->
         if (!keepEmptyValues || values.isNotEmpty()) {
             values.map { key to it }

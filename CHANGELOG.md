@@ -4,6 +4,14 @@
 
 ### Added
 
+- Uri.resolve / Uri.resolveTo
+    - Example
+      ```kotlin
+      Uri("http://a/b/c/d;p?q").resolve("../g")
+      // returns
+      Uri("http://a/b/g")
+      ```
+
 ### Changed
 
 ### Deprecated

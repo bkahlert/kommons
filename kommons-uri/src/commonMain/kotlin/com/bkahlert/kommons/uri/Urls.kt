@@ -34,5 +34,5 @@ public inline fun Url.Companion.build(url: Url? = null, builder: URLBuilder.() -
  * Returns a copy of this [Url] with the specified [pathSegment]
  * added to the [pathSegments].
  */
-public infix operator fun Url.div(pathSegment: String): Url =
+public operator fun Url.div(pathSegment: String): Url =
     Url.build(this) { pathSegments = pathSegments + pathSegment }

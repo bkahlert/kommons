@@ -2,31 +2,32 @@ package com.bkahlert.kommons.uri
 
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
-import io.ktor.http.ParametersBuilder
+import io.ktor.util.StringValues
+import io.ktor.util.StringValuesBuilder
 import kotlin.test.Test
 
-class ParametersTest {
+class StringValuesTest {
 
-    @Test fun build_with_parameters() {
-        Parameters.build(Parameters.build(Parameters.Empty) {
+    @Test fun build_with_string_values() {
+        StringValues.build(StringValues.build(Parameters.Empty) {
             appendAll("foo", emptyList())
         }) {
             append("bar", "baz")
         } shouldBe Fixture
     }
 
-    @Test fun build_without_parameters() {
-        Parameters.build(Parameters.Empty) {
+    @Test fun build_without_string_values() {
+        StringValues.build(Parameters.Empty) {
             append("bar", "baz")
-        } shouldBe Parameters.build(Parameters.Empty) {
+        } shouldBe StringValues.build(Parameters.Empty) {
             append("bar", "baz")
         }
     }
 
     @Test fun append() {
-        Parameters.build(Parameters.Empty, fun ParametersBuilder.() {
+        StringValues.build(StringValues.Empty, fun StringValuesBuilder.() {
             append("foo")
-        }) shouldBe Parameters.build(Parameters.Empty, fun ParametersBuilder.() {
+        }) shouldBe StringValues.build(StringValues.Empty, fun StringValuesBuilder.() {
             appendAll("foo", emptyList())
         })
     }
@@ -38,7 +39,7 @@ class ParametersTest {
     }
 
     companion object {
-        val Fixture: Parameters = Parameters.build(Parameters.Empty, fun ParametersBuilder.() {
+        val Fixture: StringValues = StringValues.build(StringValues.Empty, fun StringValuesBuilder.() {
             appendAll("foo", emptyList())
             appendAll("bar", listOf("baz"))
         })

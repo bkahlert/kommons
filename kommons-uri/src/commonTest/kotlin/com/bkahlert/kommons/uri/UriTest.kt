@@ -7,6 +7,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.utils.io.core.toByteArray
 import kotlin.test.Test
 
 class UriTest {
@@ -78,7 +79,7 @@ class UriTest {
     @Test
     fun parse_data_uri() = testAll {
         Uri.parse("data:,${DataUriTest.asciiEncodedText}") should {
-            it shouldBe DataUri(null, DataUriTest.asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET))
+            it shouldBe DataUri(null, DataUriTest.asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET))
         }
     }
 

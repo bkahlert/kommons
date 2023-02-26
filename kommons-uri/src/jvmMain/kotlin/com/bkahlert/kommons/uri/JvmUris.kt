@@ -16,5 +16,5 @@ public fun Uri.toJavaUri(): URI = URI(toString())
  * Returns a copy of this [URI] with the specified [pathSegment]
  * added to the [URI.path].
  */
-public infix operator fun URI.div(pathSegment: String): URI =
+public operator fun URI.div(pathSegment: String): URI =
     URI(scheme, authority, "$path/$pathSegment", query, fragment)
