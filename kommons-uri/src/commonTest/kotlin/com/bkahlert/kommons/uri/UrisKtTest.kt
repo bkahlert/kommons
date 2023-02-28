@@ -11,6 +11,13 @@ import kotlin.test.Test
 class UrisKtTest {
 
     @Test
+    fun factory() = testAll {
+        Uri(COMPLETE_URI_STRING) shouldBe COMPLETE_URI
+        Uri(BASE_URI_STRING) shouldBe BASE_URI
+        Uri(EMPTY_URI_STRING) shouldBe EMPTY_URI
+    }
+
+    @Test
     fun user_info() = testAll {
         COMPLETE_URI.userInfo shouldBe "username:password"
         EMPTY_URI.userInfo shouldBe null
@@ -48,11 +55,6 @@ class UrisKtTest {
     }
 
     /**
-     * Example base [Uri] as described in [RFC3986 section 5.4](https://www.rfc-editor.org/rfc/rfc3986#section-5.4)
-     */
-    private val baseUri = Uri.parse("http://a/b/c/d;p?q")
-
-    /**
      * References resolution examples as described in [RFC3986 section 5.4.1](https://www.rfc-editor.org/rfc/rfc3986#section-5.4.1)
      */
     @Test
@@ -84,9 +86,9 @@ class UrisKtTest {
         val targetUri = Uri.parse(targetUriString)
         val uriReference = Uri.parse(relativeReference)
 
-        baseUri.resolve(relativeReference) shouldBe targetUri
-        baseUri.resolve(uriReference) shouldBe targetUri
-        uriReference.resolveTo(baseUri) shouldBe targetUri
+        BASE_URI.resolve(relativeReference) shouldBe targetUri
+        BASE_URI.resolve(uriReference) shouldBe targetUri
+        uriReference.resolveTo(BASE_URI) shouldBe targetUri
     }
 
     /**
@@ -116,16 +118,24 @@ class UrisKtTest {
         "g#s/./x" to "http://a/b/c/g#s/./x",
         "g#s/../x" to "http://a/b/c/g#s/../x",
     ) { (relativeReference, targetUriString) ->
-        baseUri.resolve(relativeReference) shouldBe Uri.parse(targetUriString)
+        BASE_URI.resolve(relativeReference) shouldBe Uri.parse(targetUriString)
     }
 
     /**
-     * References resolution examples as described in [RFC3986 section 5.4.2](https://www.rfc-editor.org/rfc/rfc3986#section-5.4.2)
+     * References resolution strict examples as
+     * described in [RFC3986 section 5.4.2](https://www.rfc-editor.org/rfc/rfc3986#section-5.4.2)
      */
     @Test
     fun resolve_reference_with_scheme() = testAll {
-        Uri.parse("http:g").resolveTo(baseUri, strict = true) shouldBe Uri.parse("http:g")
-        Uri.parse("http:g").resolveTo(baseUri, strict = false) shouldBe Uri.parse("http://a/b/c/g")
+        BASE_URI.resolve("http:g", strict = true) shouldBe Uri.parse("http:g")
+        BASE_URI.resolve("http:g", strict = false) shouldBe Uri.parse("http://a/b/c/g")
+    }
+
+    @Test
+    fun resolve_absolute_uri() = testAll {
+        val baseUri = Uri.parse("http://localhost:8080/?x#y")
+        baseUri.resolve("https://a/b").toString().shouldBe("https://a/b")
+        baseUri.resolve("/b").toString().shouldBe("http://localhost:8080/b")
     }
 
 

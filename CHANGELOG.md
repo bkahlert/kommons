@@ -14,6 +14,11 @@
 
 ### Changed
 
+- upgrade to
+  - Kotlin 1.8.10
+  - Ktor 2.2.3
+  - Kotlinx.serialization to 1.5.0
+
 ### Deprecated
 
 ### Removed

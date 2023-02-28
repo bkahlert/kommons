@@ -5,22 +5,55 @@ import com.bkahlert.kommons.Either.Right
 import kotlin.contracts.InvocationKind.AT_MOST_ONCE
 import kotlin.contracts.contract
 
+// TODO EitherSerializer
+
 /**
  * Represents a container containing either an instance of type [A] ([Left])
  * or [B] ([Right]).
  */
 public sealed interface Either<out A, out B> {
     /** Represents a container containing the left value. */
-    public data class Left<out A, out B>(
+    public interface Left<out A> : Either<A, Nothing> {
         /** The actual left value. */
         public val value: A
-    ) : Either<A, B>
+    }
 
     /** Represents a container containing the right value. */
-    public data class Right<out A, out B>(
+    public interface Right<out B> : Either<Nothing, B> {
         /** The actual right value. */
         public val value: B
-    ) : Either<A, B>
+    }
+
+    public companion object {
+
+        /** Returns a [Either.Left] with the specified [value]. */
+        public fun <A> Left(value: A): Left<A> = object : Left<A> {
+            override val value: A get() = value
+            override fun toString(): String = "Left($value)"
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other == null || other !is Left<*>) return false
+                if (value != other.value) return false
+                return true
+            }
+
+            override fun hashCode(): Int = value?.hashCode() ?: 0
+        }
+
+        /** Returns a [Either.Right] with the specified [value]. */
+        public fun <B> Right(value: B): Right<B> = object : Right<B> {
+            override val value: B get() = value
+            override fun toString(): String = "Right($value)"
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other == null || other !is Right<*>) return false
+                if (value != other.value) return false
+                return true
+            }
+
+            override fun hashCode(): Int = value?.hashCode() ?: 0
+        }
+    }
 }
 
 /**
@@ -153,8 +186,8 @@ public inline infix fun <R, A, B> Either<A, B>.mapLeft(transform: (A) -> R): Eit
         callsInPlace(transform, AT_MOST_ONCE)
     }
     return when (this) {
-        is Left -> Left(transform(value))
-        is Right -> @Suppress("UNCHECKED_CAST") (this as Either<R, B>)
+        is Left -> Either.Left(transform(value))
+        is Right -> this
     }
 }
 
@@ -168,8 +201,8 @@ public inline infix fun <R, A, B> Either<A, B>.mapRight(transform: (B) -> R): Ei
         callsInPlace(transform, AT_MOST_ONCE)
     }
     return when (this) {
-        is Left -> @Suppress("UNCHECKED_CAST") (this as Either<A, R>)
-        is Right -> Right(transform(value))
+        is Left -> this
+        is Right -> Either.Right(transform(value))
     }
 }
 
@@ -205,7 +238,7 @@ public inline fun <T> Either<T, Throwable>.toResult(): Result<T> =
 /** Converts this [Result] to an [Either]. */
 @Suppress("NOTHING_TO_INLINE")
 public inline fun <T> Result<T>.toEither(): Either<T, Throwable> =
-    fold({ Left(it) }, { Right(it) })
+    fold({ Either.Left(it) }, { Either.Right(it) })
 
 /**
  * Returns this result's value if it represents [Result.success] and

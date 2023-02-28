@@ -4,6 +4,13 @@ import io.ktor.http.Parameters
 import io.ktor.util.StringValues
 
 /**
+ * Parses the specified [uriString] as a [Uri]
+ * as specified in [RFC3986 Appendix B](https://www.rfc-editor.org/rfc/rfc3986#appendix-B).
+ */
+public fun Uri(uriString: CharSequence): Uri =
+    Uri.parse(text = uriString)
+
+/**
  * Returns the [User information subcomponent](https://www.rfc-editor.org/rfc/rfc3986#section-3.2.1).
  */
 public val Uri.userInfo: String? get() = authority?.userInfo

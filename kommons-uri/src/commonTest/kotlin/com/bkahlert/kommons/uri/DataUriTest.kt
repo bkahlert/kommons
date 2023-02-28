@@ -12,10 +12,12 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.ContentType
+import io.ktor.http.charset
 import io.ktor.http.encodeURLPathPart
 import io.ktor.http.withCharset
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.name
+import io.ktor.utils.io.core.toByteArray
 import kotlin.test.Test
 
 class DataUriTest {
@@ -39,21 +41,21 @@ class DataUriTest {
 
     @Test
     fun media_type_string() = testAll {
-        DataUri(ContentType.Text.Plain.withCharset(DataUri.DEFAULT_CHARSET), asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET)) should {
-            it.mediaTypeString shouldBe "text/plain;charset=${DataUri.DEFAULT_CHARSET.name}"
+        DataUri(DataUri.DEFAULT_MEDIA_TYPE, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET)) should {
+            it.mediaTypeString shouldBe "text/plain;charset=${DEFAULT_MEDIA_TYPE_CHARSET.name}"
         }
     }
 
     @Test
     fun to_string() = testAll {
-        DataUri(null, asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET)) should {
+        DataUri(null, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET)) should {
             it.toString() shouldBe "data:;base64,$asciiBase64Text"
         }
-        DataUri(ContentType.Text.Plain, asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET)) should {
+        DataUri(ContentType.Text.Plain, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET)) should {
             it.toString() shouldBe "data:text/plain;base64,$asciiBase64Text"
         }
-        DataUri(ContentType.Text.Plain.withCharset(DataUri.DEFAULT_CHARSET), asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET)) should {
-            it.toString() shouldBe "data:text/plain;charset=${DataUri.DEFAULT_CHARSET.name};base64,$asciiBase64Text"
+        DataUri(ContentType.Text.Plain.withCharset(DEFAULT_MEDIA_TYPE_CHARSET), asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET)) should {
+            it.toString() shouldBe "data:text/plain;charset=${DEFAULT_MEDIA_TYPE_CHARSET.name};base64,$asciiBase64Text"
         }
     }
 
@@ -65,14 +67,14 @@ class DataUriTest {
     @Test
     fun parse_ascii_text() = testAll {
         DataUri.parse("data:,$asciiEncodedText") should {
-            it shouldBe DataUri(null, asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET))
+            it shouldBe DataUri(null, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET))
         }
         DataUri.parse("data:text/plain,$asciiEncodedText") should {
-            it shouldBe DataUri(ContentType.Text.Plain, asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET))
+            it shouldBe DataUri(ContentType.Text.Plain, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET))
         }
 
-        DataUri.parse("data:text/plain;charset=${DataUri.DEFAULT_CHARSET.name},$asciiEncodedText") should {
-            it shouldBe DataUri(ContentType.Text.Plain.withCharset(DataUri.DEFAULT_CHARSET), asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET))
+        DataUri.parse("data:text/plain;charset=${DEFAULT_MEDIA_TYPE_CHARSET.name},$asciiEncodedText") should {
+            it shouldBe DataUri(ContentType.Text.Plain.withCharset(DEFAULT_MEDIA_TYPE_CHARSET), asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET))
         }
     }
 
@@ -80,10 +82,10 @@ class DataUriTest {
     fun parse_unicode_text() = testAll {
         val charset = Charset.forName("utf-8")
         DataUri.parse("data:text/plain;charset=${charset.name},${unicodeText.encodeURLPathPart()}") should {
-            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), unicodeText.encodeToByteArray(charset))
+            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), unicodeText.toByteArray(charset))
         }
         DataUri.parse("data:text/plain;charset=${charset.name},${emojiText.encodeURLPathPart()}") should {
-            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), emojiText.encodeToByteArray(charset))
+            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), emojiText.toByteArray(charset))
         }
     }
 
@@ -91,20 +93,20 @@ class DataUriTest {
     fun parse_base64_unicode_text() = testAll {
         val charset = Charset.forName("utf-8")
         DataUri.parse("data:;base64,$asciiBase64Text") should {
-            it shouldBe DataUri(null, asciiText.encodeToByteArray(DataUri.DEFAULT_CHARSET))
+            it shouldBe DataUri(null, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET))
         }
         DataUri.parse("data:text/plain;charset=UTF-8;base64,YcKF8J2Vkw0K4piwCvCfkYsK") should {
-            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), unicodeText.encodeToByteArray(charset))
+            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), unicodeText.toByteArray(charset))
         }
         DataUri.parse("data:text/plain;charset=UTF-8;base64,YfCdlZPwn6ug8J%2BHqfCfh6rwn5Go8J%2BPvuKAjfCfprHwn5Gp4oCN8J%2BRqeKAjfCfkabigI3wn5Gm") should {
-            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), emojiText.encodeToByteArray(charset))
+            it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), emojiText.toByteArray(charset))
         }
     }
 
     @Test
     fun parse_base64_image() = testAll {
         DataUri.parse(svgImageBase64Encoded.replace(";charset=UTF-8", "")) should {
-            it shouldBe DataUri(ContentType.Image.SVG, svgImage.encodeToByteArray(Charset.forName("utf-8")))
+            it shouldBe DataUri(ContentType.Image.SVG, svgImage.toByteArray(Charset.forName("utf-8")))
         }
         DataUri.parse("data:image/gif;base64,R0lGODdhAQADAPABAP%2F%2F%2F%2F8AACwAAAAAAQADAAACAgxQADs") should {
             it shouldBe DataUri(ContentType.Image.GIF, gifImage)
@@ -115,7 +117,7 @@ class DataUriTest {
     fun parse_base64_unicode_image() = testAll {
         val charset = Charset.forName("utf-8")
         DataUri.parse(svgImageBase64Encoded) should {
-            it shouldBe DataUri(ContentType.Image.SVG.withCharset(charset), svgImage.encodeToByteArray(charset))
+            it shouldBe DataUri(ContentType.Image.SVG.withCharset(charset), svgImage.toByteArray(charset))
         }
     }
 
@@ -245,4 +247,9 @@ class DataUriTest {
             "n5Gp4oCN8J%2BRqeKAjfCfkabigI3wn5GmPC90ZXh0Pjwvc3ZnPg"
         val gifImage = GifImageFixture.bytes
     }
+}
+
+
+internal val DEFAULT_MEDIA_TYPE_CHARSET = checkNotNull(DataUri.DEFAULT_MEDIA_TYPE.charset()) {
+    "missing charset of default media type"
 }

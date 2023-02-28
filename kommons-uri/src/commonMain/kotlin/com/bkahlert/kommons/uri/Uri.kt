@@ -95,9 +95,9 @@ public sealed interface Uri : CharSequence {
  * [scheme], [authority], [path], [query], and [fragment].
  */
 public fun Uri(
-    scheme: String? = null,
-    authority: Authority? = null,
-    path: String = "",
+    scheme: String?,
+    authority: Authority?,
+    path: String,
     query: String? = null,
     fragment: String? = null,
 ): Uri = GenericUri(

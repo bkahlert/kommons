@@ -27,12 +27,12 @@ class EitherKtTest {
         }
     }
 
-    val foo: Either<Foo, Bar> = Left(Foo)
-    val bar: Either<Foo, Bar> = Right(Bar)
+    val foo: Either<Foo, Bar> = Either.Left(Foo)
+    val bar: Either<Foo, Bar> = Either.Right(Bar)
 
     @Test fun either() = testAll {
-        foo.shouldBeInstanceOf<Left<Foo, *>>().value shouldBe Foo
-        bar.shouldBeInstanceOf<Right<*, Bar>>().value shouldBe Bar
+        foo.shouldBeInstanceOf<Left<Foo>>().value shouldBe Foo
+        bar.shouldBeInstanceOf<Right<Bar>>().value shouldBe Bar
     }
 
     @Test fun get_left_or_throw() = testAll {
@@ -82,13 +82,13 @@ class EitherKtTest {
     }
 
     @Test fun map_left() = testAll {
-        foo.mapLeft { "$it-left" } shouldBe Left("Foo-left")
-        bar.mapLeft { "$it-left" } shouldBe Right(Bar)
+        foo.mapLeft { "$it-left" } shouldBe Either.Left("Foo-left")
+        bar.mapLeft { "$it-left" } shouldBe Either.Right(Bar)
     }
 
     @Test fun map_right() = testAll {
-        bar.mapRight { "$it-right" } shouldBe Right("Bar-right")
-        foo.mapRight { "$it-right" } shouldBe Left(Foo)
+        bar.mapRight { "$it-right" } shouldBe Either.Right("Bar-right")
+        foo.mapRight { "$it-right" } shouldBe Either.Left(Foo)
     }
 
     @Test fun on_left() = testAll {
@@ -117,8 +117,8 @@ class EitherKtTest {
     }
 
     @Test fun to_either() = testAll {
-        Result.success(Foo).toEither().shouldBeInstanceOf<Left<Foo, *>>().value shouldBe Foo
-        Result.failure<Foo>(IllegalArgumentException("message")).toEither().shouldBeInstanceOf<Right<Foo, IllegalArgumentException>>().value should {
+        Result.success(Foo).toEither().shouldBeInstanceOf<Left<Foo>>().value shouldBe Foo
+        Result.failure<Foo>(IllegalArgumentException("message")).toEither().shouldBeInstanceOf<Right<IllegalArgumentException>>().value should {
             it.shouldBeInstanceOf<IllegalArgumentException>()
             it.message shouldBe "message"
         }

@@ -10,6 +10,7 @@ import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.encodeBase64
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.Serializable
 
 /**
@@ -88,18 +89,12 @@ public data class DataUri(
     public companion object {
 
         /**
-         * Default charset for [DataUri] instances
-         * as specified in [RFC2397 section 2](https://www.rfc-editor.org/rfc/rfc2397#section-2).
-         */
-        public val DEFAULT_CHARSET: Charset = kotlin.runCatching {
-            Charset.forName("US-ASCII") // Surprisingly, not supported in Ktor/JS ...
-        }.getOrDefault(Charsets.ISO_8859_1)
-
-        /**
          * Default media type for [DataUri] instances
          * as specified in [RFC2397 section 2](https://www.rfc-editor.org/rfc/rfc2397#section-2).
          */
-        public val DEFAULT_MEDIA_TYPE: ContentType = ContentType.Text.Plain.withCharset(DEFAULT_CHARSET)
+        public val DEFAULT_MEDIA_TYPE: ContentType = ContentType.Text.Plain.withCharset(kotlin.runCatching {
+            Charset.forName("US-ASCII") // Surprisingly, not supported in Ktor/JS ...
+        }.getOrDefault(Charsets.UTF_8))
 
         /**
          * URL schema
@@ -120,11 +115,11 @@ public data class DataUri(
         public fun parse(text: CharSequence): DataUri {
             val groupValues = requireNotNull(REGEX.matchEntire(text)) { "$text is no valid data URI" }.groupValues
             val mediaType = groupValues[1].takeIf { it.isNotEmpty() }?.let { ContentType.parse(it) }
-            val charset = mediaType?.charset() ?: DEFAULT_CHARSET
+            val charset = mediaType?.charset() ?: Charsets.UTF_8
             return DataUri(
                 mediaType = mediaType,
                 data = when (groupValues[2]) {
-                    "" -> groupValues[3].decodeURLPart(charset = charset).encodeToByteArray(charset)
+                    "" -> groupValues[3].decodeURLPart(charset = charset).toByteArray(charset)
                     else -> groupValues[3].decodeBase64Url()
                 },
             )
