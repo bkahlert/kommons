@@ -68,14 +68,11 @@ public val Instant.utcHours: Int get() = toLocalDateTime(FixedOffsetTimeZone(Utc
 public val Instant.utcMinutes: Int get() = toLocalDateTime(FixedOffsetTimeZone(UtcOffset.ZERO)).minute
 
 
-private fun Duration.describeMoment(moment: String, descriptive: Boolean): String =
-    if (descriptive) {
-        if (this > Duration.ZERO) "in $moment"
-        else "$moment ago"
-    } else {
-        if (this > Duration.ZERO) moment
-        else "-$moment"
-    }
+private fun Duration.describeMoment(moment: String, descriptive: Boolean): String = when {
+    isPositive() -> if (descriptive) "in $moment" else moment
+    isNegative() -> if (descriptive) "$moment ago" else "-$moment"
+    else -> moment
+}
 
 /**
  * Attempts to describe this duration like a human being would do,
@@ -84,29 +81,31 @@ private fun Duration.describeMoment(moment: String, descriptive: Boolean): Strin
  * Set [descriptive] to `false` to turn off the use of "ago" and "in".
  */
 public fun Duration.toMomentString(descriptive: Boolean = true): String {
-    val abs = absoluteValue
+    val diff = this
+    val absDiff = diff.absoluteValue
+
     return when {
-        abs < .5.seconds -> "now"
-        abs < 1.minutes -> describeMoment(abs.toString(SECONDS), descriptive)
-        abs < 1.hours -> describeMoment(abs.toString(MINUTES), descriptive)
-        abs < 6.hours -> describeMoment(buildString {
-            val durationInHours = abs.inWholeHours.hours
+        absDiff < .5.seconds -> "now"
+        absDiff < 1.minutes -> describeMoment(absDiff.toString(SECONDS), descriptive)
+        absDiff < 1.hours -> describeMoment(absDiff.toString(MINUTES), descriptive)
+        absDiff < 6.hours -> describeMoment(buildString {
+            val durationInHours = absDiff.inWholeHours.hours
             append(durationInHours.toString(HOURS))
             append(" ")
-            append((abs - durationInHours).toString(MINUTES))
+            append((absDiff - durationInHours).toString(MINUTES))
         }.removeSuffix(" 0m"), descriptive)
 
-        abs < 23.5.hours -> describeMoment(abs.toString(HOURS), descriptive)
-        abs < 1.days -> describeMoment("1d", descriptive)
-        abs < 6.days -> describeMoment(buildString {
-            val durationInDays = abs.inWholeDays.days
+        absDiff < 23.5.hours -> describeMoment(absDiff.toString(HOURS), descriptive)
+        absDiff < 1.days -> describeMoment("1d", descriptive)
+        absDiff < 6.days -> describeMoment(buildString {
+            val durationInDays = absDiff.inWholeDays.days
             append(durationInDays.toString(DAYS))
             append(" ")
-            append((abs - durationInDays).toString(HOURS))
+            append((absDiff - durationInDays).toString(HOURS))
         }.removeSuffix(" 0h"), descriptive)
 
-        abs < 30.days -> describeMoment(abs.toString(DAYS), descriptive)
-        else -> (Now - this).toLocalDateString()
+        absDiff < 30.days -> describeMoment(absDiff.toString(DAYS), descriptive)
+        else -> (Now + diff).toLocalDateString()
     }
 }
 
@@ -116,7 +115,10 @@ public fun Duration.toMomentString(descriptive: Boolean = true): String {
  *
  * Set [descriptive] to `false` to turn off the use of "ago" and "in".
  */
-public fun Instant.toMomentString(descriptive: Boolean = true): String = (this - Now).toMomentString(descriptive)
+public fun Instant.toMomentString(descriptive: Boolean = true): String {
+    val diff = this - Now
+    return diff.toMomentString(descriptive)
+}
 
 /**
  * Attempts to describe this date like a human being would do,
@@ -124,10 +126,12 @@ public fun Instant.toMomentString(descriptive: Boolean = true): String = (this -
  *
  * Set [descriptive] to `false` to turn off the use of "ago" and "in".
  */
-public fun LocalDate.toMomentString(descriptive: Boolean = true): String =
-    when ((this - Today).inWholeDays) {
+public fun LocalDate.toMomentString(descriptive: Boolean = true): String {
+    val diff = this - Today
+    return when (diff.inWholeDays) {
         -1L -> "yesterday"
         0L -> "today"
         +1L -> "tomorrow"
-        else -> (this - Today).toMomentString(descriptive)
+        else -> diff.toMomentString(descriptive)
     }
+}

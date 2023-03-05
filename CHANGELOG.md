@@ -25,6 +25,8 @@
 
 ### Fixed
 
+- `toMomentString` for negative dates
+
 
 ## [2.7.0] - 2023-02-09
 

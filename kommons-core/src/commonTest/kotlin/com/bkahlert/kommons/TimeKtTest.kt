@@ -118,21 +118,24 @@ class TimeKtTest {
         29.49.days.toMomentString() shouldBe "in 29d"
         29.50.days.toMomentString() shouldBe "in 30d"
 
-        30.days.toMomentString() shouldBe (Now - 30.days).toLocalDateString()
-        35.days.toMomentString() shouldBe (Now - 35.days).toLocalDateString()
-        100.days.toMomentString() shouldBe (Now - 100.days).toLocalDateString()
-
+        30.days.toMomentString() shouldBe (Now + 30.days).toLocalDateString()
+        35.days.toMomentString() shouldBe (Now + 35.days).toLocalDateString()
+        100.days.toMomentString() shouldBe (Now + 100.days).toLocalDateString()
+        (-100).days.toMomentString() shouldBe (Now - 100.days).toLocalDateString()
 
         Now.toMomentString() shouldBe "now"
         (Now - 12.hours).toMomentString() shouldBe "12h ago"
         (Now + 12.hours).toMomentString() shouldBe "in 12h"
-
+        (Now - 100.days).toMomentString() shouldBe (Now - 100.days).toLocalDateString()
+        (Now + 100.days).toMomentString() shouldBe (Now + 100.days).toLocalDateString()
+        Instant.fromEpochMilliseconds(0L).toMomentString() shouldBe Instant.fromEpochMilliseconds(0L).toLocalDateString()
 
         (Yesterday - 1.days).toMomentString() shouldBe "2d ago"
         Yesterday.toMomentString() shouldBe "yesterday"
         Today.toMomentString() shouldBe "today"
         Tomorrow.toMomentString() shouldBe "tomorrow"
         (Tomorrow + 1.days).toMomentString() shouldBe "in 2d"
+        LocalDate.fromEpochDays(0).toMomentString() shouldBe LocalDate.fromEpochDays(0).toLocalDateString()
     }
 
     @Test fun subtract_self() = testAll {
