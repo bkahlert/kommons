@@ -1,5 +1,9 @@
 package com.bkahlert.kommons.uri
 
+import com.bkahlert.kommons.test.testAll
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.Parameters
 import io.ktor.util.StringValues
@@ -36,6 +40,15 @@ class StringValuesTest {
         Fixture.formUrlEncode() shouldBe "foo&bar=baz"
         Fixture.formUrlEncode(keepEmptyValues = true) shouldBe "foo&bar=baz"
         Fixture.formUrlEncode(keepEmptyValues = false) shouldBe "bar=baz"
+    }
+
+    @Test fun delegate() = testAll {
+        val foo by Fixture
+        val bar by Fixture
+        val baz by Fixture
+        foo.shouldBeEmpty()
+        bar.shouldContainExactly("baz")
+        baz.shouldBeNull()
     }
 
     companion object {

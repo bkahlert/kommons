@@ -11,6 +11,7 @@
       // returns
       Uri("http://a/b/g")
       ```
+- DataUri factory for textual data
 
 ### Changed
 
