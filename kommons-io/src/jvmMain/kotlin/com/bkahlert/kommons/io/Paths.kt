@@ -3,7 +3,6 @@ package com.bkahlert.kommons.io
 import com.bkahlert.kommons.EMPTY
 import com.bkahlert.kommons.Program
 import com.bkahlert.kommons.SystemLocations
-import com.bkahlert.kommons.Timestamp
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.text.takeUnlessEmpty
 import java.io.BufferedInputStream
@@ -159,7 +158,7 @@ public inline fun createTempTextFile(
     charset: Charset = Charsets.UTF_8,
     prefix: String? = null,
     suffix: String? = null,
-    vararg attributes: FileAttribute<*>
+    vararg attributes: FileAttribute<*>,
 ): Path = createTempFile(prefix, suffix, *attributes).apply { writeText(text, charset) }
 
 /**
@@ -175,7 +174,7 @@ public inline fun createTempBinaryFile(
     bytes: ByteArray,
     prefix: String? = null,
     suffix: String? = null,
-    vararg attributes: FileAttribute<*>
+    vararg attributes: FileAttribute<*>,
 ): Path = createTempFile(prefix, suffix, *attributes).apply { writeBytes(bytes) }
 
 /**
@@ -192,7 +191,7 @@ public inline fun Path.createTempTextFile(
     charset: Charset = Charsets.UTF_8,
     prefix: String? = null,
     suffix: String? = null,
-    vararg attributes: FileAttribute<*>
+    vararg attributes: FileAttribute<*>,
 ): Path = createTempFile(prefix, suffix, *attributes).apply { writeText(text, charset) }
 
 /**
@@ -208,7 +207,7 @@ public inline fun Path.createTempBinaryFile(
     bytes: ByteArray,
     prefix: String? = null,
     suffix: String? = null,
-    vararg attributes: FileAttribute<*>
+    vararg attributes: FileAttribute<*>,
 ): Path = createTempFile(prefix, suffix, *attributes).apply { writeBytes(bytes) }
 
 /**
@@ -224,7 +223,7 @@ public inline fun Path.createTempBinaryFile(
 public inline fun Path.createTextFile(
     text: CharSequence,
     charset: Charset = Charsets.UTF_8,
-    vararg attributes: FileAttribute<*>
+    vararg attributes: FileAttribute<*>,
 ): Path = createFile(*attributes).apply { writeText(text, charset) }
 
 /**
@@ -239,7 +238,7 @@ public inline fun Path.createTextFile(
 @Throws(IOException::class)
 public inline fun Path.createBinaryFile(
     bytes: ByteArray,
-    vararg attributes: FileAttribute<*>
+    vararg attributes: FileAttribute<*>,
 ): Path = createFile(*attributes).apply { writeBytes(bytes) }
 
 
@@ -305,7 +304,7 @@ public fun Path.createParentDirectories(): Path = apply { parent?.takeUnless { i
  * The duration passed since when this file was last modified.
  */
 public var Path.age: Duration
-    get() :Duration = (Timestamp - getLastModifiedTime().toMillis()).milliseconds
+    get() :Duration = (System.currentTimeMillis() - getLastModifiedTime().toMillis()).milliseconds
     set(value) {
         setLastModifiedTime(FileTime.from(Instant.now().minusMillis(value.inWholeMilliseconds)))
     }
@@ -418,7 +417,7 @@ private fun Path.getPathMatcher(glob: String): PathMatcher? {
 
 private fun Path.streamContentsRecursively(glob: String = "*", vararg options: LinkOption): Stream<Path> {
     if (!isDirectory(*options)) throw NotDirectoryException(pathString)
-    val fileVisitOptions = options.let { if (it.contains(LinkOption.NOFOLLOW_LINKS)) emptyArray() else arrayOf(FOLLOW_LINKS) }
+    val fileVisitOptions = options.let { if (it.contains(NOFOLLOW_LINKS)) emptyArray() else arrayOf(FOLLOW_LINKS) }
     val walk = Files.walk(this, *fileVisitOptions).filter { it != this }
     return getPathMatcher(glob)
         ?.let { matcher -> walk.filter { path -> matcher.matches(path) } }
@@ -482,7 +481,7 @@ public fun Path.forEachDirectoryEntryRecursively(glob: String = "*", vararg opti
 public inline fun Path.copyToDirectory(
     target: Path,
     overwrite: Boolean = false,
-    createDirectories: Boolean = false
+    createDirectories: Boolean = false,
 ): Path {
     if (createDirectories) target.createDirectories()
     return copyTo(target.resolve(fileName.pathString), overwrite)
@@ -498,7 +497,7 @@ public inline fun Path.copyToDirectory(
 public inline fun Path.copyToDirectory(
     target: Path,
     vararg options: CopyOption,
-    createDirectories: Boolean = false
+    createDirectories: Boolean = false,
 ): Path {
     if (createDirectories) target.createDirectories()
     return copyTo(target.resolve(fileName.pathString), *options)
@@ -522,14 +521,14 @@ public fun Path.delete(vararg options: LinkOption): Path =
  */
 public fun Path.deleteRecursively(vararg options: LinkOption, predicate: (Path) -> Boolean = { true }): Path =
     apply {
-        if (exists(*options, LinkOption.NOFOLLOW_LINKS)) {
-            if (isDirectory(*options, LinkOption.NOFOLLOW_LINKS)) {
-                forEachDirectoryEntry { it.deleteRecursively(*options, LinkOption.NOFOLLOW_LINKS, predicate = predicate) }
+        if (exists(*options, NOFOLLOW_LINKS)) {
+            if (isDirectory(*options, NOFOLLOW_LINKS)) {
+                forEachDirectoryEntry { it.deleteRecursively(*options, NOFOLLOW_LINKS, predicate = predicate) }
             }
 
             if (predicate(this)) {
                 var maxAttempts = 3
-                var ex: Throwable? = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
+                var ex: Throwable? = kotlin.runCatching { delete(*options, NOFOLLOW_LINKS) }.exceptionOrNull()
                 while (ex != null && maxAttempts > 0) {
                     maxAttempts--
                     if (ex is DirectoryNotEmptyException) {
@@ -537,7 +536,7 @@ public fun Path.deleteRecursively(vararg options: LinkOption, predicate: (Path) 
                         files.forEach { it.deleteRecursively(*options, predicate = predicate) }
                     }
                     Thread.sleep(100)
-                    ex = kotlin.runCatching { delete(*options, LinkOption.NOFOLLOW_LINKS) }.exceptionOrNull()
+                    ex = kotlin.runCatching { delete(*options, NOFOLLOW_LINKS) }.exceptionOrNull()
                 }
                 if (ex != null) throw ex
             }
@@ -656,7 +655,7 @@ public inline fun <R> Path.useInputStream(vararg options: OpenOption, block: (In
 public inline fun <R> Path.useBufferedInputStream(
     vararg options: OpenOption,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    block: (BufferedInputStream) -> R
+    block: (BufferedInputStream) -> R,
 ): R = inputStream(*options).buffered(bufferSize).use(block)
 
 /**
@@ -673,7 +672,7 @@ public inline fun <R> Path.useBufferedInputStream(
 public inline fun <R> Path.useReader(
     vararg options: OpenOption,
     charset: Charset = Charsets.UTF_8,
-    block: (InputStreamReader) -> R
+    block: (InputStreamReader) -> R,
 ): R = reader(charset, *options).use(block)
 
 /**
@@ -691,7 +690,7 @@ public inline fun <R> Path.useBufferedReader(
     vararg options: OpenOption,
     charset: Charset = Charsets.UTF_8,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    block: (BufferedReader) -> R
+    block: (BufferedReader) -> R,
 ): R = bufferedReader(charset, bufferSize, *options).use(block)
 
 /**
@@ -707,7 +706,7 @@ public inline fun <R> Path.useBufferedReader(
  */
 public inline fun Path.useOutputStream(
     vararg options: OpenOption,
-    block: (OutputStream) -> Unit
+    block: (OutputStream) -> Unit,
 ): Path = apply { outputStream(*options).use(block) }
 
 /**
@@ -724,7 +723,7 @@ public inline fun Path.useOutputStream(
 public inline fun Path.useBufferedOutputStream(
     vararg options: OpenOption,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    block: (BufferedOutputStream) -> Unit
+    block: (BufferedOutputStream) -> Unit,
 ): Path = apply { outputStream(*options).buffered(bufferSize).use(block) }
 
 /**
@@ -741,7 +740,7 @@ public inline fun Path.useBufferedOutputStream(
 public inline fun Path.useWriter(
     vararg options: OpenOption,
     charset: Charset = Charsets.UTF_8,
-    block: (Writer) -> Unit
+    block: (Writer) -> Unit,
 ): Path = apply { writer(charset, *options).use(block) }
 
 /**
@@ -759,5 +758,5 @@ public inline fun Path.useBufferedWriter(
     vararg options: OpenOption,
     charset: Charset = Charsets.UTF_8,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    block: (BufferedWriter) -> Unit
+    block: (BufferedWriter) -> Unit,
 ): Path = apply { bufferedWriter(charset, bufferSize, *options).use(block) }

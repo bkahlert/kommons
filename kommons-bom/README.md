@@ -2,7 +2,7 @@
 
 ## About
 
-**Kommons BOM** is a platform library with the version of all Kommons modules.
+**Kommons BOM** is a platform library with the version of most Kommons modules.
 
 ## Installation / setup
 

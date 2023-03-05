@@ -15,6 +15,7 @@
 - [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
 - [Kommons Test](kommons-test) … to ease testing
 - **[Kommons Text](kommons-text) … for Unicode-aware text operations**
+- [Kommons Time](kommons-time) … [KotlinX multiplatform date/time library](https://github.com/Kotlin/kotlinx-datetime) extension
 - **[Kommons URI](kommons-uri) … for handling (Data) URIs**
 
 The modules in **bold** are included in the `Kommons` module.  

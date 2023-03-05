@@ -1,6 +1,5 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.Timestamp
 import org.slf4j.Logger
 import org.slf4j.Marker
 import org.slf4j.event.Level
@@ -46,9 +45,9 @@ class RecordingLogger(
         vararg argumentArray: Any?,
         marker: Marker? = null,
         threadName: String = Thread.currentThread().name,
-        timeStamp: Long = Timestamp,
+        timeStamp: Long = System.currentTimeMillis(),
         throwable: Throwable? = null,
-    ): Unit {
+    ) {
         _events.add(RecordedLoggingEvent(level, marker, getName(), message, threadName, argumentArray.asList(), timeStamp, throwable))
     }
 

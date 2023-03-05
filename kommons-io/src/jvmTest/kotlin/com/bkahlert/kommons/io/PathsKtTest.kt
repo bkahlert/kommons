@@ -1,12 +1,10 @@
 package com.bkahlert.kommons.io
 
-import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.SystemLocations
 import com.bkahlert.kommons.exec.CommandLine
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.Default
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.NonRecursively
 import com.bkahlert.kommons.io.DeleteOnExecTestHelper.Variant.Recursively
-import com.bkahlert.kommons.minus
 import com.bkahlert.kommons.test.OneMinuteTimeout
 import com.bkahlert.kommons.test.createAnyFile
 import com.bkahlert.kommons.test.createDirectoryWithFiles
@@ -16,7 +14,9 @@ import com.bkahlert.kommons.test.fixtures.SvgImageFixture
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.test.toNewJarFileSystem
 import com.bkahlert.kommons.text.Unicode.NULL
-import com.bkahlert.kommons.toFileTime
+import com.bkahlert.kommons.time.Now
+import com.bkahlert.kommons.time.minus
+import com.bkahlert.kommons.time.toFileTime
 import io.kotest.assertions.asClue
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow

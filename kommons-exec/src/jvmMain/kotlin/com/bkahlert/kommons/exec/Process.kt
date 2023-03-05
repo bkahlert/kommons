@@ -1,24 +1,24 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.debug.asString
 import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.text.startSpaced
-import kotlinx.datetime.Instant
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
+import java.time.Instant
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /** [java.lang.Process] wrapper with extended features such as access to its [state]. */
 public open class Process(
     private val process: java.lang.Process,
     private val commandLine: CommandLine? = null,
     /** Moment the process started. */
-    public val start: Instant = Now,
+    public val start: Instant = Instant.now(),
 ) : java.lang.Process() {
 
     public constructor(process: Process) : this(
@@ -100,7 +100,7 @@ public open class Process(
         public val end: Instant
 
         /** [Duration] the process took to execute. */
-        public val runtime: Duration get() = end - start
+        public val runtime: Duration get() = (end.toEpochMilli() - start.toEpochMilli()).milliseconds
 
         /** Exit code the process terminated with. */
         public val exitCode: Int get() = process.exitValue()
@@ -147,7 +147,7 @@ public open class Process(
     /** State of a process that terminated successfully. */
     public inner class Succeeded : ExitState {
         override val process: Process get() = this@Process
-        override val end: Instant = Now
+        override val end: Instant = Instant.now()
         override val status: String = "Process${pid?.toString().startSpaced} terminated successfully within $runtime"
         override fun toString(): String = status
 
@@ -158,7 +158,7 @@ public open class Process(
     /** State of a process that terminated erroneously. */
     public inner class Failed : ExitState {
         override val process: Process get() = this@Process
-        override val end: Instant = Now
+        override val end: Instant = Instant.now()
         override val status: String = "Process${pid?.toString().startSpaced} terminated after $runtime with exit code $exitCode"
         override fun toString(): String = status
 

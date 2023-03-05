@@ -16,6 +16,7 @@ kotlin {
                 implementation(libs.kotest.common) // because("mpp.bestName")
                 api(project(":kommons-core"))
                 api(project(":kommons-text"))
+                api(project(":kommons-time"))
                 api(project(":kommons-uri"))
             }
         }

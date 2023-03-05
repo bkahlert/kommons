@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.test
 
-import com.bkahlert.kommons.invoke
+import com.bkahlert.kommons.time.invoke
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 

@@ -1,4 +1,4 @@
-package com.bkahlert.kommons
+package com.bkahlert.kommons.time
 
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.Clock

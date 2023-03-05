@@ -1,4 +1,4 @@
-package com.bkahlert.kommons
+package com.bkahlert.kommons.time
 
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate

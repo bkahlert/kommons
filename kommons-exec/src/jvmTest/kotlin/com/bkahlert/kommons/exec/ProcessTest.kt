@@ -1,11 +1,11 @@
 package com.bkahlert.kommons.exec
 
-import com.bkahlert.kommons.Now
-import com.bkahlert.kommons.Timestamp
 import com.bkahlert.kommons.randomString
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
+import com.bkahlert.kommons.time.Now
+import com.bkahlert.kommons.time.Timestamp
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
@@ -40,8 +40,8 @@ class ProcessTest {
     @Test fun start() = testAll {
         val start = Now
         Process(ProcessBuilder(shellCommand, *shellArguments, "echo test")).start should {
-            it.toEpochMilliseconds() shouldBeGreaterThanOrEqualTo start.toEpochMilliseconds()
-            it.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
+            it.toEpochMilli() shouldBeGreaterThanOrEqualTo start.toEpochMilliseconds()
+            it.toEpochMilli() shouldBeLessThanOrEqualTo Timestamp
         }
     }
 
@@ -85,7 +85,7 @@ class ProcessTest {
             waitFor()
         } should {
             it.exitValue() shouldNotBe 0
-            Now.minus(it.start) shouldBeLessThan 5.seconds
+            (System.currentTimeMillis() - it.start.toEpochMilli()).milliseconds shouldBeLessThan 5.seconds
         }
     }
 
@@ -127,9 +127,9 @@ class ProcessTest {
         val succeededProcess = Process.succeeded()
         succeededProcess.exitState.shouldBeInstanceOf<Process.Succeeded>() should {
             it.process shouldBeSameInstanceAs succeededProcess
-            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.end.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
-            it.runtime shouldBe it.end - it.start
+            it.start.toEpochMilli() - it.process.start.toEpochMilli() shouldBeLessThan 10
+            it.end.toEpochMilli() shouldBeLessThanOrEqualTo System.currentTimeMillis()
+            it.runtime shouldBe (it.end.toEpochMilli() - it.start.toEpochMilli()).milliseconds
             it.exitCode shouldBe 0
             it.status shouldMatchGlob "Process* terminated successfully within *"
             it.toString() shouldBe it.status
@@ -141,9 +141,9 @@ class ProcessTest {
         val failedProcess = Process.failed()
         failedProcess.exitState.shouldBeInstanceOf<Process.Failed>() should {
             it.process shouldBeSameInstanceAs failedProcess
-            it.start.minus(it.process.start) shouldBeLessThan 10.milliseconds
-            it.end.toEpochMilliseconds() shouldBeLessThanOrEqualTo Timestamp
-            it.runtime shouldBe it.end - it.start
+            it.start.toEpochMilli() - it.process.start.toEpochMilli() shouldBeLessThan 10
+            it.end.toEpochMilli() shouldBeLessThanOrEqualTo System.currentTimeMillis()
+            it.runtime shouldBe (it.end.toEpochMilli() - it.start.toEpochMilli()).milliseconds
             it.exitCode shouldBe 42
             it.status shouldMatchGlob "Process* terminated after * with exit code 42"
             it.toString() shouldBe it.status

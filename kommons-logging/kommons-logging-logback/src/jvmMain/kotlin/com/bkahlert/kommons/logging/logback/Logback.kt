@@ -12,17 +12,17 @@ import ch.qos.logback.core.rolling.RollingPolicy
 import ch.qos.logback.core.rolling.RollingPolicyBase
 import ch.qos.logback.core.rolling.TriggeringPolicy
 import ch.qos.logback.core.util.StatusPrinter
-import com.bkahlert.kommons.Now
 import com.bkahlert.kommons.io.toPath
 import com.bkahlert.kommons.logging.LoggingSystemProperties
-import com.bkahlert.kommons.minus
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.lang.reflect.Modifier
 import java.nio.file.Path
+import java.time.Instant
 import java.util.concurrent.TimeoutException
 import kotlin.io.path.pathString
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import org.springframework.boot.logging.LoggingSystemProperties as SpringLoggingSystemProperties
 
@@ -34,8 +34,8 @@ public object Logback {
     /** The [LoggerContext]. */
     public val context: LoggerContext
         get() {
-            val start = Now
-            while (Now - start < MaxInitializationWaitDuration) {
+            val start = Instant.now()
+            while ((System.currentTimeMillis() - start.toEpochMilli()).milliseconds < MaxInitializationWaitDuration) {
                 val factory = LoggerFactory.getILoggerFactory()
                 if (factory is LoggerContext) return factory
                 else Thread.sleep(100)

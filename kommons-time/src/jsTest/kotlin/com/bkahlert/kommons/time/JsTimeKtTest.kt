@@ -1,4 +1,4 @@
-package com.bkahlert.kommons
+package com.bkahlert.kommons.time
 
 import com.bkahlert.kommons.test.testAll
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo

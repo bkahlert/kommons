@@ -1,8 +1,5 @@
 package com.bkahlert.kommons
 
-import com.bkahlert.kommons.RoundingMode.Ceiling
-import com.bkahlert.kommons.RoundingMode.Floor
-import com.bkahlert.kommons.RoundingMode.HalfUp
 import com.bkahlert.kommons.test.testAll
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContain
@@ -30,17 +27,6 @@ class StringsKtTest {
         null.asEmoji() shouldBe "❔"
         true.asEmoji() shouldBe "✅"
         false.asEmoji() shouldBe "❌"
-
-        instant0202.asEmoji() shouldBe "🕝"
-        instant0202.asEmoji(Ceiling) shouldBe "🕝"
-        instant0202.asEmoji(Floor) shouldBe "🕑"
-        instant0202.asEmoji(HalfUp) shouldBe "🕑"
-
-        instant2232.asEmoji() shouldBe "🕚"
-        instant2232.asEmoji(Ceiling) shouldBe "🕚"
-        instant2232.asEmoji(Floor) shouldBe "🕥"
-        instant2232.asEmoji(HalfUp) shouldBe "🕥"
-
         "other".asEmoji() shouldBe "🔣"
     }
 }

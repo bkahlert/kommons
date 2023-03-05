@@ -2,17 +2,13 @@ plugins {
     id("kommons-multiplatform-library-conventions")
 }
 
-description = "Kommons Core is a Kotlin Multiplatform Library that offers shared features for all Kommons modules."
+description = "Kommons Core is a Kotlin Multiplatform Library that offers shared features for most Kommons modules."
 
 kotlin {
 
     @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api(libs.kotlinx.datetime)
-            }
-        }
+        val commonMain by getting
         val commonTest by getting {
             dependencies {
                 implementation(project(":kommons-test"))

@@ -120,23 +120,6 @@ Iterate any type of closed ranges using `asIterable`.
     .map { it.toInt() } // [-4, 4, 13, 22, 31, 40]
 ```
 
-### Time Operations
-
-```kotlin
-Now + 2.seconds     // 2 seconds in the future
-Today - 3.days      // 3 days in the past
-Yesterday - 2.days  // 3 days in the past
-Tomorrow + 1.days   // the day after tomorrow
-Instant.parse("1910-06-22T13:00:00Z") + 5.minutes // 1910-06-22T12:05:00Z
-LocalDate.parse("1910-06-22") - 2.days            // 1910-06-20
-SystemLocations.Temp.createTempFile().age         // < 1ms
-
-Now.toMomentString()               // "now"
-(Now - 12.hours).toMomentString()  // "12h ago"
-(Now + 3.days).toMomentString()    // "in 3d"
-(Today - 1.days).toMomentString()  // "yesterday"
-```
-
 ### Byte Operations
 
 #### toHexadecimalString(), toOctalString(), toBinaryString()
