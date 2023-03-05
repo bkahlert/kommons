@@ -47,6 +47,9 @@ tasks.withType(KotlinCompilationTask::class).configureEach {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    if (System.getenv("CI") == "true") {
+        systemProperty("junit.jupiter.execution.timeout.testable.method.default", "30s")
+    }
 
     filter {
         isFailOnNoMatchingTests = false

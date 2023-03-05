@@ -4,6 +4,19 @@
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+
+## [2.8.0] - 2023-03-05
+
+### Added
+
 - Uri.resolve / Uri.resolveTo
     - Example
       ```kotlin
@@ -16,19 +29,14 @@
 ### Changed
 
 - upgrade to
-  - Kotlin 1.8.10
-  - Ktor 2.2.3
-  - Kotlinx.serialization to 1.5.0
+    - Kotlin 1.8.10
+    - Ktor 2.2.3
+    - Kotlinx.serialization to 1.5.0
 - moved time-related feature to separate kommons-time module
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
 - `toMomentString` for negative dates
-
 
 ## [2.7.0] - 2023-02-09
 
@@ -183,7 +191,9 @@ logger.info("Successfully created {}", array(Bar(1), Bar(2)))
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.7.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.8.0...HEAD
+
+[2.7.0]: https://github.com/bkahlert/kommons-test/compare/v2.7.0...v2.8.0
 
 [2.7.0]: https://github.com/bkahlert/kommons-test/compare/v2.6.0...v2.7.0
 

@@ -8,14 +8,14 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-spring-boot:2.7.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-logging-spring-boot:2.8.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-logging-spring-boot</artifactId>
-      <version>2.7.0</version>
+      <version>2.8.0</version>
   </dependency>
   ```
 
@@ -37,9 +37,9 @@ logging.preset.file=json
 ```yaml
 # application.yaml
 logging:
-  preset:
-    console: spring
-    file: json
+    preset:
+        console: spring
+        file: json
 ```
 
 Spring Boot's logging configuration options like `file.path` and `logback.rollingpolicy.max-file-size` are still supported.

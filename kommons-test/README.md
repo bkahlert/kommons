@@ -31,15 +31,15 @@ Furthermore, there are some more [advanced features for the JVM platform](#jvm-f
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `testImplementation("com.bkahlert.kommons:kommons-test:2.7.0") { because("JUnit defaults, testAll, ...") }`
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-test:2.7.0") { because("JUnit defaults, testAll, ...") }` *(for MPP projects)*
+* **Gradle** `testImplementation("com.bkahlert.kommons:kommons-test:2.8.0") { because("JUnit defaults, testAll, ...") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-test:2.8.0") { because("JUnit defaults, testAll, ...") }` *(for MPP projects)*
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-test</artifactId>
-      <version>2.7.0</version>
+      <version>2.8.0</version>
       <scope>test</scope>
   </dependency>
   ```
@@ -324,14 +324,17 @@ single tests or whole test containers.
 Platform properties have the lowest precedence and can be overridden
 with system properties.
 
-If, for example, you want to change the default timeout to 30 seconds for all tests,
+If, for example, you want to change the default timeout to 30 seconds for all tests
+during CI builds,
 in Gradle you can configure:
 
 ```kotlin
 tasks {
     test {
         useJUnitPlatform()
-        systemProperty("junit.jupiter.execution.timeout.testable.method.default", "30s")
+        if (System.getenv("CI") == "true") {
+            systemProperty("junit.jupiter.execution.timeout.testable.method.default", "30s")
+        }
     }
 }
 ```

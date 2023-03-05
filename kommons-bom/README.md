@@ -10,7 +10,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
 
 * **Gradle**
   ```kotlin
-  implementation(platform("com.bkahlert.kommons:kommons-bom:2.7.0"))
+  implementation(platform("com.bkahlert.kommons:kommons-bom:2.8.0"))
   
   // add the modules you like without having to specify their version
   implementation("com.bkahlert.kommons:kommons-uri")
@@ -25,7 +25,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
         <dependency>
           <groupId>com.bkahlert.kommons</groupId>
           <artifactId>kommons-bom</artifactId>
-          <version>2.7.0</version>
+          <version>2.8.0</version>
           <type>pom</type>
           <scope>import</scope>
         </dependency>
@@ -37,7 +37,7 @@ This library is hosted on GitHub with releases provided on Maven Central.
       <dependency>
         <groupId>com.bkahlert.kommons</groupId>
         <artifactId>kommons-uri</artifactId>
-          <version>2.7.0</version>
+          <version>2.8.0</version>
       </dependency>
     </dependencies>
   

@@ -5,6 +5,6 @@ authors:
     family-names: "Kahlert"
     orcid: "https://orcid.org/0000-0003-1705-4067"
 title: "Kommons — Features for Kotlin™ You Didn't Know You Were Missing"
-version: 2.7.0
-date-released: 2023-02-09
+version: 2.8.0
+date-released: 2023-03-05
 url: "https://github.com/bkahlert/kommons"

@@ -9,14 +9,14 @@ the [KotlinX multiplatform date/time library](https://github.com/Kotlin/kotlinx-
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-time:2.7.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-time:2.8.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons-time</artifactId>
-      <version>2.7.0</version>
+      <version>2.8.0</version>
   </dependency>
   ```
 

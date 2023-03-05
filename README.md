@@ -29,14 +29,14 @@ To use a module individually, see the corresponding instructions linked in [Abou
 
 The following dependency adds the `core`, `debug`, `exec`, `io`, `logging-core`, `text`, and `uri` module:
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.7.0")`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons:2.8.0")`
 
 * **Maven**
   ```xml
   <dependency>
       <groupId>com.bkahlert.kommons</groupId>
       <artifactId>kommons</artifactId>
-      <version>2.7.0</version>
+      <version>2.8.0</version>
   </dependency>
   ```
 
