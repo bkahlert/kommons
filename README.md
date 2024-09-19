@@ -40,7 +40,18 @@ The following dependency adds the `core`, `debug`, `exec`, `io`, `logging-core`,
   </dependency>
   ```
 
-Please read the corresponding documentation for instruction on how to use them.
+Please read the corresponding documentation for instructions on how to use them.
+
+## Development
+
+### Project structure
+
+The project is structured as follows:
+
+- [kommons-*](kommons-core) … feature modules
+- [kommons](kommons) … umbrella module with dependencies to all feature modules
+- [kommons-bom](kommons-bom) … bill of materials, that is, a POM file that lists all modules and their versions
+- [buildSrc](buildSrc) … custom build logic
 
 ## Contributing
 
