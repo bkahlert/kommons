@@ -15,6 +15,7 @@ import com.bkahlert.kommons.test.testAll
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotlin.jvm.JvmSerializableLambda
 import kotlin.test.Test
 
 class RenderTest {
@@ -551,7 +552,7 @@ class RenderTest {
     }
 
     @Test fun render_function() = testAll {
-        ({ }).render() shouldMatchGlob when (Platform.Current) {
+        (@JvmSerializableLambda { }).render() shouldMatchGlob when (Platform.Current) {
             Browser, NodeJS -> "function RenderTest\$render_function\$lambda*() {\n" +
                 "    return Unit_getInstance();\n" +
                 "  }"

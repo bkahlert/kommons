@@ -7,6 +7,7 @@ import com.bkahlert.kommons.Platform.NodeJS
 import com.bkahlert.kommons.test.shouldMatchGlob
 import com.bkahlert.kommons.test.testAll
 import io.kotest.matchers.shouldBe
+import kotlin.jvm.JvmSerializableLambda
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -21,7 +22,7 @@ class ToCustomStringOrNullTest {
     }
 
     @Test fun test_lambda() = testAll {
-        {}.toCustomStringOrNull() shouldMatchGlob when (Platform.Current) {
+        (@JvmSerializableLambda {}).toCustomStringOrNull() shouldMatchGlob when (Platform.Current) {
             Browser, NodeJS -> "function ToCustomStringOrNullTest\$test_lambda\$lambda*() {\n" +
                 "    return Unit_getInstance();\n" +
                 "  }"

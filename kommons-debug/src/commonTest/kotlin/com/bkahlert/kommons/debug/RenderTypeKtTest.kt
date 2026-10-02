@@ -14,6 +14,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction0
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
+import kotlin.jvm.JvmSerializableLambda
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -198,7 +199,8 @@ class RenderTypeTest {
                     "Owner.consume1(String) -> Unit",
                     "Owner.process1(String) -> Int"
                 )
-                ({}).renderFunctionType() shouldBe "() -> Unit"
+                (@JvmSerializableLambda {}).renderFunctionType() shouldBe "() -> Unit"
+                ({}).renderFunctionType() shouldBe "Function" // invokedynamic lambdas (Kotlin 2.0+) carry no reflection metadata
                 FunctionTypes.allValues.filterIsInstance<Function<*>>()
                     .map { it.renderFunctionType(simplified = false) } shouldContainExactly listOf(
                     "work0() -> kotlin.Unit",
@@ -214,7 +216,8 @@ class RenderTypeTest {
                     "com.bkahlert.kommons.debug.Owner.consume1(kotlin.String) -> kotlin.Unit",
                     "com.bkahlert.kommons.debug.Owner.process1(kotlin.String) -> kotlin.Int"
                 )
-                ({}).renderFunctionType(simplified = false) shouldBe "() -> kotlin.Unit"
+                (@JvmSerializableLambda {}).renderFunctionType(simplified = false) shouldBe "() -> kotlin.Unit"
+                ({}).renderFunctionType(simplified = false) shouldBe "Function"
             }
 
             else -> fail("untested platform")
