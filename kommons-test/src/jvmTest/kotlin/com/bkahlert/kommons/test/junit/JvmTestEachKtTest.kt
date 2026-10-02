@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.test.asList
-import com.bkahlert.kommons.test.t
 import com.bkahlert.kommons.test.testAll
 import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldThrow
@@ -61,27 +60,25 @@ class JvmTestEachKtTest {
     }
 
     @Test fun test_multiple_fails_multiple_subjects() {
-        val firstLine = 64
+        val firstLine = 63
         testEach("foo bar", "FOO BAR") {
             it shouldContain "baz"
             it shouldContain "BAZ"
         }.collectingMessagesExecute().shouldContainExactlyInAnyOrder(
             """
-
             The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 2})
+               at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 2})
             2) "foo bar" should include substring "BAZ"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 3})
+               at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 3})
 
             """.trimIndent(),
             """
-
             The following 2 assertions failed:
             1) "FOO BAR" should include substring "baz"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 2})
+               at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 2})
             2) "FOO BAR" should include substring "BAZ"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 3})
+               at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 3})
 
             """.trimIndent(),
         )

@@ -34,10 +34,11 @@ class TestAllCollectionKtTest {
             1 elements passed but expected 2
 
             The following elements passed:
-            foo bar
+              [0] foo bar
 
             The following elements failed:
-            "FOO BAR" => "FOO BAR" should include substring "foo"
+              [1] "FOO BAR" => "FOO BAR" should include substring "foo"
+
         """.trimIndent()
     }
 
@@ -51,11 +52,12 @@ class TestAllCollectionKtTest {
             0 elements passed but expected 2
 
             The following elements passed:
-            --none--
+              --none--
 
             The following elements failed:
-            "foo bar" => "foo bar" should contain the substring "baz" (case insensitive)
-            "FOO BAR" => "FOO BAR" should contain the substring "baz" (case insensitive)
+              [0] "foo bar" => "foo bar" should contain the substring "baz" (case insensitive)
+              [1] "FOO BAR" => "FOO BAR" should contain the substring "baz" (case insensitive)
+
         """.trimIndent()
     }
 
@@ -71,17 +73,15 @@ class TestAllCollectionKtTest {
             0 elements passed but expected 2
 
             The following elements passed:
-            --none--
+              --none--
 
             The following elements failed:
-            "foo bar" =>*
-            The following 2 assertions failed:
+              [0] "foo bar" => The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
             **
             2) "foo bar" should include substring "BAZ"
             **
-            "FOO BAR" =>*
-            The following 2 assertions failed:
+              [1] "FOO BAR" => The following 2 assertions failed:
             1) "FOO BAR" should include substring "baz"
             **
             2) "FOO BAR" should include substring "BAZ"
