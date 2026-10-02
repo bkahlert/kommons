@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.time
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /** Returns an Emoji representation of this value. */
 public fun Any?.asEmoji(): String = when (this) {

@@ -1,13 +1,14 @@
 package com.bkahlert.kommons.time
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.toJSDate
-import kotlinx.datetime.toKotlinInstant
+import kotlinx.datetime.number
 import kotlin.js.Date
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
+import kotlin.time.toJSDate
+import kotlin.time.toKotlinInstant
 
 /**
  * The number of milliseconds since
@@ -91,7 +92,7 @@ public inline operator fun Date.minus(other: Date): Duration = (getTime().toLong
 
 
 private val dateFormatterOptions by lazy { dateLocaleOptions { month = "long"; day = "numeric"; year = "numeric" } }
-private fun LocalDate.toJSDate() = Date(year, monthNumber - 1, dayOfMonth, 0, 0, 0, 0)
+private fun LocalDate.toJSDate() = Date(year, month.number - 1, day, 0, 0, 0, 0)
 
 /** Returns this [Instant] formatted as a local date (e.g. May 15, 1984). */
 public actual fun Instant.toLocalDateString(): String = toJSDate().toLocaleDateString(options = dateFormatterOptions)
