@@ -62,25 +62,28 @@ public object Logback {
             if (activeLogFileName == value) return
             fileAppender
                 ?.let { (it as? RollingFileAppender) }
-                ?.apply {
-                    stop()
-                    val triggeringPolicyBackup: TriggeringPolicy<*>? = triggeringPolicy.also { it.stop() }
-                    val rollingPolicyBackup: RollingPolicy? = rollingPolicy.also { it.stop() }
-                    if (rollingPolicyBackup is RollingPolicyBase) {
-                        val activeFileNameBackup: String? = rollingPolicyBackup.activeFileName
-                        val fileNamePatternBackup: String? = rollingPolicyBackup.fileNamePattern
-                        if (activeFileNameBackup != null && fileNamePatternBackup != null && value != null) {
-                            rollingPolicyBackup.fileNamePattern = fileNamePatternBackup.replace(activeFileNameBackup, value)
-                        }
-                    }
-                    triggeringPolicy = null
-                    rollingPolicy = null
-                    file = value
-                    triggeringPolicy = triggeringPolicyBackup.also { it?.start() }
-                    rollingPolicy = rollingPolicyBackup.also { it?.start() }
-                    start()
-                }
+                ?.changeFile(value)
         }
+
+    /** Stops this appender, points it at [value] keeping its policies, and starts it again. */
+    private fun <E> RollingFileAppender<E>.changeFile(value: String?) {
+        stop()
+        val triggeringPolicyBackup: TriggeringPolicy<E>? = triggeringPolicy.also { it.stop() }
+        val rollingPolicyBackup: RollingPolicy? = rollingPolicy.also { it.stop() }
+        if (rollingPolicyBackup is RollingPolicyBase) {
+            val activeFileNameBackup: String? = rollingPolicyBackup.activeFileName
+            val fileNamePatternBackup: String? = rollingPolicyBackup.fileNamePattern
+            if (activeFileNameBackup != null && fileNamePatternBackup != null && value != null) {
+                rollingPolicyBackup.fileNamePattern = fileNamePatternBackup.replace(activeFileNameBackup, value)
+            }
+        }
+        triggeringPolicy = null
+        rollingPolicy = null
+        file = value
+        triggeringPolicy = triggeringPolicyBackup.also { it?.start() }
+        rollingPolicy = rollingPolicyBackup.also { it?.start() }
+        start()
+    }
 
     /** The active log file used by the [FileAppender]. */
     public var activeLogFile: Path?
