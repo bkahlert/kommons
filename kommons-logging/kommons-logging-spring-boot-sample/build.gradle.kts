@@ -26,11 +26,11 @@ kotlin {
 tasks.withType<Test>().configureEach { useJUnitPlatform() }
 
 tasks.processResources {
-    doLast {
-        copy {
-            from(layout.projectDirectory.file("src/main/resources/banner.txt"))
-            into(layout.buildDirectory.dir("resources/main"))
-            expand("project" to project)
-        }
+    filteringCharset = "UTF-8"
+    // banner.txt reads `${project["name"]}` and `${project["version"]}`; resolved here at configuration time
+    // because the configuration cache forbids Task.project inside the filesMatching action.
+    val projectProperties = mapOf("name" to project.name, "version" to project.version.toString())
+    filesMatching("banner.txt") {
+        expand("project" to projectProperties)
     }
 }
