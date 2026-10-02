@@ -37,17 +37,12 @@ class ConfigurationMetadataIntegrationTest {
     }
 
     companion object {
-        private val METADATA_PATHS = listOf(
-            "META-INF/spring-configuration-metadata.json",
-            "META-INF/additional-spring-configuration-metadata.json",
-        )
+        private const val METADATA_PATH = "META-INF/spring-configuration-metadata.json"
 
-        /** The items of the generated and the additional metadata, which IDEs both read. */
+        /** The items of the generated metadata, into which the processor merges the additional metadata. */
         val configuredProperties: List<ItemMetadata>
-            get() = METADATA_PATHS.flatMap { path ->
-                checkNotNull(Program.contextClassLoader.getResourceAsStream(path)) { "$path not found on the test classpath" }
-                    .use { JsonMarshaller().read(it).items }
-            }
+            get() = checkNotNull(Program.contextClassLoader.getResourceAsStream(METADATA_PATH)) { "$METADATA_PATH not found on the test classpath" }
+                .use { JsonMarshaller().read(it).items }
     }
 }
 
