@@ -7,7 +7,7 @@ management:
       exposure.include: '*'
       cors.allowed-origins: '*'
   endpoint:
-    shutdown.enabled: true
+    shutdown.access: unrestricted
 
 hello-world:
   greeting: "Hey"
