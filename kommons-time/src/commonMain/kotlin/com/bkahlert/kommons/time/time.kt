@@ -1,9 +1,7 @@
 package com.bkahlert.kommons.time
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.FixedOffsetTimeZone
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.UtcOffset
@@ -11,6 +9,7 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -20,6 +19,7 @@ import kotlin.time.DurationUnit.DAYS
 import kotlin.time.DurationUnit.HOURS
 import kotlin.time.DurationUnit.MINUTES
 import kotlin.time.DurationUnit.SECONDS
+import kotlin.time.Instant
 
 /**
  * Returns a [Clock] with its [Clock.now]

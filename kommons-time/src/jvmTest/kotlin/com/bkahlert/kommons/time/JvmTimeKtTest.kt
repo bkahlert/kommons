@@ -1,10 +1,10 @@
 package com.bkahlert.kommons.time
 
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.Clock
-import kotlinx.datetime.toJavaInstant
 import org.junit.jupiter.api.Test
 import java.nio.file.attribute.FileTime
+import kotlin.time.Clock
+import kotlin.time.toJavaInstant
 
 class JvmInstantTest {
 

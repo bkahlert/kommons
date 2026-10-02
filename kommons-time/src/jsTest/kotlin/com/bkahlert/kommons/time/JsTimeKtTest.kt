@@ -5,7 +5,6 @@ import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.toKotlinInstant
 import kotlin.js.Date
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.ZERO
@@ -14,6 +13,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toKotlinInstant
 
 class JsTimeTest {
 
