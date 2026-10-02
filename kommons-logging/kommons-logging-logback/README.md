@@ -47,7 +47,7 @@ You can choose from the following presets:
 Configures the log to use the default Spring Boot logging settings:
 
 ```log
-2022-08-29 00:08:52.917  INFO   --- [ool-1-worker-18] TestLogger                               : message
+2026-10-02T21:00:00.000+02:00  INFO 12345 --- [           main] TestLogger                               : message
 ```
 
 This is the default preset for **console logging**.
