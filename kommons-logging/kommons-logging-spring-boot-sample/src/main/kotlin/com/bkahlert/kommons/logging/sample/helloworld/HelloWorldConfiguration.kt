@@ -1,7 +1,6 @@
 package com.bkahlert.kommons.logging.sample.helloworld
 
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,7 +16,6 @@ class HelloWorldConfiguration {
 }
 
 /** Configuration properties for the hello world feature. */
-@ConstructorBinding
 @ConfigurationProperties("hello-world")
 data class HelloWorldConfigurationProperties(
     /** How to greet. */
