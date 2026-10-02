@@ -6,132 +6,56 @@ on:
       version:
         description: "Version of the release"
         required: true
-        default: '2.4.0-rc.1'
+        default: '3.0.0'
       branch:
         description: "Branch to release from"
         required: true
         default: 'master'
-      java-version:
-        description: "JDK version"
-        required: true
-        default: '17'
-      java-distribution:
-        description: "JDK distribution"
-        required: true
-        default: 'temurin'
+      automatic-release:
+        description: "Publish to Maven Central as soon as the Central Portal has validated the deployment (off: publish it by hand in the Portal)"
+        type: boolean
+        default: true
 
 env:
-  RELEASE_VERSION: ${{ github.event.inputs.version }}
-  OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-  OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-  ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_signingKey }}
-  ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingPassword }}
-  GITHUB_ACTOR: ${{ github.actor }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Dfile.encoding=UTF-8 -Xmx3g -XX:MaxMetaspaceSize=756m -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError"
+  RELEASE_VERSION: ${{ inputs.version }}
+  GRADLE_OPTS: -Dorg.gradle.jvmargs="-Dfile.encoding=UTF-8 -Xmx3g -XX:MaxMetaspaceSize=756m -XX:+HeapDumpOnOutOfMemoryError"
 
 permissions:
   contents: read
 
 jobs:
-  publish-base:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.branch }}
-
-      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v6
-        with:
-          java-version: ${{ github.event.inputs.java-version }}
-          distribution: ${{ github.event.inputs.java-distribution }}
-
-      - uses: gradle/actions/setup-gradle@v6
-
-      - name: Publish Multiplatform release
-        run: ./gradlew publishKotlinMultiplatformPublicationToOSSRHRepository
-
-      - name: Publish JVM release
-        run: ./gradlew publishJvmPublicationToOSSRHRepository
-
-      - name: Publish JS release
-        run: ./gradlew publishJsPublicationToOSSRHRepository
-
-      - name: Publish BOM release
-        run: ./gradlew publishBomPublicationToOSSRHRepository
-
-  publish-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.branch }}
-
-      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v6
-        with:
-          java-version: ${{ github.event.inputs.java-version }}
-          distribution: ${{ github.event.inputs.java-distribution }}
-
-      - uses: gradle/actions/setup-gradle@v6
-
-      - name: Publish Linux x64 release
-        run: ./gradlew publishLinuxX64PublicationToOSSRHRepository
-
-  publish-mac:
+  publish:
+    # One host publishes every target: Kotlin/Native cross-compiles all of them from macOS,
+    # and the Central Portal rejects a release whose coordinates arrive in more than one deployment.
     runs-on: macos-latest
-    strategy:
-      max-parallel: 6
-      matrix:
-        target:
-          - publishMacosArm64PublicationToOSSRHRepository
-          - publishMacosX64PublicationToOSSRHRepository
+    env:
+      # GitHub stores secret names uppercased; Gradle's ORG_GRADLE_PROJECT_<property> mapping is case-sensitive.
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_MAVENCENTRALUSERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_MAVENCENTRALPASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYID }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ inputs.branch }}
 
-      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
+      - name: Set up JDK 17
         uses: actions/setup-java@v6
         with:
-          java-version: ${{ github.event.inputs.java-version }}
-          distribution: ${{ github.event.inputs.java-distribution }}
+          java-version: 17
+          distribution: temurin
 
-      - uses: gradle/actions/setup-gradle@v6
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
 
-      - name: Publish
-        run: ./gradlew ${{ matrix.target }}
-
-  publish-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.branch }}
-
-      - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v6
-        with:
-          java-version: ${{ github.event.inputs.java-version }}
-          distribution: ${{ github.event.inputs.java-distribution }}
-
-      - uses: gradle/actions/setup-gradle@v6
-
-      - name: Publish MinGW x64 release
-        run: ./gradlew publishMingwX64PublicationToOSSRHRepository
-
+      - name: Publish to the Central Portal
+        run: ./gradlew publishToMavenCentral -PmavenCentralAutomaticPublishing=${{ inputs.automatic-release }}
 
   release-draft:
-    needs: [publish-base,publish-linux,publish-mac,publish-windows]
+    needs: [publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -141,26 +65,32 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ inputs.branch }}
 
       - name: Draft release
         uses: softprops/action-gh-release@v3
         with:
           draft: true
           body_path: CHANGELOG.md
-          name: v${{ github.event.inputs.version }}
-          tag_name: v${{ github.event.inputs.version }}
+          name: v${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print summary
+        env:
+          AUTOMATIC_RELEASE: ${{ inputs.automatic-release }}
         run: |
-          echo "## Release ${RELEASE_VERSION} prepared :rocket:" >> $GITHUB_STEP_SUMMARY
-          echo "To finish the release:" >> $GITHUB_STEP_SUMMARY
-          echo "- Go to [oss.sonatype.org](https://oss.sonatype.org/#stagingRepositories)" >> $GITHUB_STEP_SUMMARY
-          echo "  - Close all repositories belonging to this release" >> $GITHUB_STEP_SUMMARY
-          echo "  - Wait and refresh" >> $GITHUB_STEP_SUMMARY
-          echo "  - Release the closed repositories" >> $GITHUB_STEP_SUMMARY
-          echo "- Go to [releases](https://github.com/bkahlert/kommons/releases)" >> $GITHUB_STEP_SUMMARY
-          echo "  - Find the draft for this release" >> $GITHUB_STEP_SUMMARY
-          echo "  - Edit it and cleanup the release notes" >> $GITHUB_STEP_SUMMARY
-          echo "  - Hit \"Publish release\"" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Release ${RELEASE_VERSION} prepared :rocket:"
+            echo "To finish the release:"
+            echo "- Go to the [Central Portal deployments](https://central.sonatype.com/publishing/deployments); the deployment id is in the log of the publish job"
+            if [ "${AUTOMATIC_RELEASE}" = "true" ]; then
+              echo "  - The deployment is published once validated; Maven Central shows it 10 to 30 minutes later"
+            else
+              echo "  - Check the validated deployment and hit \"Publish\""
+            fi
+            echo "- Go to [releases](https://github.com/bkahlert/kommons/releases)"
+            echo "  - Find the draft for this release"
+            echo "  - Edit it and clean up the release notes"
+            echo "  - Hit \"Publish release\""
+          } >> "$GITHUB_STEP_SUMMARY"
