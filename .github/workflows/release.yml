@@ -12,7 +12,8 @@ on:
         required: true
         default: 'master'
       automatic-release:
-        description: "Publish to Maven Central as soon as the Central Portal has validated the deployment (off: publish it by hand in the Portal)"
+        # Shown as the checkbox label; RELEASING.md explains the alternative.
+        description: "Publish to Maven Central automatically"
         type: boolean
         default: true
 
