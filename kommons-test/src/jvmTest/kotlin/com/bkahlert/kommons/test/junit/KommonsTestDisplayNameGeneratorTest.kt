@@ -18,24 +18,28 @@ class KommonsTestDisplayNameGeneratorTest {
     }
 
     @Test fun generate_display_name_for_nested_class() = testAll {
-        generator.generateDisplayNameForNestedClass(OuterClass.NestedClass::class.java)
+        generator.generateDisplayNameForNestedClass(listOf(OuterClass::class.java), OuterClass.NestedClass::class.java)
             .shouldBe("nested class")
     }
 
     @Test fun generate_display_name_for_method() = testAll {
         generator.generateDisplayNameForMethod(
+            emptyList(),
             OuterClass::class.java,
             checkNotNull(OuterClass::method.javaMethod),
         ).shouldBe("method")
         generator.generateDisplayNameForMethod(
+            emptyList(),
             OuterClass::class.java,
             checkNotNull(OuterClass::methodWithParameters.javaMethod),
         ).shouldBe("methodWithParameters")
         generator.generateDisplayNameForMethod(
+            listOf(OuterClass::class.java),
             OuterClass.NestedClass::class.java,
             checkNotNull(OuterClass.NestedClass::method.javaMethod),
         ).shouldBe("method")
         generator.generateDisplayNameForMethod(
+            listOf(OuterClass::class.java),
             OuterClass.NestedClass::class.java,
             checkNotNull(OuterClass.NestedClass::methodWithParameters.javaMethod),
         ).shouldBe("methodWithParameters")

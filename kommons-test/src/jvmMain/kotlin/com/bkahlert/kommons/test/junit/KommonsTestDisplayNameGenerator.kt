@@ -11,11 +11,11 @@ import java.lang.reflect.Method
  */
 public class KommonsTestDisplayNameGenerator : DisplayNameGenerator.ReplaceUnderscores() {
 
-    /** Generates a display name for the given [nestedClass]. */
-    override fun generateDisplayNameForNestedClass(nestedClass: Class<*>?): String =
-        super.generateDisplayNameForNestedClass(nestedClass).toTitleCasedString().lowercase()
+    /** Generates a display name for the given [nestedClass] enclosed by the given [enclosingInstanceTypes]. */
+    override fun generateDisplayNameForNestedClass(enclosingInstanceTypes: List<Class<*>>, nestedClass: Class<*>): String =
+        super.generateDisplayNameForNestedClass(enclosingInstanceTypes, nestedClass).toTitleCasedString().lowercase()
 
-    /** Generates a display name for the given [testMethod] and the given [testClass] [testMethod] is invoked on. */
-    override fun generateDisplayNameForMethod(testClass: Class<*>, testMethod: Method): String =
-        super.generateDisplayNameForMethod(testClass, testMethod).substringBefore("(").trimEnd()
+    /** Generates a display name for the given [testMethod] of the given [testClass] enclosed by the given [enclosingInstanceTypes]. */
+    override fun generateDisplayNameForMethod(enclosingInstanceTypes: List<Class<*>>, testClass: Class<*>, testMethod: Method): String =
+        super.generateDisplayNameForMethod(enclosingInstanceTypes, testClass, testMethod).substringBefore("(").trimEnd()
 }
