@@ -75,7 +75,7 @@ fun buildSpringProperties(block: SpringPropertiesScope.() -> Unit): Map<String, 
 
 /** Adds the properties built using the specified [block] to the environment. */
 fun SpringApplicationBuilder.properties(block: SpringPropertiesScope.() -> Unit): SpringApplicationBuilder =
-    properties(buildSpringProperties(block))
+    properties(buildSpringProperties(block).mapNotNull { (key, value) -> value?.let { key to it } }.toMap())
 
 /**
  * Create an application context (and its parent if specified) with the specified command line [args],
