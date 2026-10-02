@@ -40,7 +40,8 @@ jobs:
 
           - { os: ubuntu-latest, target: js }
 
-          - { os: ubuntu-latest, target: linuxX64 }
+          # linuxArm64 has no CI host; the linuxX64 job cross-compiles and links its test binaries without running them.
+          - { os: ubuntu-latest, target: linuxX64, extra-tasks: linuxArm64TestBinaries }
           - { os: windows-latest, target: mingwX64 }
           - { os: macos-latest, target: macosArm64 }
 
@@ -70,6 +71,7 @@ jobs:
           -x :kommons-logging:kommons-logging-logback:jvmTest
           -x :kommons-logging:kommons-logging-spring-boot:jvmTest
           -x :kommons-logging:kommons-logging-spring-boot-sample:test
+          ${{ matrix.extra-tasks || '' }}
           ${{ matrix.test-jdk && format('-PtestJdk={0}', matrix.test-jdk) || '' }}
           -Pkotlin.tests.individualTaskReports=true
           ${{ github.event.inputs.additional-gradle-args }}
