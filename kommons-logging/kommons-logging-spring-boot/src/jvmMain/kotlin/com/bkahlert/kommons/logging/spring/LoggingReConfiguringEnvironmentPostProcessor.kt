@@ -5,9 +5,9 @@ import com.bkahlert.kommons.logging.LoggingSystemProperties
 import com.bkahlert.kommons.logging.logback.Logback
 import com.bkahlert.kommons.logging.logback.StatusLogger
 import com.bkahlert.kommons.logging.spring.LoggingReConfiguringEnvironmentPostProcessor.Companion
+import org.springframework.boot.EnvironmentPostProcessor
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.context.logging.LoggingApplicationListener
-import org.springframework.boot.env.EnvironmentPostProcessor
 import org.springframework.boot.logging.LogFile
 import org.springframework.core.annotation.Order
 import org.springframework.core.env.ConfigurableEnvironment
