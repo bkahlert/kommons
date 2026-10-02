@@ -8,8 +8,8 @@ import io.ktor.http.quote
 import io.ktor.http.withCharset
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.encodeBase64
-import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.forName
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.serialization.Serializable
 
@@ -93,7 +93,7 @@ public data class DataUri(
          * as specified in [RFC2397 section 2](https://www.rfc-editor.org/rfc/rfc2397#section-2).
          */
         public val DEFAULT_MEDIA_TYPE: ContentType = ContentType.Text.Plain.withCharset(kotlin.runCatching {
-            Charset.forName("US-ASCII") // Surprisingly, not supported in Ktor/JS ...
+            Charsets.forName("US-ASCII") // Surprisingly, not supported in Ktor/JS ...
         }.getOrDefault(Charsets.UTF_8))
 
         /**
