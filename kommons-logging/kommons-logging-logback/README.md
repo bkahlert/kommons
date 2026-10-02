@@ -66,7 +66,7 @@ Configures the log to use the JSON format:
 
 ```json
 {
-  "@timestamp": "2022-08-29T00:08:52.917+02:00",
+  "@timestamp": "2022-08-29T00:08:52.917345+02:00",
   "level": "INFO",
   "thread_name": "ForkJoinPool-1-worker-18",
   "logger_name": "TestLogger",
@@ -115,7 +115,7 @@ logger.info("Successfully created {}", createdObjects)
 
 ```json
 {
-  "@timestamp": "2022-12-14T14:41:42.777+01:00",
+  "@timestamp": "2022-12-14T14:41:42.777123+01:00",
   "level": "INFO",
   "message": "Successfully created [FooBar(foo=1, bar=baz), FooBar(foo=2, bar=baz)]"
 }
@@ -130,7 +130,7 @@ logger.info("Successfully created {}", StructuredArguments.objects("objects", cr
 
 ```json
 {
-  "@timestamp": "2022-12-14T14:41:42.778+01:00",
+  "@timestamp": "2022-12-14T14:41:42.778456+01:00",
   "level": "INFO",
   "message": "Successfully created objects=[FooBar(foo=1, bar=baz), FooBar(foo=2, bar=baz)]",
   "objects": [
@@ -155,7 +155,7 @@ logger.info("Successfully created {}", StructuredArguments.objects(createdObject
 
 ```json
 {
-  "@timestamp": "2022-12-14T14:51:57.583+01:00",
+  "@timestamp": "2022-12-14T14:51:57.583789+01:00",
   "level": "INFO",
   "message": "Successfully created foo-bars=[foo-1, foo-2]",
   "foo-bars": [
