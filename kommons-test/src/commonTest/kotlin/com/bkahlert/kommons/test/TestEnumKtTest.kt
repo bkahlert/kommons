@@ -34,10 +34,11 @@ class TestEnumKtTest {
             1 elements passed but expected 2
 
             The following elements passed:
-            foo_bar
+              [0] foo_bar
 
             The following elements failed:
-            FOO_BAR => "FOO_BAR" should include substring "foo"
+              [1] FOO_BAR => "FOO_BAR" should include substring "foo"
+
         """.trimIndent()
     }
 
@@ -51,11 +52,12 @@ class TestEnumKtTest {
             0 elements passed but expected 2
 
             The following elements passed:
-            --none--
+              --none--
 
             The following elements failed:
-            foo_bar => "foo_bar" should contain the substring "baz" (case insensitive)
-            FOO_BAR => "FOO_BAR" should contain the substring "baz" (case insensitive)
+              [0] foo_bar => "foo_bar" should contain the substring "baz" (case insensitive)
+              [1] FOO_BAR => "FOO_BAR" should contain the substring "baz" (case insensitive)
+
         """.trimIndent()
     }
 
@@ -71,17 +73,15 @@ class TestEnumKtTest {
             0 elements passed but expected 2
 
             The following elements passed:
-            --none--
+              --none--
 
             The following elements failed:
-            foo_bar =>*
-            The following 2 assertions failed:
+              [0] foo_bar => The following 2 assertions failed:
             1) "foo_bar" should include substring "baz"
             **
             2) "foo_bar" should include substring "BAZ"
             **
-            FOO_BAR =>*
-            The following 2 assertions failed:
+              [1] FOO_BAR => The following 2 assertions failed:
             1) "FOO_BAR" should include substring "baz"
             **
             2) "FOO_BAR" should include substring "BAZ"

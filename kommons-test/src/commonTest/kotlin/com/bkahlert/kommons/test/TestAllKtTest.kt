@@ -37,7 +37,6 @@ class TestAllKtTest {
                 "foo bar" shouldContain "FOO"
             }
         }.message shouldMatchGlob """
-
             The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
             **

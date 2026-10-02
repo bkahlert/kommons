@@ -5,6 +5,7 @@ import com.bkahlert.kommons.ansiRemoved
 import io.kotest.matchers.string.shouldMatch
 import org.junit.jupiter.api.Test
 import org.junit.platform.engine.ConfigurationParameters
+import org.junit.platform.engine.OutputDirectoryCreator
 import org.junit.platform.engine.TestDescriptor
 import org.junit.platform.engine.TestDescriptor.Type
 import org.junit.platform.engine.TestExecutionResult
@@ -13,6 +14,7 @@ import org.junit.platform.engine.TestTag
 import org.junit.platform.engine.UniqueId
 import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
+import java.nio.file.Path
 import java.util.Optional
 
 class TestExecutionReporterTest {
@@ -85,7 +87,8 @@ private fun testExecutionReporterOutput(
     skipped: Int,
     sanitize: Boolean = true,
 ): String {
-    val testPlan = TestPlan.from(emptyList(), configurationParameters())
+    val containsTests = passed + failed + aborted + skipped > 0
+    val testPlan = TestPlan.from(containsTests, emptyList(), configurationParameters(), outputDirectoryCreator())
     val lines = mutableListOf<String>()
     TestExecutionReporter { lines.add(it) }.apply {
         testPlanExecutionStarted(testPlan)
@@ -120,6 +123,12 @@ private fun configurationParameters(vararg entries: Pair<String?, String>) =
         @Deprecated("use keySet", ReplaceWith("keySet.size()"))
         override fun size(): Int = entries.size
         override fun keySet(): MutableSet<String> = entries.mapNotNull { it.first }.toMutableSet()
+    }
+
+private fun outputDirectoryCreator(): OutputDirectoryCreator =
+    object : OutputDirectoryCreator {
+        override fun getRootDirectory(): Path = throw RuntimeException("not implemented")
+        override fun createOutputDirectory(testDescriptor: TestDescriptor): Path = throw RuntimeException("not implemented")
     }
 
 private fun testIdentifier(testDescriptor: TestDescriptor = testDescriptor()): TestIdentifier =
