@@ -31,7 +31,8 @@ private inline fun caller(vararg callers: String): String? {
 //        ?.also { println("CANDIDATE---\n$it\n------") }
         ?.split('.', ' ', limit = 2)
         ?.first()
-        ?.replace(Regex("(.*_kt)_[a-z0-9]+(?:@.*)?$")) {
+        // `init_properties_fixtures_kt_abc123` (K1) and `_init_properties_fixtures_kt__v9exze` (K2) → `init_properties_fixtures_kt`
+        ?.replace(Regex("^_?(.*_kt)_+[a-z0-9]+(?:@.*)?$")) {
             it.groupValues[1]
         }
 }
