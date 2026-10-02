@@ -1,9 +1,9 @@
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.dokka.gradle.tasks.DokkaGenerateTask
 
 plugins {
     signing
     id("maven-publish")
-    id("nebula.release")
+    id("com.netflix.nebula.release")
 }
 
 val isSnapshot = version.toString().endsWith("-SNAPSHOT")
@@ -13,7 +13,7 @@ if (isSnapshot) {
         logger.info("Disabling task $name")
         enabled = false
     }
-    tasks.withType<DokkaTask>().configureEach {
+    tasks.withType<DokkaGenerateTask>().configureEach {
         logger.info("Disabling task $name")
         enabled = false
     }
@@ -22,17 +22,11 @@ if (isSnapshot) {
 val releaseVersion: String? = System.getenv("RELEASE_VERSION")
 if (releaseVersion != null) version = releaseVersion
 
-val dokkaPlugin by configurations
-dependencies { dokkaPlugin("org.jetbrains.dokka:versioning-plugin:1.7.10") }
-
-val javadocJar by tasks.registering(Jar::class) {
+val javadocJar = tasks.register<Jar>("javadocJar") {
     description = "Generates a JavaDoc JAR using Dokka"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     archiveClassifier.set("javadoc")
-    tasks.named<DokkaTask>("dokkaHtml").also { dokkaHtml ->
-        dependsOn(dokkaHtml)
-        from(dokkaHtml.get().outputDirectory)
-    }
+    from(tasks.named("dokkaGeneratePublicationHtml"))
 }
 
 val publications: PublicationContainer = (extensions.getByName("publishing") as PublishingExtension).publications
@@ -71,7 +65,7 @@ publishing {
 
     publications.withType<MavenPublication>().configureEach {
         pom {
-            name.set(project.name.split("-").joinToString(" ") { it.capitalize() })
+            name.set(project.name.split("-").joinToString(" ") { word -> word.replaceFirstChar { it.uppercase() } })
             // needed as subprojects aren't yet evaluated, see https://docs.gradle.org/current/userguide/publishing_maven.html
             // otherwise description of Kotlin Multiplatform publication stays empty, and repo gets refused by Maven Central
             afterEvaluate { pom.description.set(description) }
@@ -114,8 +108,8 @@ publishing {
 }
 
 signing {
-    val signingKey: String? by project
-    val signingPassword: String? by project
+    val signingKey: String? = providers.gradleProperty("signingKey").orNull
+    val signingPassword: String? = providers.gradleProperty("signingPassword").orNull
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign(publishing.publications)
 }

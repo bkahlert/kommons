@@ -1,4 +1,4 @@
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import com.bkahlert.kommons.gradle.jvmBytecodeTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
@@ -7,40 +7,37 @@ plugins {
 
 description = "Spring Boot auto-configuration for Kommons Logging: Logback"
 
+jvmBytecodeTarget(17)
+
+val springBootVersion = libs.versions.spring.boot.get()
+
 kotlin {
 
     jvm {
         apply(plugin = "org.jetbrains.kotlin.kapt")
     }
 
-    @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val springBootVersion = libs.versions.spring.boot.get()
+        jvmMain.dependencies {
+            configurations["kapt"].dependencies.add(
+                project.dependencies.create("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion")
+            )
 
-        val jvmMain by getting {
-            dependencies {
-                configurations["kapt"].dependencies.add(
-                    DefaultExternalModuleDependency("org.springframework.boot", "spring-boot-configuration-processor", springBootVersion)
-                )
+            api(project(":kommons-core"))
+            api(project(":kommons-io"))
+            api(project(":kommons-logging:kommons-logging-core"))
+            api(project(":kommons-logging:kommons-logging-logback"))
+            api(project(":kommons-text"))
 
-                api(project(":kommons-core"))
-                api(project(":kommons-io"))
-                api(project(":kommons-logging:kommons-logging-core"))
-                api(project(":kommons-logging:kommons-logging-logback"))
-                api(project(":kommons-text"))
+            implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
 
-                implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
-
-                // resolves 'warning: unknown enum constant When.MAYBE'
-                compileOnly(libs.jsr305)
-            }
+            // resolves 'warning: unknown enum constant When.MAYBE'
+            compileOnly(libs.jsr305)
         }
-        val jvmTest by getting {
-            dependencies {
-                implementation("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion") // configuration metadata testing
-                implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion") { because("LogFileWebEndpoint testing") }
-                implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
-            }
+        jvmTest.dependencies {
+            implementation("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion") // configuration metadata testing
+            implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion") { because("LogFileWebEndpoint testing") }
+            implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
         }
     }
 }
@@ -48,5 +45,5 @@ kotlin {
 tasks {
     // makes sure an eventually existing additional-spring-configuration-metadata.json is copied to resources,
     // see https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/configuration-metadata.html
-    withType<KotlinJvmCompile>().configureEach { @Suppress("UnstableApiUsage") inputs.files(withType<ProcessResources>()) }
+    withType<KotlinJvmCompile>().configureEach { inputs.files(withType<ProcessResources>()) }
 }

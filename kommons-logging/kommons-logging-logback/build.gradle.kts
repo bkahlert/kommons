@@ -1,56 +1,42 @@
+import com.bkahlert.kommons.gradle.jvmBytecodeTarget
+
 plugins {
     id("kommons-multiplatform-jvm-library-conventions")
 }
 
 description = "Kommons Logging Logback is a Kotlin Library for configuring Logback with nothing but system properties, and provides support for JSON"
 
+// depends on the spring-boot jar (ColorConverter), which is Java 17 bytecode
+jvmBytecodeTarget(17)
+
+val springBootVersion = libs.versions.spring.boot.get()
+
 kotlin {
-
-    @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val springBootVersion = libs.versions.spring.boot.get()
-
-        val jvmMain by getting {
-            dependencies {
-                api(project(":kommons-core"))
-                api(project(":kommons-io"))
-                api(project(":kommons-text"))
-                api(project(":kommons-logging:kommons-logging-core"))
-                implementation("org.springframework.boot:spring-boot:$springBootVersion") { because("ColorConverter") }
-                api(libs.logback.classic)
-                api(libs.logstash.logback.encoder)
-            }
+        jvmMain.dependencies {
+            api(project(":kommons-core"))
+            api(project(":kommons-io"))
+            api(project(":kommons-text"))
+            api(project(":kommons-logging:kommons-logging-core"))
+            implementation("org.springframework.boot:spring-boot:$springBootVersion") { because("ColorConverter") }
+            api(libs.logback.classic)
+            api(libs.logstash.logback.encoder)
         }
-        val jvmTest by getting {
-            dependencies {
-                implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
-            }
+        jvmTest.dependencies {
+            implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
         }
     }
 }
 
-tasks {
-    val buildLogbackAppenders by registering {
-        group = "build"
-        doLast {
-            copy {
-                val loggingDirectory = "com/bkahlert/kommons/logging/logback"
-                val source = layout.projectDirectory.dir("src/jvmMain/resources/$loggingDirectory")
-                val sourceIncludes = source.dir("includes")
-                val templatedAppenders = source.dir("appenders")
-                val builtAppenders = layout.buildDirectory.dir("processedResources/jvm/main/$loggingDirectory/appenders")
+// The appender XML files are templates that embed the files from `includes/` via `${includes["<name>"]}`.
+val loggingDirectory = "com/bkahlert/kommons/logging/logback"
+val includes: Map<String, String> = layout.projectDirectory.dir("src/jvmMain/resources/$loggingDirectory/includes").asFile
+    .listFiles { file -> file.extension == "xml" }.orEmpty()
+    .associate { it.nameWithoutExtension to it.readText() }
 
-                from(templatedAppenders)
-                into(builtAppenders)
-                expand("includes" to checkNotNull(sourceIncludes.asFile.listFiles()).associate {
-                    it.name.removeSuffix(".xml") to it.readText()
-                })
-            }
-        }
-    }
-
-    @Suppress("UnstableApiUsage")
-    withType<ProcessResources>().configureEach {
-        finalizedBy(buildLogbackAppenders)
+tasks.named<ProcessResources>("jvmProcessResources") {
+    filteringCharset = "UTF-8"
+    filesMatching("$loggingDirectory/appenders/*.xml") {
+        expand("includes" to includes)
     }
 }

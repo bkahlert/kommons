@@ -5,21 +5,15 @@ plugins {
 description = "Kommons Debug is a Kotlin Multiplatform Library for print debugging."
 
 kotlin {
-
-    @Suppress("UNUSED_VARIABLE")
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                api(project(":kommons-core"))
-                api(project(":kommons-text"))
-            }
+        commonMain.dependencies {
+            api(project(":kommons-core"))
+            api(project(":kommons-text"))
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(project(":kommons-test"))
-            }
+        commonTest.dependencies {
+            implementation(project(":kommons-test"))
         }
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 api(kotlin("reflect"))
                 api(libs.slf4j.api)
@@ -28,10 +22,8 @@ kotlin {
 
             languageSettings.optIn("kotlin.reflect.jvm.ExperimentalReflectionOnLambdas")
         }
-        val jvmTest by getting {
-            dependencies {
-                implementation(libs.slf4j.simple)
-            }
+        jvmTest.dependencies {
+            implementation(libs.slf4j.simple)
         }
     }
 }
