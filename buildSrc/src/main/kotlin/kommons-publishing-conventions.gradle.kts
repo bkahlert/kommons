@@ -27,7 +27,8 @@ if (isSnapshot) {
 
 mavenPublishing {
     // Automatic release and deployment validation follow the mavenCentralAutomaticPublishing and
-    // mavenCentralDeploymentValidation Gradle properties, set in gradle.properties and overridable with -P.
+    // mavenCentralDeploymentValidation Gradle properties. The release workflow passes the first; a publish from a
+    // developer machine keeps the plugin's default and leaves the deployment to be released by hand in the Portal.
     publishToMavenCentral()
     signAllPublications()
 
