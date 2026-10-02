@@ -30,7 +30,7 @@ open http://localhost:8080/actuator/logfile
 If you want to use this module as the starting point for a microservice of your own:
 
 1. Make a copy of [kommons-logging/kommons-logging-spring-boot-sample](.)
-2. In [build.gradle.kts](build.gradle.kts) replace the project dependencies with `implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:<version>")` and `testImplementation("com.bkahlert.kommons:kommons-test:<version>")`.
+2. In [build.gradle.kts](build.gradle.kts) replace the project dependencies with `implementation("com.bkahlert.kommons:kommons-logging-spring-boot-starter:<version>")` and `testImplementation("com.bkahlert.kommons:kommons-test:<version>")`. Drop the `kommons-test-jdk-conventions` plugin and replace the `libs.*` catalog aliases with explicit plugin ids and coordinates.
 
 More information can be found on [Kommons Logging: Spring Boot](../kommons-logging-spring-boot)
 and [spring.io/guides/gs/spring-boot](https://spring.io/guides/gs/spring-boot/).
