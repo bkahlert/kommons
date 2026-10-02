@@ -55,21 +55,10 @@ The project is structured as follows:
 
 ### Releasing
 
-Releases are published to Maven Central through the [Central Portal](https://central.sonatype.com/) by the
-[release workflow](.github/workflows/release.yml): open *Actions → release → Run workflow*, enter the version (for
-example `3.0.0`) and the branch. One macOS job builds, signs and uploads every module as a single deployment; a second
-job drafts the GitHub release with [CHANGELOG.md](CHANGELOG.md) as its body.
-
-- *Publish automatically* (the default) releases the deployment as soon as the Portal has validated it. Switch it off to
-  inspect the deployment first; it then waits under [Deployments](https://central.sonatype.com/publishing/deployments)
-  until you hit *Publish*. The deployment id is in the log of the publish job.
-- Published artifacts show up on Maven Central 10 to 30 minutes later. Clean up the drafted release notes and publish the
-  GitHub release.
-
-`./gradlew publishToMavenLocal` builds the same artifacts into `~/.m2/repository`. Versions other than `-SNAPSHOT` are
-signed, which needs the `signingInMemoryKey`, `signingInMemoryKeyId` and `signingInMemoryKeyPassword` Gradle properties,
-for example as `ORG_GRADLE_PROJECT_*` environment variables; see the
-[plugin documentation](https://vanniktech.github.io/gradle-maven-publish-plugin/central/#secrets).
+A release is made by the [release workflow](.github/workflows/release.yml) (*Actions → release → Run workflow*, with
+the version and the branch): one macOS job builds, signs and uploads every module to the
+[Central Portal](https://central.sonatype.com/publishing/deployments) as a single deployment, and a second job drafts
+the GitHub release. [RELEASING.md](RELEASING.md) has the details, including publishing to Maven Local.
 
 ## Contributing
 
