@@ -58,6 +58,13 @@ public fun StackTrace.Companion.demangleFunction(function: String): String =
 public val StackTraceElement.demangledFunction: String?
     get() = StackTrace.demangleFunction(methodName)
 
+/**
+ * Whether this element is the body of a lambda:
+ * `invoke` of a lambda class, or a `<function>$lambda$N` method generated for an invokedynamic lambda (Kotlin 2.0+).
+ */
+private val StackTraceElement.isLambdaBody: Boolean
+    get() = methodName == "invoke" || methodName.contains("\$lambda\$")
+
 
 /** The [Class] containing the execution point represented by this element. */
 public val StackTraceElement.`class`: Class<*> get() = Class.forName(className)
@@ -81,7 +88,7 @@ public fun StackTrace.findByLastKnownCallsOrNull(vararg functions: Pair<String?,
             skipInvoke = true
             true
         } else {
-            if (skipInvoke) it.methodName == "invoke" else false
+            if (skipInvoke) it.isLambdaBody else false
         }
     }
 }
@@ -113,7 +120,7 @@ public fun StackTrace.findByLastKnownCallsOrNull(vararg functions: String): Stac
             skipInvoke = true
             true
         } else {
-            if (skipInvoke) it.methodName == "invoke" else false
+            if (skipInvoke) it.isLambdaBody else false
         }
     }
 }
