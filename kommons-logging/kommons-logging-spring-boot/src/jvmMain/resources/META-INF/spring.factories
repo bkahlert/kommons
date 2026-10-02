@@ -1,4 +1,2 @@
-org.springframework.boot.env.EnvironmentPostProcessor=\
+org.springframework.boot.EnvironmentPostProcessor=\
 com.bkahlert.kommons.logging.spring.LoggingReConfiguringEnvironmentPostProcessor
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.bkahlert.kommons.logging.spring.LoggingConfiguration
