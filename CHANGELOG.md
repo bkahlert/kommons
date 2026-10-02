@@ -13,6 +13,56 @@
 ### Fixed
 
 
+## [3.0.0] - 2026-10-03
+
+Kommons 3.0 moves the build, the dependencies and the publishing to current versions. The library API changes in two
+places, kommons-time's `Instant`/`Clock` and kommons-logging-core's `KotlinLogging` package; everything else is a
+dependency or platform floor change. Consumers on Spring Boot 2.x or on SLF4J 1.7 cannot upgrade without moving
+first; see "Changed".
+
+### Changed
+
+- JVM bytecode floors: Java 8 for all libraries, Java 11 for kommons-uri (as before), Java 17 for the Spring stack
+  (kommons-logging-logback, kommons-logging-spring-boot, kommons-logging-spring-boot-starter).
+- kommons-time: `Instant` and `Clock` are `kotlin.time.Instant` and `kotlin.time.Clock` (kotlinx-datetime 0.8).
+  `InstantAsEpochMillisecondsSerializer`, `InstantAsEpochSecondsSerializer` and the `Clock.Companion` extensions target
+  them; `dayOfMonth`/`monthNumber` become `day`/`month.number`.
+- kommons-logging-core: the `by KotlinLogging` delegate comes from `io.github.oshai.kotlinlogging` (kotlin-logging 8,
+  lambda-only API) instead of `mu`.
+- SLF4J 2.0.20: consumers need an SLF4J 2 provider, that is Logback 1.3 or later. Logback 1.2 binds to the NOP logger,
+  and Spring Boot 2.7 fails on `StaticLoggerBinder`.
+- The Spring stack requires Spring Boot 4.1 (Spring Framework 7) and Java 17. The auto-configuration is registered
+  through `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` and the environment
+  post-processor through the `org.springframework.boot.EnvironmentPostProcessor` key, so a Spring Boot 2.x application
+  gets neither: no error, Boot's default logging instead of the presets and the JSON file.
+- kommons-logging-logback's JSON preset uses logstash-logback-encoder 9 on Jackson 3 (package `tools.jackson`) and
+  Logback 1.5. Custom `StructuredArgument` implementations port `writeTo` to `tools.jackson.core.JsonGenerator`; JSON
+  `@timestamp` values carry microseconds. `Logback.clearSystemProperties()` clears Spring Boot 4's
+  `LoggingSystemProperty` and `RollingPolicySystemProperty` names. The spring console preset follows Boot 4's layout
+  (ISO-8601 timestamp with offset, application name in brackets when set).
+- kommons-test: `KommonsTestDisplayNameGenerator` needs JUnit 5.12 or later. kommons-test is tested on JUnit 5.14 and
+  exercised on JUnit 6 by the Spring modules' test suites.
+- kommons-text (native) and kommons-kaomoji: Mordant 3.1 as an `api` dependency (from 2.0.0-beta9). On the JVM Mordant 3
+  brings `mordant-jvm-jna` (JNA 5.19.1), `mordant-jvm-ffm` and `mordant-jvm-graal-ffi`.
+- kommons-debug: Kotlin 2 compiles lambdas through `invokedynamic`, so un-annotated lambdas render as `Function`.
+- kommons-logging-core on Kotlin/JS: in Firefox a logger delegated inside a method is named `<global>` (Firefox cannot
+  name Kotlin 2 methods; V8 still yields the class).
+- Native targets: linuxArm64 added (cross-compiled, not run in CI). macosX64 is deprecated by Kotlin/Native and stays
+  published without tests.
+- Publishing: Maven Central through the Central Portal, from one macOS job of the release workflow.
+- Build: Gradle 9.7, Kotlin 2.4.20, Dokka 2.2, JDK 17 toolchain compiling down to the floors above.
+- Dependencies: kotlinx-datetime 0.8.0, kotlinx-serialization 1.11.0, Ktor 3.6.0, Mordant 3.1.0, kotlin-logging 8.0.4,
+  SLF4J 2.0.20, Logback 1.5.38 (Spring Boot managed), logstash-logback-encoder 9.0, Spring Boot 4.1.1, JUnit 5.14.4,
+  Kotest 5.9.1, ICU4J 77.1, plexus-utils 3.6.2, npm xregexp 5.1.3 and @stdlib/string-next-grapheme-cluster-break 0.2.3.
+
+### Removed
+
+- GitHub Packages publishing.
+- `kotest-common` as a direct dependency of kommons-test (Kotest's assertion modules still pull it in).
+- `io.spring.dependency-management` from the Spring modules' builds; Gradle's `platform(...)` manages the Spring Boot
+  BOM.
+
+
 ## [2.8.0] - 2023-03-05
 
 ### Added
@@ -191,26 +241,28 @@ logger.info("Successfully created {}", array(Bar(1), Bar(2)))
 - migrated Kommons Test 0.x.x to this Gradle multi-project
     - [Kommons Test 0.x.x Changelog](https://github.com/bkahlert/kommons-test/compare/v0.1.0...v0.4.4)
 
-[unreleased]: https://github.com/bkahlert/kommons-test/compare/v2.8.0...HEAD
+[unreleased]: https://github.com/bkahlert/kommons/compare/v3.0.0...HEAD
 
-[2.7.0]: https://github.com/bkahlert/kommons-test/compare/v2.7.0...v2.8.0
+[3.0.0]: https://github.com/bkahlert/kommons/compare/v2.8.0...v3.0.0
 
-[2.7.0]: https://github.com/bkahlert/kommons-test/compare/v2.6.0...v2.7.0
+[2.8.0]: https://github.com/bkahlert/kommons/compare/v2.7.0...v2.8.0
 
-[2.6.0]: https://github.com/bkahlert/kommons-test/compare/v2.5.0...v2.6.0
+[2.7.0]: https://github.com/bkahlert/kommons/compare/v2.6.0...v2.7.0
 
-[2.5.0]: https://github.com/bkahlert/kommons-test/compare/v2.4.1...v2.5.0
+[2.6.0]: https://github.com/bkahlert/kommons/compare/v2.5.0...v2.6.0
 
-[2.4.1]: https://github.com/bkahlert/kommons-test/compare/v2.4.0...v2.4.1
+[2.5.0]: https://github.com/bkahlert/kommons/compare/v2.4.1...v2.5.0
 
-[2.4.0]: https://github.com/bkahlert/kommons-test/compare/v2.3.1...v2.4.0
+[2.4.1]: https://github.com/bkahlert/kommons/compare/v2.4.0...v2.4.1
 
-[2.3.1]: https://github.com/bkahlert/kommons-test/compare/v2.3.0...v2.3.1
+[2.4.0]: https://github.com/bkahlert/kommons/compare/v2.3.1...v2.4.0
 
-[2.3.0]: https://github.com/bkahlert/kommons-test/compare/v2.2.0...v2.3.0
+[2.3.1]: https://github.com/bkahlert/kommons/compare/v2.3.0...v2.3.1
 
-[2.2.0]: https://github.com/bkahlert/kommons-test/compare/v2.1.0...v2.2.0
+[2.3.0]: https://github.com/bkahlert/kommons/compare/v2.2.0...v2.3.0
 
-[2.1.0]: https://github.com/bkahlert/kommons-test/compare/v2.0.0...v2.1.0
+[2.2.0]: https://github.com/bkahlert/kommons/compare/v2.1.0...v2.2.0
 
-[2.0.0]: https://github.com/bkahlert/kommons-test/compare/v1.0.0...v2.0.0
+[2.1.0]: https://github.com/bkahlert/kommons/compare/v2.0.0...v2.1.0
+
+[2.0.0]: https://github.com/bkahlert/kommons/compare/v1.0.0...v2.0.0
