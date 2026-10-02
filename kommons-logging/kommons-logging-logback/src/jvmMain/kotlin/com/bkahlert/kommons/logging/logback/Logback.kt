@@ -16,15 +16,14 @@ import com.bkahlert.kommons.io.toPath
 import com.bkahlert.kommons.logging.LoggingSystemProperties
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
+import org.springframework.boot.logging.LoggingSystemProperty
 import java.io.InputStream
-import java.lang.reflect.Modifier
 import java.nio.file.Path
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import kotlin.io.path.pathString
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import org.springframework.boot.logging.LoggingSystemProperties as SpringLoggingSystemProperties
 
 /** [Logback](https://logback.qos.ch/) utility functions. */
 public object Logback {
@@ -103,18 +102,11 @@ public object Logback {
         }
     }
 
-    /** Clears all system properties that can be used to configure logging. */
+    /** Clears all system properties that can be used to configure logging: Spring Boot's and kommons' preset properties. */
     public fun clearSystemProperties() {
-        arrayOf(
-            SpringLoggingSystemProperties::class,
-            LoggingSystemProperties::class
-        ).flatMap {
-            it.java.declaredFields.filter { field ->
-                Modifier.isPublic(field.modifiers) && Modifier.isStatic(field.modifiers) && field.type == String::class.java
-            }
-        }.forEach {
-            System.clearProperty(it.get(null) as String)
-        }
+        LoggingSystemProperty.entries.forEach { System.clearProperty(it.environmentVariableName) }
+        System.clearProperty(LoggingSystemProperties.CONSOLE_LOG_PRESET)
+        System.clearProperty(LoggingSystemProperties.FILE_LOG_PRESET)
     }
 
     /** Resets Logback's [LoggerContext] and autoconfigures it. */
