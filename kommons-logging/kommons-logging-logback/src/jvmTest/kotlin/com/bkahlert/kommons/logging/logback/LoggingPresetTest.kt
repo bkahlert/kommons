@@ -9,6 +9,10 @@ import com.bkahlert.kommons.logging.MINIMAL_PRESET_VALUE
 import com.bkahlert.kommons.logging.OFF_PRESET_VALUE
 import com.bkahlert.kommons.logging.SPRING_PRESET_VALUE
 import com.bkahlert.kommons.test.junit.SystemProperty
+import com.bkahlert.kommons.test.logging.SpringLoggingSystemProperties.EXCEPTION_CONVERSION_WORD
+import com.bkahlert.kommons.test.logging.SpringLoggingSystemProperties.LOG_DATEFORMAT_PATTERN
+import com.bkahlert.kommons.test.logging.SpringLoggingSystemProperties.LOG_FILE
+import com.bkahlert.kommons.test.logging.SpringLoggingSystemProperties.LOG_LEVEL_PATTERN
 import com.bkahlert.kommons.test.logging.allLogs
 import com.bkahlert.kommons.test.logging.lastLog
 import com.bkahlert.kommons.test.logging.logRandomInfo
@@ -25,15 +29,12 @@ import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.slf4j.MDC
-import org.springframework.boot.logging.LoggingSystemProperties.EXCEPTION_CONVERSION_WORD
-import org.springframework.boot.logging.LoggingSystemProperties.LOG_DATEFORMAT_PATTERN
-import org.springframework.boot.logging.LoggingSystemProperties.LOG_FILE
-import org.springframework.boot.logging.LoggingSystemProperties.LOG_LEVEL_PATTERN
 import org.springframework.boot.test.system.CapturedOutput
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
@@ -46,6 +47,11 @@ class LoggingPresetTest {
         Logback.reset()
         MDC.put("foo", "bar")
         MDC.put("baz", null)
+    }
+
+    @AfterEach
+    fun clearMdc() {
+        MDC.clear()
     }
 
     @AfterAll
