@@ -5,7 +5,7 @@ import com.github.ajalt.mordant.rendering.AnsiLevel.TRUECOLOR
 import com.github.ajalt.mordant.table.horizontalLayout
 import com.github.ajalt.mordant.terminal.Terminal
 
-private val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.info.updateTerminalSize() } }
+private val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.updateSize() } }
 internal val CharSequence.columns: Int get() = horizontalLayout { cell(this@columns) }.measure(terminal).max
 
 internal fun CharSequence.padEndColumns(length: Int, padChar: Char = ' '): String {
