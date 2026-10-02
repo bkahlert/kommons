@@ -20,6 +20,7 @@ spring-boot = "2.7.6" # https://docs.spring.io/spring-boot/docs/2.7.6/
 stdlib-js = "0.0.9"
 plexus = "3.4.2"
 xregexp = "5.1.0"
+vanniktech-maven-publish = "0.37.0"
 
 
 [libraries]
@@ -63,6 +64,7 @@ kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 kotlin-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+vanniktech-maven-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech-maven-publish" }
 
 
 [bundles]
