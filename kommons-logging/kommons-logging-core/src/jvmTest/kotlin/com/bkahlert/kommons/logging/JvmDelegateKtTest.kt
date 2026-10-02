@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.logging
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import mu.KLogger
-import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 
 class JvmDelegateKtTest {

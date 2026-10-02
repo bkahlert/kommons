@@ -20,8 +20,5 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.logback.classic)
         }
-        jsTest.dependencies {
-            implementation(project(":kommons-debug"))
-        }
     }
 }
