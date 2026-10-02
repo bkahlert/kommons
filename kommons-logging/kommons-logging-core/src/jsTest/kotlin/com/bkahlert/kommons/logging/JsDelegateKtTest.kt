@@ -36,9 +36,13 @@ class JsDelegateKtTest {
 
     @Test fun locally_derived_logger_field() {
         val logger by KotlinLogging
-        logger.name shouldBe "JsDelegateKtTest"
+        // V8 (Node, Chrome) names the method frame `JsDelegateKtTest.locally_derived_logger_field`. Firefox cannot name
+        // a Kotlin 2 method (`protoOf(C).m = function () {}`), so the enclosing class is unknown and the fallback applies.
+        logger.name shouldBe if (isFirefox) "<global>" else "JsDelegateKtTest"
     }
 }
+
+private val isFirefox: Boolean = js("typeof navigator !== 'undefined' && /Firefox/.test(navigator.userAgent)") as Boolean
 
 val KLogger.name: String
     get() = checkNotNull(properties["loggerName"] as? String) { "Failed to find logger name of $this" }
