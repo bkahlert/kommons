@@ -31,7 +31,7 @@ class DynamicTestDisplayNameGeneratorTest {
         displayNameFor(enumSubject) shouldBe "EnumSubject1"
         displayNameFor(sealedSubject) shouldBe "SealedSubject.SealedSubject1"
         displayNameFor(charSubject) shouldBe "\"c\" LATIN SMALL LETTER C"
-        displayNameFor(charStringSubject) shouldBe "\"🫠\" 0x1FAE0"
+        displayNameFor(charStringSubject) shouldBe "\"🿿\" 0x1FFFF"
         displayNameFor(blankStringSubject) shouldBe "\" \" SPACE"
         displayNameFor(emptyStringSubject) shouldBe "\"\""
         displayNameFor(stringSubject) shouldBe "\"string\""
@@ -49,7 +49,7 @@ class DynamicTestDisplayNameGeneratorTest {
         displayNameFor(enumSubject, "foo {} bar") shouldBe "foo EnumSubject1 bar"
         displayNameFor(sealedSubject, "foo {} bar") shouldBe "foo SealedSubject.SealedSubject1 bar"
         displayNameFor(charSubject, "foo {} bar") shouldBe "foo \"c\" bar"
-        displayNameFor(charStringSubject, "foo {} bar") shouldBe "foo \"🫠\" bar"
+        displayNameFor(charStringSubject, "foo {} bar") shouldBe "foo \"🿿\" bar"
         displayNameFor(blankStringSubject, "foo {} bar") shouldBe "foo \" \" bar"
         displayNameFor(emptyStringSubject, "foo {} bar") shouldBe "foo \"\" bar"
         displayNameFor(stringSubject, "foo {} bar") shouldBe "foo \"string\" bar"
@@ -134,7 +134,8 @@ internal val entrySubject: Entry<*, *> = mapOf(pairSubject).entries.first()
 internal val enumSubject: EnumSubject = EnumSubject.EnumSubject1
 internal val sealedSubject: SealedSubject = SealedSubject.SealedSubject1()
 internal const val charSubject: Char = 'c'
-internal const val charStringSubject: String = "🫠"
+/** U+1FFFF, a noncharacter: permanently unassigned, so [Character.getName] returns `null` on every JDK (an emoji gains a name once the JDK's Unicode version catches up). */
+internal const val charStringSubject: String = "🿿"
 internal const val blankStringSubject: String = " "
 internal const val emptyStringSubject: String = ""
 internal const val stringSubject: String = "string"
