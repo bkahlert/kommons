@@ -1,6 +1,6 @@
 package com.bkahlert.kommons.logging
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ClassWithDerivedLoggerField {
     val logger by KotlinLogging
