@@ -18,7 +18,7 @@ Kommons is company work: several ista microservices depend on it.
 | 6 | GitHub Packages publishing is removed. | No workflow has ever published there; the README badge links to GitHub Releases. |
 | 7 | Repositories reduce to `mavenCentral()` in settings. `mavenLocal`, the OSSRH snapshot repo, `google()` and `gradlePluginPortal()` leave the project repositories. | Dead or unused. Confirmed by the author. |
 | 8 | kotlin-logging is migrated to `io.github.oshai`, not removed. | The `by KotlinLogging` delegate is kommons-logging-core's public API. |
-| 9 | Native targets: add linuxArm64; keep macosX64 published but untested; no Apple mobile targets. | linuxArm64 is tier 2. macosX64 is deprecated upstream and Intel runners disappear in 2027. |
+| 9 | Native targets: add linuxArm64 in PR 3, compiled but not run in CI; keep macosX64 published but untested; no Apple mobile targets. | linuxArm64 is tier 2 and Kotlin/Native has no Linux ARM64 host, so it can only be cross-compiled. Ktor 2.2.3, Mordant 2.0.0-beta9 and Kotest 5.5.4 publish no linuxArm64 variants; the target needs PR 3's bumps (PR 1 found this). macosX64 is deprecated upstream and Intel runners disappear in 2027. |
 | 10 | Five staged PRs, each green in CI before merge. | Keeps failures attributable to one change. |
 | 11 | Spring Boot 4.1.x, with Boot-managed Logback 1.5.38 rather than Logback 1.6. | 3.5 left OSS support in June 2026. Overriding Boot's BOM for Logback buys nothing. |
 | 12 | `io.spring.dependency-management` is dropped in favour of `platform(...)`. | Last released 2024-12; Gradle 9 compatibility unverified; Gradle's native BOM support suffices. |
@@ -77,7 +77,7 @@ Scope: Gradle, JDK, Kotlin, Dokka, convention plugins, catalog, CI workflows, an
 - [kotlin-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kotlin-conventions.gradle.kts): `jvmToolchain(17)`; `kotlin { compilerOptions { languageVersion/apiVersion = KOTLIN_2_4; progressiveMode = true; optIn.addAll(...) } }` replaces the `KotlinCompilationTask` loop and the `languageSettings` block. Drop the `kotlin.RequiresOptIn` opt-in. Keep the remaining opt-ins until a compile proves them unused. Test task configuration unchanged; Gradle 9's "test sources but no tests discovered" check stays on.
 - [kommons-jvm-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kommons-jvm-conventions.gradle.kts): add a buildSrc function `jvmTarget(version: Int)` (name indicative) that sets Kotlin `jvmTarget` and Java `targetCompatibility`/`release` together on the jvm target, so KGP's JVM-target validation passes with Java sources enabled by default. Default 1.8. kommons-uri calls it with 11, the Spring modules with 17; their per-module `KotlinJvmCompile` blocks are removed.
 - [kommons-js-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kommons-js-conventions.gradle.kts): `js { browser { ... }; nodejs { ... } }` without `IR`; Karma on Firefox headless; Mocha timeout kept. Regenerate `kotlin-js-store/yarn.lock` with `kotlinUpgradeYarnLock`.
-- [kommons-native-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kommons-native-conventions.gradle.kts): remove all manual `dependsOn` wiring; rely on the default hierarchy template. Register `linuxX64`, `linuxArm64`, `mingwX64`, `macosX64`, `macosArm64`. Keep the `osArchOnly` property: it registers only the host target; the template still provides `nativeMain`/`nativeTest`. Add the `kotlinx.cinterop.ExperimentalForeignApi` opt-in for native source sets.
+- [kommons-native-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kommons-native-conventions.gradle.kts): remove all manual `dependsOn` wiring; rely on the default hierarchy template. Register `linuxX64`, `mingwX64`, `macosX64`, `macosArm64`; `linuxArm64` follows in PR 3 (decision 9). Keep the `osArchOnly` property: it registers only the host target; the template still provides `nativeMain`/`nativeTest`. Add the `kotlinx.cinterop.ExperimentalForeignApi` opt-in for native source sets.
 - Dokka: plugin v2 `dokka { }` DSL, task `dokkaGeneratePublicationHtml`. Remove the versioning plugin (never configured). Snapshot versions keep Dokka disabled as today.
 - [kommons-publishing-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kommons-publishing-conventions.gradle.kts): only the Kotlin fixes here (`capitalize()` to `replaceFirstChar`); the rewrite is PR 2.
 
@@ -100,7 +100,7 @@ Scope: Gradle, JDK, Kotlin, Dokka, convention plugins, catalog, CI workflows, an
 ### CI workflows
 
 - [build.yml](../../../.github/workflows/build.yml): actions per the table; `setup-gradle` plus a separate `run: ./gradlew ...` step. `GRADLE_OPTS` reduces to the JVM args with heap dump on OOM. Keep `-Pkotlin.tests.individualTaskReports=true`, the concurrency group, `paths-ignore`, and the 30 s JUnit timeout under `CI=true`.
-- A `testJdk` Gradle property sets the `Test` tasks' `javaLauncher` to that toolchain; Foojay provisions it.
+- A `testJdk` Gradle property sets the `Test` tasks' `javaLauncher` to that toolchain; Foojay provisions it. It covers the multiplatform modules only; the Spring Boot sample's `test` task stays on the build toolchain until PR 4, because Spring Boot 2.7 supports Java up to 19.
 - Matrix:
 
   | Target | Runner | Test JDK |
@@ -109,9 +109,10 @@ Scope: Gradle, JDK, Kotlin, Dokka, convention plugins, catalog, CI workflows, an
   | jvm | ubuntu-latest | 21, 25 |
   | js | ubuntu-latest | 17 |
   | linuxX64 | ubuntu-latest | 17 |
-  | linuxArm64 | ubuntu-24.04-arm | 17 |
   | mingwX64 | windows-latest | 17 |
   | macosArm64 | macos-latest | 17 |
+
+  No ARM Linux runner: Kotlin/Native has no Linux ARM64 host (on `ubuntu-24.04-arm` the plugin registers no `linuxArm64Test` task). Once PR 3 adds the target, the linuxX64 job cross-compiles and links it with `linuxArm64TestBinaries`; the binaries are never run in CI.
 
 - [build-custom.yml](../../../.github/workflows/build-custom.yml): same action bumps; JDK default 17.
 - [test-report.yml](../../../.github/workflows/test-report.yml): `dorny/test-reporter@v3`; artifact regex unchanged.
@@ -152,7 +153,7 @@ Author actions before PR 2 can be validated end to end:
 1. Sign in at central.sonatype.com with the former OSSRH account and confirm `com.bkahlert.kommons` is listed under Namespaces.
 2. Generate a user token there.
 3. Store the five secrets above in the GitHub repository.
-
+   
 ### Release workflow
 
 - One `macos-latest` job: checkout with `fetch-depth: 0`, JDK 17, setup-gradle, `./gradlew publishToMavenCentral`. Inputs reduce to `version` and `branch`.
@@ -175,6 +176,7 @@ Author actions before PR 2 can be validated end to end:
 - kotlin-logging 8: package `mu` becomes `io.github.oshai.kotlinlogging` in `delegate.kt` and the four test files; `slf4j-api` stays declared explicitly in kommons-logging-core. Removed from kommons-exec.
 - Kotest 5.9.1: `bestName()` replaced by a private helper in kommons-test; `kotest-common` dropped.
 - Ktor 3.6, serialization 1.11, JUnit 5.14, plexus-utils 3.6.2, SLF4J 2.0, ICU4J 77.1, npm bumps: no source changes expected for the symbols in use; compile and tests decide.
+- linuxArm64 (decision 9): register the target in [kommons-native-conventions.gradle.kts](../../../buildSrc/src/main/kotlin/kommons-native-conventions.gradle.kts) once Ktor 3.6, Mordant 3.1 and Kotest 5.9.1 are in; all three publish it. In [build.yml](../../../.github/workflows/build.yml) the linuxX64 job's command gains `linuxArm64TestBinaries`.
 
 ### QA for PR 3
 
@@ -187,7 +189,7 @@ Author actions before PR 2 can be validated end to end:
 - Type-level `@ConstructorBinding` removed from `LoggingProperties` and the sample's `HelloWorldConfiguration`.
 - logstash-logback-encoder 9 / Jackson 3: `StructuredArgumentsTest` imports `tools.jackson.core.JsonGenerator`. Production code uses only logstash markers and structured arguments.
 - Logback 1.5.38 via Boot's BOM; the project's Logback XML uses no Janino conditionals, so no config change.
-- Sample: Boot 4 starters for web and actuator; test starter.
+- Sample: Boot 4 starters for web and actuator; test starter. Its `test` task follows `-PtestJdk` like the multiplatform modules (the launcher wiring moves from `kommons-jvm-conventions` to a convention the sample applies too), so the JDK 21 and 25 matrix rows cover it from here on.
 
 ### QA for PR 4
 
