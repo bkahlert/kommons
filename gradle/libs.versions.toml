@@ -1,7 +1,7 @@
 [versions]
-dokka = "1.7.10"
+dokka = "2.2.0"
 icu = "71.1"
-kotlin = "1.8.10"
+kotlin = "2.4.20"
 kotlin-logging = "2.1.23"
 kotlinx-datetime = "0.4.0"
 kotest = "5.5.4"
@@ -14,9 +14,8 @@ jsr305 = "3.0.2"
 junit-jupiter = "5.9.0"
 junit-platform = "1.9.0"
 mordant = "2.0.0-beta9"
-nebula-release = "16.0.0"
+nebula-release = "21.1.4"
 slf4j = "1.7.36"
-spring-dependency-management = "1.1.0"
 spring-boot = "2.7.6" # https://docs.spring.io/spring-boot/docs/2.7.6/
 stdlib-js = "0.0.9"
 plexus = "3.4.2"
@@ -55,16 +54,22 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexus" }
 
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+
 
 # Gradle plugins
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
-spring-dependency-management-gradle-plugin = { module = "io.spring.dependency-management:io.spring.dependency-management.gradle.plugin", version.ref = "spring-dependency-management" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 
 
 [bundles]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
 junit-platform = ["junit-platform-commons", "junit-platform-launcher"]
+
+
+[plugins]
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }

@@ -104,8 +104,8 @@ publishing {
 }
 
 signing {
-    val signingKey: String? by project
-    val signingPassword: String? by project
+    val signingKey: String? = providers.gradleProperty("signingKey").orNull
+    val signingPassword: String? = providers.gradleProperty("signingPassword").orNull
     useInMemoryPgpKeys(signingKey, signingPassword)
     sign(publishing.publications)
 }

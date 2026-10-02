@@ -5,7 +5,17 @@ pluginManagement {
     }
 }
 
-enableFeaturePreview("VERSION_CATALOGS")
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+dependencyResolutionManagement {
+    // PREFER_PROJECT (the default) on purpose: the Kotlin/JS plugin registers its own
+    // Node.js and Yarn download repositories on the root project.
+    repositories {
+        mavenCentral()
+    }
+}
 
 rootProject.name = "kommons"
 
