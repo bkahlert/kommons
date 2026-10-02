@@ -1,26 +1,25 @@
-@file:Suppress("UNUSED_VARIABLE")
-
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import com.bkahlert.kommons.gradle.jvmBytecodeTarget
 
 plugins {
     id("kotlin-conventions")
 }
 
 kotlin {
-    targets {
-        jvm()
-    }
-
-    sourceSets {
-        val jvmMain by getting
-        val jvmTest by getting
+    jvm {
+        compilerOptions {
+            freeCompilerArgs.add("-Xjsr305=strict")
+        }
     }
 }
 
-tasks.withType<KotlinJvmCompile>().configureEach {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
-        freeCompilerArgs.set(freeCompilerArgs.get() + "-Xjsr305=strict")
+jvmBytecodeTarget(8)
+
+// `-PtestJdk=21` runs the JVM tests on that JDK instead of the build toolchain; CI uses it for 21 and 25.
+providers.gradleProperty("testJdk").orNull?.let { version ->
+    val launcher = the<JavaToolchainService>().launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(version))
+    }
+    tasks.withType<Test>().configureEach {
+        javaLauncher.set(launcher)
     }
 }
