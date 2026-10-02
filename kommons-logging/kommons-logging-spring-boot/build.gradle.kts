@@ -1,5 +1,4 @@
 import com.bkahlert.kommons.gradle.jvmBytecodeTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("kommons-multiplatform-jvm-library-conventions")
@@ -44,8 +43,25 @@ dependencies {
     "kapt"("org.springframework.boot:spring-boot-configuration-processor")
 }
 
-tasks {
-    // makes sure an eventually existing additional-spring-configuration-metadata.json is copied to resources,
-    // see https://docs.spring.io/spring-boot/4.1/specification/configuration-metadata/annotation-processor.html
-    withType<KotlinJvmCompile>().configureEach { inputs.files(withType<ProcessResources>()) }
+// kaptTest extends kapt; the test sources declare no configuration properties, and a test-side
+// spring-configuration-metadata.json would shadow the main one on the test classpath.
+configurations.named("kaptTest") {
+    exclude(group = "org.springframework.boot", module = "spring-boot-configuration-processor")
+}
+
+// Boot's configuration processor cannot derive the logging.preset.* properties from LoggingProperties
+// (Kotlin adds a no-arg constructor because every parameter has a default); they are declared in
+// META-INF/additional-spring-configuration-metadata.json, which the processor merges into the generated
+// metadata only if told where to look: under kapt its class output is build/tmp/kapt3/classes/main, so
+// its own resources lookup fails.
+extensions.configure<org.jetbrains.kotlin.gradle.plugin.KaptExtension>("kapt") {
+    arguments {
+        arg(
+            "org.springframework.boot.configurationprocessor.additionalMetadataLocations",
+            layout.projectDirectory.dir("src/jvmMain/resources").asFile.path
+        )
+    }
+}
+tasks.withType<org.jetbrains.kotlin.gradle.internal.KaptTask>().configureEach {
+    inputs.file(layout.projectDirectory.file("src/jvmMain/resources/META-INF/additional-spring-configuration-metadata.json"))
 }
