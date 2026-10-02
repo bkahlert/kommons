@@ -6,6 +6,7 @@ import com.bkahlert.kommons.logging.LoggingSystemProperties.FILE_LOG_PRESET
 import com.bkahlert.kommons.logging.logback.Logback
 import com.bkahlert.kommons.logging.logback.Logback.loadConfiguration
 import com.bkahlert.kommons.quoted
+import com.bkahlert.kommons.test.logging.SpringLoggingSystemProperties
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.parallel.ResourceAccessMode.READ_WRITE
 import org.junit.jupiter.api.parallel.ResourceLock
 import org.junit.jupiter.api.parallel.Resources
 import org.junit.platform.commons.support.AnnotationSupport
-import org.springframework.boot.logging.LoggingSystemProperties
 import java.lang.reflect.Parameter
 import java.nio.file.Path
 import kotlin.annotation.AnnotationTarget.FUNCTION
@@ -40,7 +40,7 @@ class LogbackConfigurationExtension : ParameterResolver, BeforeEachCallback, Aft
         refresh(context)
     }
 
-    override fun afterEach(context: ExtensionContext?) {
+    override fun afterEach(context: ExtensionContext) {
         Logback.reset()
     }
 
@@ -54,7 +54,7 @@ class LogbackConfigurationExtension : ParameterResolver, BeforeEachCallback, Aft
                 logbackConfiguration?.console?.also { add(CONSOLE_LOG_PRESET to it.value) }
                 logbackConfiguration?.file?.also { add(FILE_LOG_PRESET to it.value) }
                 if (extensionContext.containsValidLogFileParameter()) {
-                    add(LoggingSystemProperties.LOG_FILE to createTempFile("kommons-test-", ".log").pathString)
+                    add(SpringLoggingSystemProperties.LOG_FILE to createTempFile("kommons-test-", ".log").pathString)
                 }
             }
             loadConfiguration(renderXml(properties, debug = logbackConfiguration?.debug ?: System.getProperty("logback.debug").toBoolean()))
