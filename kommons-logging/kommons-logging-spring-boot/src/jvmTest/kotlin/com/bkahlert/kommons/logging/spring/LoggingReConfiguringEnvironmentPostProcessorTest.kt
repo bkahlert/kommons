@@ -48,6 +48,7 @@ class LoggingReConfiguringEnvironmentPostProcessorTest {
 
     @AfterEach
     fun tearDown() {
+        MDC.clear()
         Logback.clearSystemProperties()
         Logback.reset()
     }

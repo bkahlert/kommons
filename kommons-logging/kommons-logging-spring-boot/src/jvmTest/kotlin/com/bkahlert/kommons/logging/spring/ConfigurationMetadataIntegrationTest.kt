@@ -9,27 +9,9 @@ import io.kotest.inspectors.forAny
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContainInOrder
 import org.junit.jupiter.api.Test
-import org.springframework.boot.configurationprocessor.MetadataStore
 import org.springframework.boot.configurationprocessor.metadata.ItemMetadata
+import org.springframework.boot.configurationprocessor.metadata.JsonMarshaller
 import org.springframework.util.ClassUtils
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.Reader
-import java.io.Writer
-import java.net.URI
-import java.net.URL
-import java.util.Locale
-import javax.annotation.processing.Filer
-import javax.annotation.processing.Messager
-import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.SourceVersion
-import javax.lang.model.element.Element
-import javax.lang.model.util.Elements
-import javax.lang.model.util.Types
-import javax.tools.FileObject
-import javax.tools.JavaFileManager.Location
-import javax.tools.JavaFileObject
-import javax.tools.StandardLocation.CLASS_OUTPUT
 import kotlin.reflect.KClass
 
 class ConfigurationMetadataIntegrationTest {
@@ -55,8 +37,17 @@ class ConfigurationMetadataIntegrationTest {
     }
 
     companion object {
+        private val METADATA_PATHS = listOf(
+            "META-INF/spring-configuration-metadata.json",
+            "META-INF/additional-spring-configuration-metadata.json",
+        )
+
+        /** The items of the generated and the additional metadata, which IDEs both read. */
         val configuredProperties: List<ItemMetadata>
-            get() = MetadataStore(FileReadOnlyProcessingEnvironment()).readMetadata().items
+            get() = METADATA_PATHS.flatMap { path ->
+                checkNotNull(Program.contextClassLoader.getResourceAsStream(path)) { "$path not found on the test classpath" }
+                    .use { JsonMarshaller().read(it).items }
+            }
     }
 }
 
@@ -65,52 +56,3 @@ val ItemMetadata.kClass: KClass<*>?
 
 val ItemMetadata.sourceKClass: KClass<*>?
     get() = sourceType?.let { ClassUtils.resolveClassName(it, null).kotlin }
-
-class FileReadOnlyProcessingEnvironment : ProcessingEnvironment {
-    override fun getOptions(): MutableMap<String, String> = throwUnsupportedOperationException()
-    override fun getMessager(): Messager = throwUnsupportedOperationException()
-    override fun getFiler(): Filer = ReadOnlyFiler()
-    override fun getElementUtils(): Elements = throwUnsupportedOperationException()
-    override fun getTypeUtils(): Types = throwUnsupportedOperationException()
-    override fun getSourceVersion(): SourceVersion = throwUnsupportedOperationException()
-    override fun getLocale(): Locale = throwUnsupportedOperationException()
-    private fun throwUnsupportedOperationException(): Nothing {
-        throw UnsupportedOperationException("This implementation only allows reading files.")
-    }
-}
-
-class ReadOnlyFiler : Filer {
-    override fun createSourceFile(name: CharSequence, vararg originatingElements: Element): JavaFileObject = throwUnsupportedOperationException()
-    override fun createClassFile(name: CharSequence, vararg originatingElements: Element): JavaFileObject = throwUnsupportedOperationException()
-    override fun createResource(location: Location, pkg: CharSequence, relativeName: CharSequence, vararg originatingElements: Element): FileObject =
-        throwUnsupportedOperationException()
-
-    override fun getResource(location: Location, pkg: CharSequence, relativeName: CharSequence): FileObject {
-        check(location == CLASS_OUTPUT)
-        val name = relativeName.toString()
-        val resource = checkNotNull(Program.contextClassLoader.getResource(name))
-        return ReadOnlyFileObject(resource, name)
-    }
-
-    private fun throwUnsupportedOperationException(): Nothing {
-        throw UnsupportedOperationException("This implementation only allows read access.")
-    }
-}
-
-class ReadOnlyFileObject(
-    private val resource: URL,
-    private val name: String,
-) : FileObject {
-    override fun toUri(): URI = resource.toURI()
-    override fun getName(): String = name
-    override fun openInputStream(): InputStream = resource.openStream()
-    override fun openOutputStream(): OutputStream = throwUnsupportedOperationException()
-    override fun openReader(ignoreEncodingErrors: Boolean): Reader = openInputStream().reader()
-    override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = openReader(ignoreEncodingErrors).readText()
-    override fun openWriter(): Writer = throwUnsupportedOperationException()
-    override fun getLastModified(): Long = Long.MIN_VALUE
-    override fun delete(): Boolean = false
-    private fun throwUnsupportedOperationException(): Nothing {
-        throw UnsupportedOperationException("This implementation only allows read access.")
-    }
-}
