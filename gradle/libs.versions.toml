@@ -7,8 +7,8 @@ kotlinx-datetime = "0.8.0"
 kotest = "5.9.1"
 kotlinx-serialization = "1.11.0"
 ktor = "3.6.0"
-logback-classic = "1.3.16"
-logstash-logback-encoder = "7.2"
+logback-classic = "1.5.38"
+logstash-logback-encoder = "9.0"
 jvm = "1.8"
 jsr305 = "3.0.2"
 junit-jupiter = "5.14.4"
@@ -16,7 +16,7 @@ junit-platform = "1.14.4"
 mordant = "3.1.0"
 nebula-release = "21.1.4"
 slf4j = "2.0.20"
-spring-boot = "2.7.6" # https://docs.spring.io/spring-boot/docs/2.7.6/
+spring-boot = "4.1.1" # https://docs.spring.io/spring-boot/4.1/
 stdlib-js = "0.2.3"
 plexus = "3.6.2"
 xregexp = "5.1.3"
@@ -62,7 +62,6 @@ dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", vers
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 nebula-release-plugin = { module = "com.netflix.nebula:nebula-release-plugin", version.ref = "nebula-release" }
-spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 vanniktech-maven-publish-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "vanniktech-maven-publish" }
 
 
@@ -74,3 +73,4 @@ junit-platform = ["junit-platform-commons", "junit-platform-launcher"]
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
