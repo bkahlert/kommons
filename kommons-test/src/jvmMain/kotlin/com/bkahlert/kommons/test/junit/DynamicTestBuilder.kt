@@ -417,9 +417,9 @@ private abstract class SequenceScope<in T> {
     suspend fun yieldAll(sequence: Sequence<T>): Unit = yieldAll(sequence.iterator())
 }
 
-private fun <T> unrestrictedSequence(@BuilderInference block: suspend SequenceScope<T>.() -> Unit): Sequence<T> = Sequence { unrestrictedIterator(block) }
+private fun <T> unrestrictedSequence(block: suspend SequenceScope<T>.() -> Unit): Sequence<T> = Sequence { unrestrictedIterator(block) }
 
-private fun <T> unrestrictedIterator(@BuilderInference block: suspend SequenceScope<T>.() -> Unit): Iterator<T> {
+private fun <T> unrestrictedIterator(block: suspend SequenceScope<T>.() -> Unit): Iterator<T> {
     val iterator = SequenceBuilderIterator<T>()
     iterator.nextStep = block.createCoroutineUnintercepted(receiver = iterator, completion = iterator)
     return iterator

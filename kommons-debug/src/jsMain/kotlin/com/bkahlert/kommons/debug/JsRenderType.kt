@@ -3,7 +3,6 @@ package com.bkahlert.kommons.debug
 import com.bkahlert.kommons.EMPTY
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
-import kotlin.reflect.KType
 
 /**
  * Renders the type of this function to the specified [out].
@@ -19,11 +18,7 @@ public actual fun Function<*>.renderFunctionTypeTo(out: StringBuilder, simplifie
  */
 internal actual fun KClassifier.renderKClassifierTo(out: StringBuilder, simplified: Boolean) {
 
-    val kClass = when (this) {
-        is KClass<*> -> this
-        is KType -> this.classifier as? KClass<out Any>
-        else -> null
-    }
+    val kClass = this as? KClass<*>
 
     when {
         kClass == null -> {

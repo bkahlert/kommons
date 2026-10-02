@@ -15,6 +15,7 @@ kotlin {
         languageVersion.set(KotlinVersion.KOTLIN_2_4)
         apiVersion.set(KotlinVersion.KOTLIN_2_4)
         progressiveMode.set(true)
+        freeCompilerArgs.add("-Xexpect-actual-classes")
         optIn.addAll(
             "kotlin.ExperimentalUnsignedTypes",
             "kotlin.time.ExperimentalTime",

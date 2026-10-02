@@ -7,8 +7,8 @@ import kotlin.random.Random
 
 /** Common value ranges, such as [ValueRange.Normalized]. */
 public sealed class ValueRange<T : Comparable<T>>(
-    override inline val start: T,
-    override inline val endInclusive: T,
+    override val start: T,
+    override val endInclusive: T,
 ) : ClosedRange<T> {
     /** Synonym for [start] */
     public inline val min: T get() = start
