@@ -5,7 +5,6 @@ import com.bkahlert.kommons.logging.LoggingSystemProperties.CONSOLE_LOG_PRESET
 import com.bkahlert.kommons.logging.LoggingSystemProperties.FILE_LOG_PRESET
 import com.bkahlert.kommons.logging.logback.Logback
 import com.bkahlert.kommons.logging.logback.Logback.loadConfiguration
-import com.bkahlert.kommons.quoted
 import com.bkahlert.kommons.test.logging.SpringLoggingSystemProperties
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -61,13 +60,17 @@ class LogbackConfigurationExtension : ParameterResolver, BeforeEachCallback, Aft
         }
 
         private fun renderXml(properties: List<Pair<String, String?>>, debug: Boolean): String = buildString {
-            appendLine("<configuration debug=${debug.quoted} watch=\"false\">")
+            appendLine("<configuration debug=${debug.xmlAttribute} watch=\"false\">")
             properties.forEach { (key, value) ->
-                appendLine("    <property scope=\"context\" name=${key.quoted} value=${value.quoted}/>")
+                appendLine("    <property scope=\"context\" name=${key.xmlAttribute} value=${value.xmlAttribute}/>")
             }
             appendLine("    <include resource=\"com/bkahlert/kommons/logging/logback/base.xml\"/>")
             appendLine("</configuration>")
         }
+
+        // Not `quoted`: that escapes Kotlin literals, and Logback keeps a doubled backslash in a Windows path.
+        private val Any?.xmlAttribute: String
+            get() = "\"" + toString().replace("&", "&amp;").replace("<", "&lt;").replace("\"", "&quot;") + "\""
 
         private fun ExtensionContext.containsValidLogFileParameter(): Boolean =
             testMethod.map { method -> method.parameters.any { it.isValidLogFileParameter() } }.orElse(false)
