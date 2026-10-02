@@ -14,11 +14,11 @@ on:
       java-version:
         description: "JDK version"
         required: true
-        default: '8'
+        default: '17'
       java-distribution:
         description: "JDK distribution"
         required: true
-        default: 'zulu'
+        default: 'temurin'
 
 env:
   RELEASE_VERSION: ${{ github.event.inputs.version }}
@@ -38,18 +38,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
       - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ github.event.inputs.java-version }}
           distribution: ${{ github.event.inputs.java-distribution }}
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Publish Multiplatform release
         run: ./gradlew publishKotlinMultiplatformPublicationToOSSRHRepository
@@ -67,18 +67,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
       - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ github.event.inputs.java-version }}
           distribution: ${{ github.event.inputs.java-distribution }}
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Publish Linux x64 release
         run: ./gradlew publishLinuxX64PublicationToOSSRHRepository
@@ -93,18 +93,18 @@ jobs:
           - publishMacosX64PublicationToOSSRHRepository
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
       - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ github.event.inputs.java-version }}
           distribution: ${{ github.event.inputs.java-distribution }}
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Publish
         run: ./gradlew ${{ matrix.target }}
@@ -113,18 +113,18 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
       - name: Set up JDK ${{ github.event.inputs.java-version }} (${{ github.event.inputs.java-distribution }})
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ github.event.inputs.java-version }}
           distribution: ${{ github.event.inputs.java-distribution }}
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Publish MinGW x64 release
         run: ./gradlew publishMingwX64PublicationToOSSRHRepository
@@ -138,13 +138,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
       - name: Draft release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           body_path: CHANGELOG.md

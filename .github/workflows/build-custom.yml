@@ -18,7 +18,7 @@ on:
       java-version:
         description: "JDK version"
         required: true
-        default: '8'
+        default: '17'
       java-distribution:
         description: "JDK distribution"
         required: true
@@ -42,33 +42,35 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
       - name: Set up JDK ${{ github.event.inputs.java-version }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v6
         with:
           java-version: ${{ github.event.inputs.java-version }}
           distribution: ${{ github.event.inputs.java-distribution }}
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
       - name: Build
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: ${TARGET}Test -Pkotlin.tests.individualTaskReports=true
+        shell: bash
+        run: ./gradlew "${TARGET}Test" -Pkotlin.tests.individualTaskReports=true
 
       - name: Upload test reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         if: success() || failure()
         with:
-          name: test-reports--os-${{ github.event.inputs.os }}--target-${{ github.event.inputs.target }}--java-${{ github.event.inputs.java-version }}
+          name: test-reports--os-${{ github.event.inputs.os }}--target-${{ env.TARGET }}--java-${{ github.event.inputs.java-version }}
           if-no-files-found: error
           path: ./**/build/test-results/**/*.xml
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v7
         with:
-          name: kommons--os-${{ github.event.inputs.os }}--target-${{ github.event.inputs.target }}--java-${{ github.event.inputs.java-version }}
+          name: kommons--os-${{ github.event.inputs.os }}--target-${{ env.TARGET }}--java-${{ github.event.inputs.java-version }}
           if-no-files-found: error
           path: |
             ./**/build/dokka

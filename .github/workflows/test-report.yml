@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dorny/test-reporter@v1
+      - uses: dorny/test-reporter@v3
         with:
           artifact: /^test-reports(?:--(.*$))?/
           name: Test reports $1
