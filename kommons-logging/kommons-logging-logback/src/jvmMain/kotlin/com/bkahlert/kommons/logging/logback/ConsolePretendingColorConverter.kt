@@ -14,7 +14,7 @@ public class ConsolePretendingColorConverter : ColorConverter() {
      * Delegates to [ColorConverter.transform] but also sets [AnsiOutput.consoleAvailable]
      * to `true`.
      */
-    protected override fun transform(event: ILoggingEvent?, `in`: String?): String {
+    protected override fun transform(event: ILoggingEvent, `in`: String): String {
         AnsiOutput.setConsoleAvailable(true)
         return super.transform(event, `in`)
     }
