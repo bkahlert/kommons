@@ -15,7 +15,7 @@ class LogbackSystemPropertiesTest {
     @Test fun clear_system_properties() {
         val names = LoggingSystemProperty.entries.map { it.environmentVariableName } +
             RollingPolicySystemProperty.entries.map { it.environmentVariableName } +
-            listOf(LoggingSystemProperties.CONSOLE_LOG_PRESET, LoggingSystemProperties.FILE_LOG_PRESET)
+            listOf(LoggingSystemProperties.CONSOLE_LOG_PRESET, LoggingSystemProperties.FILE_LOG_PRESET, "LOGGED_APPLICATION_NAME")
         names.forEach { System.setProperty(it, "set-by-test") }
 
         Logback.clearSystemProperties()

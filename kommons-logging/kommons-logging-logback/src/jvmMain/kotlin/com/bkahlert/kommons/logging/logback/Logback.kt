@@ -11,7 +11,7 @@ import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.RollingPolicy
 import ch.qos.logback.core.rolling.RollingPolicyBase
 import ch.qos.logback.core.rolling.TriggeringPolicy
-import ch.qos.logback.core.util.StatusPrinter
+import ch.qos.logback.core.util.StatusPrinter2
 import com.bkahlert.kommons.io.toPath
 import com.bkahlert.kommons.logging.LoggingSystemProperties
 import org.slf4j.Logger.ROOT_LOGGER_NAME
@@ -113,6 +113,7 @@ public object Logback {
         RollingPolicySystemProperty.entries.forEach { System.clearProperty(it.environmentVariableName) }
         System.clearProperty(LoggingSystemProperties.CONSOLE_LOG_PRESET)
         System.clearProperty(LoggingSystemProperties.FILE_LOG_PRESET)
+        System.clearProperty("LOGGED_APPLICATION_NAME") // written by Boot's LoggingSystemProperties.apply() without a public constant
     }
 
     /** Resets Logback's [LoggerContext] and autoconfigures it. */
@@ -134,7 +135,7 @@ public object Logback {
         } catch (_: JoranException) {
             // StatusPrinter handles this
         }
-        StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext, 0)
+        StatusPrinter2().printInCaseOfErrorsOrWarnings(loggerContext, 0)
     }
 
     /** Loads the specified string-based [configuration] using [JoranConfigurator]. */
