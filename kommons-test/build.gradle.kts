@@ -10,7 +10,6 @@ kotlin {
             api(kotlin("test"))
             api(libs.kotest.assertions.core)
             api(libs.kotest.assertions.json)
-            implementation(libs.kotest.common) // because("mpp.bestName")
             api(project(":kommons-core"))
             api(project(":kommons-text"))
             api(project(":kommons-time"))

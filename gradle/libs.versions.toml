@@ -1,38 +1,37 @@
 [versions]
 dokka = "2.2.0"
-icu = "71.1"
+icu = "77.1"
 kotlin = "2.4.20"
-kotlin-logging = "2.1.23"
-kotlinx-datetime = "0.4.0"
-kotest = "5.5.4"
-kotlinx-serialization = "1.5.0"
-ktor = "2.2.3"
+kotlin-logging = "8.0.4"
+kotlinx-datetime = "0.8.0"
+kotest = "5.9.1"
+kotlinx-serialization = "1.11.0"
+ktor = "3.6.0"
 logback-classic = "1.2.11"
 logstash-logback-encoder = "7.2"
 jvm = "1.8"
 jsr305 = "3.0.2"
-junit-jupiter = "5.9.0"
-junit-platform = "1.9.0"
-mordant = "2.0.0-beta9"
+junit-jupiter = "5.14.4"
+junit-platform = "1.14.4"
+mordant = "3.1.0"
 nebula-release = "21.1.4"
 slf4j = "1.7.36"
 spring-boot = "2.7.6" # https://docs.spring.io/spring-boot/docs/2.7.6/
-stdlib-js = "0.0.9"
-plexus = "3.4.2"
-xregexp = "5.1.0"
+stdlib-js = "0.2.3"
+plexus = "3.6.2"
+xregexp = "5.1.3"
 vanniktech-maven-publish = "0.37.0"
 
 
 [libraries]
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu" }
 
-kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlin-logging" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlin-logging" }
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-assertions-json = { module = "io.kotest:kotest-assertions-json", version.ref = "kotest" }
-kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
 
 kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serialization-bom", version.ref = "kotlinx-serialization" }
 ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor" }
