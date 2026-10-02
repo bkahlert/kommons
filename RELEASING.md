@@ -7,8 +7,8 @@ Releases are published to Maven Central through the [Central Portal](https://cen
 1. Open *Actions → release → Run workflow* on GitHub ([release.yml](.github/workflows/release.yml)), enter the version
    (for example `3.0.0`) and the branch, and run it. One macOS job builds, signs and uploads every module as a single
    deployment; a second job drafts the GitHub release with [CHANGELOG.md](CHANGELOG.md) as its body.
-2. With *automatic-release* on (the default), the deployment is published to Maven Central as soon as the Portal has
-   validated it. Switch it off to inspect the deployment first; it then waits under
+2. With *Publish to Maven Central automatically* checked (the default), the deployment is published as soon as the
+   Portal has validated it. Uncheck it to inspect the deployment first; it then waits under
    [Deployments](https://central.sonatype.com/publishing/deployments) until you hit *Publish*. The deployment id is in
    the log of the publish job.
 3. Maven Central shows the artifacts 10 to 30 minutes after publishing. Clean up the drafted release notes and publish
