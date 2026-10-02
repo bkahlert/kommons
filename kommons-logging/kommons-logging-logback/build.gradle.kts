@@ -29,14 +29,16 @@ kotlin {
 }
 
 // The appender XML files are templates that embed the files from `includes/` via `${includes["<name>"]}`.
-// (Named `appenderIncludes` here because `includes` inside the task block would resolve to CopySpec.includes.)
 val loggingDirectory = "com/bkahlert/kommons/logging/logback"
-val appenderIncludes: Map<String, String> = layout.projectDirectory.dir("src/jvmMain/resources/$loggingDirectory/includes").asFile
-    .listFiles { file -> file.extension == "xml" }.orEmpty()
-    .associate { it.nameWithoutExtension to it.readText() }
 
 tasks.named<ProcessResources>("jvmProcessResources") {
     filteringCharset = "UTF-8"
+    // A local, not a script-level val: the filesMatching action must capture the map, not the build script
+    // (the configuration cache cannot serialize script references). Named `appenderIncludes` because
+    // `includes` would shadow CopySpec.includes.
+    val appenderIncludes: Map<String, String> = layout.projectDirectory.dir("src/jvmMain/resources/$loggingDirectory/includes").asFile
+        .listFiles { file -> file.extension == "xml" }.orEmpty()
+        .associate { it.nameWithoutExtension to it.readText() }
     filesMatching("$loggingDirectory/appenders/*.xml") {
         expand("includes" to appenderIncludes)
     }
