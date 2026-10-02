@@ -42,7 +42,7 @@ logging:
         file: json
 ```
 
-Spring Boot's logging configuration options like `file.path` and `logback.rollingpolicy.max-file-size` are still supported.
+Spring Boot's logging configuration options like `logging.file.path` and `logging.logback.rollingpolicy.max-file-size` are still supported.
 
 
 ## Contributing
