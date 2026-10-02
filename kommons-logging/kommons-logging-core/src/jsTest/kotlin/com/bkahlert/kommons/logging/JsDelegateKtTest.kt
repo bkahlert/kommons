@@ -1,10 +1,9 @@
 package com.bkahlert.kommons.logging
 
-import com.bkahlert.kommons.debug.properties
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import mu.KLogger
-import mu.KotlinLogging
 import kotlin.test.Test
 
 class JsDelegateKtTest {
@@ -43,6 +42,3 @@ class JsDelegateKtTest {
 }
 
 private val isFirefox: Boolean = js("typeof navigator !== 'undefined' && /Firefox/.test(navigator.userAgent)") as Boolean
-
-val KLogger.name: String
-    get() = checkNotNull(properties["loggerName"] as? String) { "Failed to find logger name of $this" }
