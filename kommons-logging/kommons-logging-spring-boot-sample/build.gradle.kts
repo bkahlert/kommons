@@ -7,6 +7,10 @@ plugins {
 
 description = "Spring Boot sample application for Kommons Logging: Spring Boot"
 
+// nebula's lazy version object holds the Project and the git build service, which the configuration cache
+// cannot serialize once the Boot plugin's bootJar task captures project.version; a plain String can be.
+version = version.toString()
+
 dependencies {
     implementation(platform(libs.spring.boot.bom))
     implementation(project(":kommons-logging:kommons-logging-spring-boot-starter"))
