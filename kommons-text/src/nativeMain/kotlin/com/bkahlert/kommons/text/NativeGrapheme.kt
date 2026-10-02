@@ -55,6 +55,6 @@ private val CodePoint.isRegionalIndicatorSymbol get() = value in 0x1F1E6..0x1F1F
 private val CodePoint.isZwj get() = value == Unicode.ZWJ.code
 private val CodePoint.isSkinToneModifier get() = value in 0x1F3FB..0x1F3FF
 
-internal val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.info.updateTerminalSize() } }
+internal val terminal: Terminal by lazy { Terminal(TRUECOLOR).also { it.updateSize() } }
 internal val CharSequence.columns: Int get() = horizontalLayout { cell(this@columns) }.measure(terminal).max
 internal val Iterable<CodePoint>.columns: Int get() = joinToString("").columns
