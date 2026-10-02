@@ -35,7 +35,6 @@ class JsTestAllKtTest {
                 "foo bar" shouldContain "FOO"
             }
         }.message shouldBe """
-            
             The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
             2) "foo bar" should include substring "FOO"

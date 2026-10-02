@@ -3,9 +3,6 @@ package com.bkahlert.kommons.test
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.string.shouldContain
 
-/** A tab */
-internal const val t = "\t"
-
 internal enum class EmptyEnum
 
 internal enum class FooBarEnum {

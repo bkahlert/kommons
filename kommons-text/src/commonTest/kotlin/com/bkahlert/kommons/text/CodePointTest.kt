@@ -186,7 +186,12 @@ class CodePointTest {
     }
 
     @Test fun range_to() = testAll {
-        CodePoint(0x61)..CodePoint(0xB6) shouldBe CodePointRange(CodePoint(0x61), CodePoint(0xB6))
+        val range = CodePoint(0x61)..CodePoint(0xB6)
+        range should {
+            it.start shouldBe CodePoint(0x61)
+            it.endInclusive shouldBe CodePoint(0xB6)
+            it.toList() shouldBe CodePointRange(CodePoint(0x61), CodePoint(0xB6)).toList()
+        }
     }
 
     @Test fun equality() = testAll {

@@ -2,6 +2,7 @@ package com.bkahlert.kommons.exec
 
 import org.slf4j.Logger
 import org.slf4j.Marker
+import org.slf4j.event.KeyValuePair
 import org.slf4j.event.Level
 import org.slf4j.event.Level.DEBUG
 import org.slf4j.event.Level.ERROR
@@ -23,11 +24,13 @@ data class RecordedLoggingEvent(
     private val throwable: Throwable?,
 ) : LoggingEvent {
     override fun getLevel(): Level = level
-    override fun getMarker(): Marker? = marker
+    override fun getMarkers(): List<Marker> = listOfNotNull(marker)
     override fun getLoggerName(): String = loggerName
     override fun getMessage(): String? = message
     override fun getThreadName(): String = threadName
+    override fun getArguments(): List<Any?> = argumentArray
     override fun getArgumentArray(): Array<Any?> = argumentArray.toTypedArray()
+    override fun getKeyValuePairs(): List<KeyValuePair> = emptyList()
     override fun getTimeStamp(): Long = timeStamp
     override fun getThrowable(): Throwable? = throwable
 }

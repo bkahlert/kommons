@@ -34,10 +34,11 @@ class TestAllMapKtTest {
             1 elements passed but expected 2
 
             The following elements passed:
-            a=foo bar
+              [0] a=foo bar
 
             The following elements failed:
-            b=FOO BAR => "FOO BAR" should include substring "foo"
+              [1] b=FOO BAR => "FOO BAR" should include substring "foo"
+
         """.trimIndent()
     }
 
@@ -51,11 +52,12 @@ class TestAllMapKtTest {
             0 elements passed but expected 2
 
             The following elements passed:
-            --none--
+              --none--
 
             The following elements failed:
-            a=foo bar => "foo bar" should contain the substring "baz" (case insensitive)
-            b=FOO BAR => "FOO BAR" should contain the substring "baz" (case insensitive)
+              [0] a=foo bar => "foo bar" should contain the substring "baz" (case insensitive)
+              [1] b=FOO BAR => "FOO BAR" should contain the substring "baz" (case insensitive)
+
         """.trimIndent()
     }
 
@@ -71,17 +73,15 @@ class TestAllMapKtTest {
             0 elements passed but expected 2
 
             The following elements passed:
-            --none--
+              --none--
 
             The following elements failed:
-            a=foo bar => *
-            The following 2 assertions failed:
+              [0] a=foo bar => The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
             **
             2) "foo bar" should include substring "BAZ"
             **
-            b=FOO BAR =>*
-            The following 2 assertions failed:
+              [1] b=FOO BAR => The following 2 assertions failed:
             1) "FOO BAR" should include substring "baz"
             **
             2) "FOO BAR" should include substring "BAZ"
