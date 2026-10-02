@@ -1,22 +1,10 @@
 plugins {
     id("java-platform")
-    id("maven-publish")
-    signing
+    id("kommons-publishing-conventions")
 }
 
 group = "com.bkahlert.kommons"
-
-val isSnapshot = version.toString().endsWith("-SNAPSHOT")
-if (isSnapshot) {
-    logger.lifecycle("Snapshot version: $version")
-    tasks.withType<Sign>().configureEach {
-        logger.info("Disabling task $name")
-        enabled = false
-    }
-}
-
-val releaseVersion: String? = System.getenv("RELEASE_VERSION")
-if (releaseVersion != null) version = releaseVersion
+description = "Features for Kotlin™ Multiplatform You Didn't Know You Were Missing"
 
 val bomProject = project
 
@@ -42,70 +30,8 @@ dependencies {
     }
 }
 
-publishing {
-    repositories {
-        @Suppress("SpellCheckingInspection")
-        maven {
-            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-            name = "OSSRH"
-            url = if (releaseVersion != null) releasesRepoUrl else snapshotsRepoUrl
-            credentials {
-                username = System.getenv("OSSRH_USERNAME")
-                password = System.getenv("OSSRH_PASSWORD")
-            }
-        }
+mavenPublishing {
+    pom {
+        name.set("Kommons Bill of Materials")
     }
-
-    publications {
-        create<MavenPublication>("Bom") {
-            from(components["javaPlatform"])
-            pom {
-                name.set("Kommons Bill of Materials")
-                description.set("Features for Kotlin™ Multiplatform You Didn't Know You Were Missing")
-                url.set("https://github.com/bkahlert/kommons")
-
-                ciManagement {
-                    url.set("https://github.com/bkahlert/kommons/issues")
-                    system.set("GitHub")
-                }
-
-                developers {
-                    developer {
-                        id.set("bkahlert")
-                        name.set("Björn Kahlert")
-                        email.set("mail@bkahlert.com")
-                        url.set("https://bkahlert.com")
-                        timezone.set("Europe/Berlin")
-                    }
-                }
-
-                issueManagement {
-                    url.set("https://github.com/bkahlert/kommons/issues")
-                    system.set("GitHub")
-                }
-
-
-                licenses {
-                    license {
-                        name.set("MIT")
-                        url.set("https://github.com/bkahlert/kommons/blob/master/LICENSE")
-                    }
-                }
-
-                scm {
-                    connection.set("scm:git:https://github.com/bkahlert/kommons")
-                    developerConnection.set("scm:git:https://github.com/bkahlert")
-                    url.set("https://github.com/bkahlert/kommons")
-                }
-            }
-        }
-    }
-}
-
-signing {
-    val signingKey: String? = providers.gradleProperty("signingKey").orNull
-    val signingPassword: String? = providers.gradleProperty("signingPassword").orNull
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign(publishing.publications)
 }
