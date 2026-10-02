@@ -1,6 +1,8 @@
 plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.spring.boot)
+    id("kommons-test-jdk-conventions")
 }
 
 description = "Spring Boot sample application for Kommons Logging: Spring Boot"
@@ -10,7 +12,7 @@ dependencies {
     implementation(project(":kommons-logging:kommons-logging-spring-boot-starter"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
 
     testImplementation(project(":kommons-test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
