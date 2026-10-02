@@ -35,7 +35,10 @@ public value class Grapheme private constructor(
 }
 
 /** An [Iterator] that iterates [Grapheme] boundaries. */
-public expect class GraphemeBreakIterator(text: CharSequence) : BreakIterator
+public expect class GraphemeBreakIterator(text: CharSequence) : BreakIterator {
+    override fun hasNext(): Boolean
+    override fun next(): Int
+}
 
 /** An [Iterator] that iterates [Grapheme] instances. */
 public class GraphemeIterator(private val text: CharSequence) : Iterator<Grapheme> by (GraphemeBreakIterator(text).mapToRanges().map { Grapheme(text, it) })
