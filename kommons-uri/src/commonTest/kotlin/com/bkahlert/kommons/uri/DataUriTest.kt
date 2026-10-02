@@ -15,7 +15,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.charset
 import io.ktor.http.encodeURLPathPart
 import io.ktor.http.withCharset
-import io.ktor.utils.io.charsets.Charset
+import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.forName
 import io.ktor.utils.io.charsets.name
 import io.ktor.utils.io.core.toByteArray
 import kotlin.test.Test
@@ -80,7 +81,7 @@ class DataUriTest {
 
     @Test
     fun parse_unicode_text() = testAll {
-        val charset = Charset.forName("utf-8")
+        val charset = Charsets.forName("utf-8")
         DataUri.parse("data:text/plain;charset=${charset.name},${unicodeText.encodeURLPathPart()}") should {
             it shouldBe DataUri(ContentType.Text.Plain.withCharset(charset), unicodeText.toByteArray(charset))
         }
@@ -91,7 +92,7 @@ class DataUriTest {
 
     @Test
     fun parse_base64_unicode_text() = testAll {
-        val charset = Charset.forName("utf-8")
+        val charset = Charsets.forName("utf-8")
         DataUri.parse("data:;base64,$asciiBase64Text") should {
             it shouldBe DataUri(null, asciiText.toByteArray(DEFAULT_MEDIA_TYPE_CHARSET))
         }
@@ -106,7 +107,7 @@ class DataUriTest {
     @Test
     fun parse_base64_image() = testAll {
         DataUri.parse(svgImageBase64Encoded.replace(";charset=UTF-8", "")) should {
-            it shouldBe DataUri(ContentType.Image.SVG, svgImage.toByteArray(Charset.forName("utf-8")))
+            it shouldBe DataUri(ContentType.Image.SVG, svgImage.toByteArray(Charsets.forName("utf-8")))
         }
         DataUri.parse("data:image/gif;base64,R0lGODdhAQADAPABAP%2F%2F%2F%2F8AACwAAAAAAQADAAACAgxQADs") should {
             it shouldBe DataUri(ContentType.Image.GIF, gifImage)
@@ -115,7 +116,7 @@ class DataUriTest {
 
     @Test
     fun parse_base64_unicode_image() = testAll {
-        val charset = Charset.forName("utf-8")
+        val charset = Charsets.forName("utf-8")
         DataUri.parse(svgImageBase64Encoded) should {
             it shouldBe DataUri(ContentType.Image.SVG.withCharset(charset), svgImage.toByteArray(charset))
         }
