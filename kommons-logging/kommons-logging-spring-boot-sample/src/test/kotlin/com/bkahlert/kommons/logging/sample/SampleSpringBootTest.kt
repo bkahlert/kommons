@@ -24,6 +24,8 @@ import kotlin.io.path.readLines
     properties = [
         "logging.preset.console=minimal",
         "logging.preset.file=json",
+        // own file: other modules' test JVMs run in parallel and append to the default kommons.log
+        "logging.file.name=\${java.io.tmpdir}/kommons-logging-spring-boot-sample-test.log",
     ]
 )
 @ExtendWith(OutputCaptureExtension::class)
