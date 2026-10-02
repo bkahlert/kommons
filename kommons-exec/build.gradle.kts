@@ -12,7 +12,6 @@ kotlin {
             api(project(":kommons-io"))
             api(project(":kommons-logging:kommons-logging-core"))
             api(project(":kommons-text"))
-            implementation(libs.kotlin.logging)
             implementation(libs.plexus.utils)
             implementation(kotlin("reflect")) { because("get PID") }
         }
