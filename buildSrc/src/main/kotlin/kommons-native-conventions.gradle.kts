@@ -20,9 +20,9 @@ kotlin {
             else -> throw GradleException("Host OS $hostOs is not supported in Kotlin/Native.")
         }
     } else {
-        // linuxArm64 (spec decision 9) follows with the dependency bumps: Ktor 2.2.3, Mordant 2.0.0-beta9 and
-        // Kotest 5.5.4 publish no linuxArm64 variants, so the target cannot compile before PR 3.
         linuxX64()
+        // Kotlin/Native has no Linux ARM64 host: CI cross-compiles and links this target but never runs its tests.
+        linuxArm64()
         mingwX64()
         // deprecated upstream since Kotlin 2.3.20; still published for existing consumers (spec decision 9)
         @Suppress("DEPRECATION")
