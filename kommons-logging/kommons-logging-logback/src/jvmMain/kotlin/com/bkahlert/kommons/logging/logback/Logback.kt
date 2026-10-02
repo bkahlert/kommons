@@ -17,6 +17,7 @@ import com.bkahlert.kommons.logging.LoggingSystemProperties
 import org.slf4j.Logger.ROOT_LOGGER_NAME
 import org.slf4j.LoggerFactory
 import org.springframework.boot.logging.LoggingSystemProperty
+import org.springframework.boot.logging.logback.RollingPolicySystemProperty
 import java.io.InputStream
 import java.nio.file.Path
 import java.time.Instant
@@ -102,9 +103,14 @@ public object Logback {
         }
     }
 
-    /** Clears all system properties that can be used to configure logging: Spring Boot's and kommons' preset properties. */
+    /**
+     * Clears all system properties that can be used to configure logging:
+     * Spring Boot's [LoggingSystemProperty] and [RollingPolicySystemProperty] entries,
+     * and kommons' preset properties.
+     */
     public fun clearSystemProperties() {
         LoggingSystemProperty.entries.forEach { System.clearProperty(it.environmentVariableName) }
+        RollingPolicySystemProperty.entries.forEach { System.clearProperty(it.environmentVariableName) }
         System.clearProperty(LoggingSystemProperties.CONSOLE_LOG_PRESET)
         System.clearProperty(LoggingSystemProperties.FILE_LOG_PRESET)
     }

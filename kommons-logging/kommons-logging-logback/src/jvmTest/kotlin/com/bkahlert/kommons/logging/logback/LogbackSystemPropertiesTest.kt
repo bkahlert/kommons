@@ -7,12 +7,14 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Isolated
 import org.springframework.boot.logging.LoggingSystemProperty
+import org.springframework.boot.logging.logback.RollingPolicySystemProperty
 
 @Isolated
 class LogbackSystemPropertiesTest {
 
     @Test fun clear_system_properties() {
         val names = LoggingSystemProperty.entries.map { it.environmentVariableName } +
+            RollingPolicySystemProperty.entries.map { it.environmentVariableName } +
             listOf(LoggingSystemProperties.CONSOLE_LOG_PRESET, LoggingSystemProperties.FILE_LOG_PRESET)
         names.forEach { System.setProperty(it, "set-by-test") }
 
