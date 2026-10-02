@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType.Image
 import io.ktor.http.ContentType.Text
 import io.ktor.http.withCharset
-import io.ktor.utils.io.charsets.Charsets.UTF_8
+import io.ktor.utils.io.charsets.Charsets
 import kotlin.test.Test
 
 class FixtureTest {
@@ -23,7 +23,7 @@ class FixtureTest {
     @Test fun html_document_fixture() = testAll {
         kotlin.runCatching {
             HtmlDocumentFixture.name shouldBe "hello-world.html"
-            HtmlDocumentFixture.contentType shouldBe Text.Html.withCharset(UTF_8)
+            HtmlDocumentFixture.contentType shouldBe Text.Html.withCharset(Charsets.UTF_8)
         }.recover { if (it::class.simpleName?.contains("UnsupportedClassVersion") != true) throw it }
     }
 
@@ -35,13 +35,13 @@ class FixtureTest {
 
     @Test fun unicode_text_document_fixture() = testAll {
         UnicodeTextDocumentFixture.name shouldBe "unicode.txt"
-        UnicodeTextDocumentFixture.contentType shouldBe Text.Plain.withCharset(UTF_8)
+        UnicodeTextDocumentFixture.contentType shouldBe Text.Plain.withCharset(Charsets.UTF_8)
         UnicodeTextDocumentFixture.contents.length shouldBe 11
     }
 
     @Test fun emoji_text_document_fixture() = testAll {
         EmojiTextDocumentFixture.name shouldBe "emoji.txt"
-        EmojiTextDocumentFixture.contentType shouldBe Text.Plain.withCharset(UTF_8)
+        EmojiTextDocumentFixture.contentType shouldBe Text.Plain.withCharset(Charsets.UTF_8)
         EmojiTextDocumentFixture.contents shouldBe "a𝕓🫠🇩🇪👨🏾‍🦱👩‍👩‍👦‍👦"
     }
 }

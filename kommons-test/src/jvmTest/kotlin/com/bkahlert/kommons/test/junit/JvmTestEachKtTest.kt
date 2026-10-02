@@ -70,18 +70,18 @@ class JvmTestEachKtTest {
 
             The following 2 assertions failed:
             1) "foo bar" should include substring "baz"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest${'$'}test_multiple_fails_multiple_subjects${'$'}1.invoke(JvmTestEachKtTest.kt:${firstLine + 2})
+            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 2})
             2) "foo bar" should include substring "BAZ"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest${'$'}test_multiple_fails_multiple_subjects${'$'}1.invoke(JvmTestEachKtTest.kt:${firstLine + 3})
+            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 3})
 
             """.trimIndent(),
             """
 
             The following 2 assertions failed:
             1) "FOO BAR" should include substring "baz"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest${'$'}test_multiple_fails_multiple_subjects${'$'}1.invoke(JvmTestEachKtTest.kt:${firstLine + 2})
+            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 2})
             2) "FOO BAR" should include substring "BAZ"
-            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest${'$'}test_multiple_fails_multiple_subjects${'$'}1.invoke(JvmTestEachKtTest.kt:${firstLine + 3})
+            ${t}at com.bkahlert.kommons.test.junit.JvmTestEachKtTest.test_multiple_fails_multiple_subjects${'$'}lambda${'$'}0(JvmTestEachKtTest.kt:${firstLine + 3})
 
             """.trimIndent(),
         )
