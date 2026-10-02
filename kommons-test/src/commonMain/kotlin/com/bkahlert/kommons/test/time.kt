@@ -1,8 +1,8 @@
 package com.bkahlert.kommons.test
 
 import com.bkahlert.kommons.time.invoke
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * Returns a fixed [Clock] with its [Clock.now]

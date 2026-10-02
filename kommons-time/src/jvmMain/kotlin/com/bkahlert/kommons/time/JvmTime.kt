@@ -1,10 +1,7 @@
 package com.bkahlert.kommons.time
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.toJavaInstant
 import kotlinx.datetime.toJavaLocalDate
-import kotlinx.datetime.toKotlinInstant
 import java.nio.file.attribute.FileTime
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -15,7 +12,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlin.time.toJavaDuration
+import kotlin.time.toJavaInstant
+import kotlin.time.toKotlinInstant
 
 private val instantFormatter by lazy { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault()) }
 

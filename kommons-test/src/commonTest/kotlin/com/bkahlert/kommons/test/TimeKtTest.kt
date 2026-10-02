@@ -1,9 +1,9 @@
 package com.bkahlert.kommons.test
 
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class TimeKtTest {
 
