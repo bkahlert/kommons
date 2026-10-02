@@ -1,0 +1,16 @@
+{
+  "properties": [
+    {
+      "name": "logging.preset.console",
+      "type": "com.bkahlert.kommons.logging.LoggingPreset",
+      "sourceType": "com.bkahlert.kommons.logging.spring.LoggingProperties$PresetProperties",
+      "description": "Preset to use for the CONSOLE log."
+    },
+    {
+      "name": "logging.preset.file",
+      "type": "com.bkahlert.kommons.logging.LoggingPreset",
+      "sourceType": "com.bkahlert.kommons.logging.spring.LoggingProperties$PresetProperties",
+      "description": "Preset to use for the FILE log."
+    }
+  ]
+}

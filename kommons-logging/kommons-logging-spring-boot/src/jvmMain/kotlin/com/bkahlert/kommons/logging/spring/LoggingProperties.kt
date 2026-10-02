@@ -7,13 +7,11 @@ import com.bkahlert.kommons.logging.logback.StructuredArguments.e
 import com.bkahlert.kommons.logging.spring.LoggingProperties.Companion
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 
 /**
  * Logging properties.
  */
 @Suppress("RedundantCompanionReference")
-@ConstructorBinding
 @ConfigurationProperties(prefix = Companion.PREFIX)
 public data class LoggingProperties(
     public val preset: PresetProperties = PresetProperties(),
@@ -27,6 +25,11 @@ public data class LoggingProperties(
 
     /**
      * Preset properties.
+     *
+     * The properties are declared in `META-INF/additional-spring-configuration-metadata.json`
+     * because Boot's configuration processor cannot derive them from a Kotlin class
+     * whose constructor parameters all have defaults: the compiler adds a no-arg constructor,
+     * and with two constructors the processor falls back to JavaBean binding.
      */
     public data class PresetProperties(
         /**
