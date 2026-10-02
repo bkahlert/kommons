@@ -6,7 +6,6 @@ import com.bkahlert.kommons.test.junit.SystemProperty
 import com.bkahlert.kommons.test.logging.lastLog
 import com.bkahlert.kommons.test.spring.Captured
 import com.bkahlert.kommons.test.testAll
-import com.fasterxml.jackson.core.JsonGenerator
 import io.kotest.assertions.json.shouldContainJsonKeyValue
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.should
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.parallel.Isolated
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.system.CapturedOutput
+import tools.jackson.core.JsonGenerator
 
 @Isolated
 @SystemProperty(LoggingSystemProperties.CONSOLE_LOG_PRESET, JSON_PRESET_VALUE)
@@ -197,7 +197,7 @@ class StructuredArgumentsTest {
             var i = 0
             object : StructuredArgument {
                 override fun writeTo(generator: JsonGenerator) {
-                    generator.writeNumberField("key", i++)
+                    generator.writeNumberProperty("key", i++)
                 }
 
                 override fun toString(): String {

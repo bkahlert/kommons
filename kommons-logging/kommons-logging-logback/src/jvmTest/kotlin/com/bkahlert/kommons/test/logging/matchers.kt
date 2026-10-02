@@ -73,7 +73,7 @@ fun PrintedLogEntry.shouldMatchCustomMinimalPreset(message: String = "message"):
 
 fun PrintedLogEntry.shouldMatchSpringPreset(message: String = "message"): PrintedLogEntry = this shouldMatch Regex(
     """
-    \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3} {2}INFO +\d* +--- \[.*] TestLogger + : $message with value
+    \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:[+-]\d{2}:\d{2}|Z) {2}INFO +\d* +--- \[.*] TestLogger + : $message with value
     """.trimIndent()
 )
 
@@ -88,6 +88,6 @@ fun PrintedLogEntry.shouldMatchCustomSpringPreset(message: String = "message"): 
 fun PrintedLogEntry.shouldMatchJsonPreset(message: String = "message"): PrintedLogEntry = this shouldMatch Regex(
     @Suppress("LongLine")
     """
-    \{"@timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:[+-]\d{2}:\d{2}|Z)","level":"INFO","thread_name":".+","logger_name":"TestLogger","message":"$message with value","key":"value","foo":"bar"}
+    \{"@timestamp":"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:[+-]\d{2}:\d{2}|Z)","level":"INFO","thread_name":".+","logger_name":"TestLogger","message":"$message with value","key":"value","foo":"bar"}
     """.trimIndent()
 )
