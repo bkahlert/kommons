@@ -7,7 +7,6 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
-import io.kotest.mpp.bestName
 
 public infix fun Throwable.shouldHaveRootCauseMessage(rootCauseMessage: String): Unit = this should haveRootCauseMessage(rootCauseMessage)
 public infix fun Throwable.shouldNotHaveRootCauseMessage(rootCauseMessage: String): Unit = this shouldNot haveRootCauseMessage(rootCauseMessage)

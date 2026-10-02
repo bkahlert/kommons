@@ -1,6 +1,7 @@
 package com.bkahlert.kommons.test.junit
 
 import com.bkahlert.kommons.test.KommonsTest
+import com.bkahlert.kommons.test.bestName
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.FOR
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.assertingDisplayName
 import com.bkahlert.kommons.test.junit.DynamicTestDisplayNameGenerator.catchingDisplayName
@@ -14,7 +15,6 @@ import io.kotest.assertions.asClue
 import io.kotest.assertions.assertionCounter
 import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
-import io.kotest.mpp.bestName
 import org.junit.jupiter.api.DynamicContainer
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
