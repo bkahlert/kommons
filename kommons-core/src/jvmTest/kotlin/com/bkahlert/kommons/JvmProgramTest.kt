@@ -64,7 +64,7 @@ class JvmProgramTest {
                 it.shouldExist()
                 it.readText()
                     .shouldContain("An exception occurred during shutdown.")
-                    .shouldContain("at com.bkahlert.kommons.OnExitTestHelper\$Companion\$main")
+                    .shouldContain("at com.bkahlert.kommons.OnExitTestHelper\$Companion.main")
                     .shouldContain("IllegalArgumentException: too much content")
             }
         }
