@@ -9,21 +9,21 @@ description = "Kommons Logging Logback is a Kotlin Library for configuring Logba
 // depends on the spring-boot jar (ColorConverter), which is Java 17 bytecode
 jvmBytecodeTarget(17)
 
-val springBootVersion = libs.versions.spring.boot.get()
-
 kotlin {
     sourceSets {
         jvmMain.dependencies {
+            // Spring artifact versions come from the Spring Boot BOM.
+            implementation(project.dependencies.platform(libs.spring.boot.bom))
             api(project(":kommons-core"))
             api(project(":kommons-io"))
             api(project(":kommons-text"))
             api(project(":kommons-logging:kommons-logging-core"))
-            implementation("org.springframework.boot:spring-boot:$springBootVersion") { because("ColorConverter") }
+            implementation("org.springframework.boot:spring-boot") { because("ColorConverter") }
             api(libs.logback.classic)
             api(libs.logstash.logback.encoder)
         }
         jvmTest.dependencies {
-            implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
+            implementation("org.springframework.boot:spring-boot-starter-test") { because("output capturing") }
         }
     }
 }

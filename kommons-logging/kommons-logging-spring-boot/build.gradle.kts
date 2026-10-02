@@ -9,8 +9,6 @@ description = "Spring Boot auto-configuration for Kommons Logging: Logback"
 
 jvmBytecodeTarget(17)
 
-val springBootVersion = libs.versions.spring.boot.get()
-
 kotlin {
 
     jvm {
@@ -19,9 +17,8 @@ kotlin {
 
     sourceSets {
         jvmMain.dependencies {
-            configurations["kapt"].dependencies.add(
-                project.dependencies.create("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion")
-            )
+            // Spring artifact versions come from the Spring Boot BOM (see also the kapt block below).
+            implementation(project.dependencies.platform(libs.spring.boot.bom))
 
             api(project(":kommons-core"))
             api(project(":kommons-io"))
@@ -29,17 +26,22 @@ kotlin {
             api(project(":kommons-logging:kommons-logging-logback"))
             api(project(":kommons-text"))
 
-            implementation("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
+            implementation("org.springframework.boot:spring-boot-autoconfigure")
 
             // resolves 'warning: unknown enum constant When.MAYBE'
             compileOnly(libs.jsr305)
         }
         jvmTest.dependencies {
-            implementation("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion") // configuration metadata testing
-            implementation("org.springframework.boot:spring-boot-starter-actuator:$springBootVersion") { because("LogFileWebEndpoint testing") }
-            implementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") { because("output capturing") }
+            implementation("org.springframework.boot:spring-boot-configuration-processor") // configuration metadata testing
+            implementation("org.springframework.boot:spring-boot-starter-actuator") { because("LogFileWebEndpoint testing") }
+            implementation("org.springframework.boot:spring-boot-starter-test") { because("output capturing") }
         }
     }
+}
+
+dependencies {
+    "kapt"(platform(libs.spring.boot.bom))
+    "kapt"("org.springframework.boot:spring-boot-configuration-processor")
 }
 
 tasks {
