@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-
 plugins {
     id("kotlin-conventions")
 }
@@ -7,6 +5,9 @@ plugins {
 // `-PosArchOnly=true` registers only the host's native target, which keeps local builds short.
 // Source-set wiring (nativeMain, linuxMain, appleMain, ...) comes from Kotlin's default hierarchy template.
 val osArchOnly: Boolean = providers.gradleProperty("osArchOnly").map(String::toBoolean).getOrElse(false)
+
+// Source sets of the default hierarchy template below `native`, for the targets registered here.
+val nativeSourceSetPrefixes = listOf("native", "linux", "mingw", "apple", "macos")
 
 kotlin {
     if (osArchOnly) {
@@ -29,9 +30,9 @@ kotlin {
         macosArm64()
     }
 
-    targets.withType<KotlinNativeTarget>().configureEach {
-        compilerOptions {
-            optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
-        }
+    // Set per source set rather than per target: the shared native source sets (nativeMain, linuxMain, appleMain, ...)
+    // are compiled to metadata for publishing, and that compilation ignores the native targets' compiler options.
+    sourceSets.matching { sourceSet -> nativeSourceSetPrefixes.any(sourceSet.name::startsWith) }.configureEach {
+        languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
     }
 }
