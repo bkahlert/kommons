@@ -9,16 +9,19 @@ import kotlin.test.Test
 
 class JvmPlatformTest {
 
-    @Test fun current() = testAll {
+    @Test
+    fun current() = testAll {
         Platform.Current shouldBe JVM
     }
 
-    @Test fun ansi_support() = testAll {
+    @Test
+    fun ansi_support() = testAll {
         if (Program.isIntelliJ) Platform.Current.ansiSupport shouldNotBe AnsiSupport.NONE
         else Platform.Current.ansiSupport shouldNotBe AnsiSupport.ANSI24
     }
 
-    @Test fun file_separator() = testAll {
+    @Test
+    fun file_separator() = testAll {
         Platform.Current.fileSeparator shouldBe File.separator
     }
 }
