@@ -16,6 +16,9 @@
   because Kotlin 2 emits methods as `protoOf(C).m = function () {}` and V8's `stack` string names such a frame
   `protoOf.m`. The name is read from V8's structured stack trace now and is the class again. The 3.0.0 note that V8
   yields the class held only under source-map-support, which the test runner loads.
+- kommons-time: `LocalDate.toMomentString` returned the neighbouring date for a date 30 or more days away whose UTC
+  offset differs from today's (daylight saving time, historical offset changes); it now formats the date itself.
+
 
 ## [3.0.0] - 2026-10-03
 
