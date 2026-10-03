@@ -78,7 +78,7 @@ internal data class SyncExecutor(
     }
 
     private fun Process.finalize(): ExitState {
-        logger.debug("Waiting for $this")
+        logger.debug("Waiting for {}", this)
         waitFor()
         return exitState?.also {
             logger.info(it.status)
