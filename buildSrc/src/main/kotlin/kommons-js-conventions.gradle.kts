@@ -9,6 +9,7 @@ kotlin {
                 testLogging.showStandardStreams = true
                 useKarma {
                     useFirefoxHeadless()
+                    useConfigDirectory(rootDir.resolve("karma.config.d"))
                 }
             }
         }
