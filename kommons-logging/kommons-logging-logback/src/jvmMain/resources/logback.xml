@@ -1,3 +1,0 @@
-<configuration scan="false" debug="false">
-    <include resource="com/bkahlert/kommons/logging/logback/base.xml"/>
-</configuration>

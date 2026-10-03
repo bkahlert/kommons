@@ -64,7 +64,6 @@ jobs:
         shell: bash
         run: >
           ./gradlew ${{ matrix.target }}Test
-          ${{ matrix.target == 'jvm' && 'test' || '' }}
           ${{ matrix.extra-tasks || '' }}
           ${{ matrix.test-jdk && format('-PtestJdk={0}', matrix.test-jdk) || '' }}
           -Pkotlin.tests.individualTaskReports=true

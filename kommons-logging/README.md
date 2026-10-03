@@ -2,15 +2,10 @@
 
 ## About
 
-**Kommons Logging** is a family following Kotlin libraries:
+**Kommons Logging** is the home of the following Kotlin library:
 
 - [Kommons Logging: Core](kommons-logging-core) … Convenience features for [Kotlin Logging](https://github.com/MicroUtils/kotlin-logging)
   and [SLF4J](https://www.slf4j.org/)
-- [Kommons Logging: Logback](kommons-logging-logback) … [Logback](https://logback.qos.ch/) configuration with system properties and JSON support
-- [Kommons Logging: Spring Boot](kommons-logging-spring-boot) … Spring Boot integration and autoconfiguration
-- [Kommons Logging: Spring Boot Starter](kommons-logging-spring-boot-starter) … Spring Boot Starter with all required dependencies
-
-Furthermore, [Kommons Logging: Spring Boot Sample](kommons-logging-spring-boot-sample) demonstrates the usage.
 
 ## Installation / Setup
 
