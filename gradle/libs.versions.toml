@@ -8,7 +8,6 @@ kotest = "5.9.1"
 kotlinx-serialization = "1.11.0"
 ktor = "3.6.0"
 logback-classic = "1.5.38"
-logstash-logback-encoder = "9.0"
 jvm = "1.8"
 jsr305 = "3.0.2"
 junit-jupiter = "5.14.4"
@@ -16,7 +15,6 @@ junit-platform = "1.14.4"
 mordant = "3.1.0"
 nebula-release = "21.1.4"
 slf4j = "2.0.20"
-spring-boot = "4.1.1" # https://docs.spring.io/spring-boot/4.1/
 stdlib-js = "0.2.3"
 plexus = "3.6.2"
 xregexp = "5.1.3"
@@ -37,7 +35,6 @@ kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serializat
 ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
-logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstash-logback-encoder" }
 
 mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
 
@@ -53,8 +50,6 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexus" }
-
-spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 
 
 # Gradle plugins
@@ -72,5 +67,3 @@ junit-platform = ["junit-platform-commons", "junit-platform-launcher"]
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
-spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

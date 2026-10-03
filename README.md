@@ -12,7 +12,7 @@
 - **[Kommons Exec](kommons-exec) … to execute command lines and shell scripts**
 - **[Kommons IO](kommons-io) … for simpler IO handling on the JVM**
 - [Kommons Kaomoji](kommons-kaomoji) … Japanese style emoticon constants
-- [Kommons Logging](kommons-logging) … for simple logging *(only **logging-core** included by default)*
+- **[Kommons Logging](kommons-logging) … for simple logging**
 - [Kommons Test](kommons-test) … to ease testing
 - **[Kommons Text](kommons-text) … for Unicode-aware text operations**
 - [Kommons Time](kommons-time) … [KotlinX multiplatform date/time library](https://github.com/Kotlin/kotlinx-datetime) extension

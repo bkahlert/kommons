@@ -10,6 +10,14 @@
 
 ### Removed
 
+- kommons-logging-logback, kommons-logging-spring-boot, kommons-logging-spring-boot-starter and the Spring Boot
+  sample. Spring Boot 4 provides their features: `logging.structured.format.console` (or `.file`) `=logstash` (or
+  `ecs`, `gelf`) replaces the `json` preset, `logging.file.name` the file log, Boot's default layout the `spring`
+  preset, a `logging.pattern.console` the `minimal` preset, and SLF4J's fluent `addKeyValue` the
+  `StructuredArguments`. An application that keeps the `logging.preset.*` properties gets Boot's default logging
+  without an error. logstash-logback-encoder leaves the dependency set; outside Spring Boot, a `logback.xml` of your
+  own replaces the shipped configuration, with logstash-logback-encoder for JSON.
+
 ### Fixed
 
 - kommons-logging-core on Kotlin/JS: a logger delegated inside a method was named `protoOf` on V8 (Chrome, Node),
