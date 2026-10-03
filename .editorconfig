@@ -7,21 +7,30 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 
 indent_style = space
+indent_size = 2
+ij_visual_guides = 80
+max_line_length = 120
+tab_width = 2
+
+[*.{java,kt,kts,groovy,gradle,py}]
 indent_size = 4
-ij_visual_guides = 80,120,160
-max_line_length = 160
 tab_width = 4
 
-[*.{cff,css,scss,feature,js,json,jsx,ts,tsx,yaml,yml}]
-indent_size = 2
+[*.{kt,kts}]
+continuation_indent_size = 4
 
-[*.js]
+[{*.go,Makefile,*.mk}]
+indent_style = tab
+
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue}]
+ij_javascript_force_quote_style = true
+ij_javascript_use_double_quotes = false
 ij_javascript_force_semicolon_style = true
 ij_javascript_use_semicolon_after_statement = false
 
 [*.md]
 trim_trailing_whitespace = false
+max_line_length = off
 
 [*.run.xml]
-indent_size = 2
 ij_xml_space_inside_empty_tag = true
