@@ -140,8 +140,8 @@ Gradle properties, provided in CI as `ORG_GRADLE_PROJECT_*` environment variable
 
 | Property | Content |
 |---|---|
-| `mavenCentralUsername` | Central Portal user token name |
-| `mavenCentralPassword` | Central Portal user token password |
+| `mavenCentralUsername` | Central Portal user token: generated username (not the display name) |
+| `mavenCentralPassword` | Central Portal user token: generated password |
 | `signingInMemoryKey` | ASCII-armored private key |
 | `signingInMemoryKeyId` | last 8 hex digits of the key id |
 | `signingInMemoryKeyPassword` | key passphrase |
