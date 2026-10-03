@@ -12,6 +12,10 @@
 
 ### Fixed
 
+- kommons-logging-core on Kotlin/JS: a logger delegated inside a method was named `protoOf` on V8 (Chrome, Node),
+  because Kotlin 2 emits methods as `protoOf(C).m = function () {}` and V8's `stack` string names such a frame
+  `protoOf.m`. The name is read from V8's structured stack trace now and is the class again. The 3.0.0 note that V8
+  yields the class held only under source-map-support, which the test runner loads.
 
 ## [3.0.0] - 2026-10-03
 
