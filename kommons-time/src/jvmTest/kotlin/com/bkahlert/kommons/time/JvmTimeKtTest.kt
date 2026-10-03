@@ -21,8 +21,8 @@ class JvmInstantTest {
 @Isolated
 class JvmTimeKtTest {
 
-    @Test fun `to_moment_string of a far date is that date whatever offset it had`() {
-        // Kiritimati moved from UTC-10 to UTC+14 in 1995: a 24-hour offset difference to any date before.
+    @Test fun `toMomentString of a far date is that date whatever offset it had`() {
+        // Kiritimati moved from UTC-10 to UTC+14 in 1995: a 24-hour offset difference to any date from 1979 to 1994.
         withDefaultTimeZone("Pacific/Kiritimati") {
             val date = LocalDate(1994, 6, 15)
 
@@ -32,7 +32,7 @@ class JvmTimeKtTest {
         }
     }
 
-    @Test fun `to_local_date_string of an instant follows the default time zone`() {
+    @Test fun `toLocalDateString of an instant follows the default time zone`() {
         val instant = Instant.parse("1994-06-15T20:00:00Z")
 
         val inUtc = withDefaultTimeZone("UTC") { instant.toLocalDateString() }
