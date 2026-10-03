@@ -7,6 +7,7 @@ import org.junit.jupiter.api.parallel.Isolated
 import java.nio.file.attribute.FileTime
 import java.util.TimeZone
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
 class JvmInstantTest {
@@ -30,13 +31,23 @@ class JvmTimeKtTest {
             result shouldBe date.toLocalDateString()
         }
     }
+
+    @Test fun `to_local_date_string of an instant follows the default time zone`() {
+        val instant = Instant.parse("1994-06-15T20:00:00Z")
+
+        val inUtc = withDefaultTimeZone("UTC") { instant.toLocalDateString() }
+        val fourteenHoursEast = withDefaultTimeZone("Etc/GMT-14") { instant.toLocalDateString() }
+
+        inUtc shouldBe LocalDate(1994, 6, 15).toLocalDateString()
+        fourteenHoursEast shouldBe LocalDate(1994, 6, 16).toLocalDateString()
+    }
 }
 
-private fun withDefaultTimeZone(id: String, block: () -> Unit) {
+private fun <T> withDefaultTimeZone(id: String, block: () -> T): T {
     val previous = TimeZone.getDefault()
     TimeZone.setDefault(TimeZone.getTimeZone(id))
     try {
-        block()
+        return block()
     } finally {
         TimeZone.setDefault(previous)
     }

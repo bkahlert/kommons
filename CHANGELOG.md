@@ -18,6 +18,8 @@
   yields the class held only under source-map-support, which the test runner loads.
 - kommons-time: `LocalDate.toMomentString` returned the neighbouring date for a date 30 or more days away whose UTC
   offset differs from today's (daylight saving time, historical offset changes); it now formats the date itself.
+- kommons-time: `Instant.toLocalDateString` on the JVM used the default time zone of its first call for the rest of the
+  process; it now reads the default time zone on every call.
 
 
 ## [3.0.0] - 2026-10-03
