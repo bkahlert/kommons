@@ -17,11 +17,11 @@ import kotlin.time.toJavaDuration
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 
-private val instantFormatter by lazy { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault()) }
+private val instantFormatter by lazy { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG) }
 
-/** Returns this [Instant] formatted as a local date (e.g. May 15, 1984). */
+/** Returns this [Instant] formatted as a local date (e.g. May 15, 1984) in the current default time zone. */
 public actual fun Instant.toLocalDateString(): String {
-    return instantFormatter.format(toJavaInstant())
+    return instantFormatter.withZone(ZoneId.systemDefault()).format(toJavaInstant())
 }
 
 
