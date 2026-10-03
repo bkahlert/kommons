@@ -38,7 +38,7 @@ mavenPublishing {
         // Kotlin Multiplatform publication's description stays empty, and Maven Central rejects the deployment.
         val mavenPom = this
         afterEvaluate { mavenPom.description.set(project.description) }
-        url.set("https://github.com/bkahlert/kommons/tree/master/${project.name}")
+        url.set("https://github.com/bkahlert/kommons/tree/main/${project.name}")
 
         ciManagement {
             url.set("https://github.com/bkahlert/kommons/issues")
@@ -63,7 +63,7 @@ mavenPublishing {
         licenses {
             license {
                 name.set("MIT")
-                url.set("https://github.com/bkahlert/kommons/blob/master/LICENSE")
+                url.set("https://github.com/bkahlert/kommons/blob/main/LICENSE")
             }
         }
 
