@@ -121,8 +121,10 @@ public fun Instant.toMomentString(descriptive: Boolean = true): String {
 }
 
 /**
- * Attempts to describe this date like a human being would do,
- * for example "28 days ago" instead of "2021-22-23".
+ * Returns this date described like a human being would do, for example "28d ago" instead of "2021-22-23".
+ *
+ * The adjacent days are "yesterday", "today" and "tomorrow"; a date 30 or more days away is
+ * returned as a formatted date, see [toLocalDateString].
  *
  * Set [descriptive] to `false` to turn off the use of "ago" and "in".
  */
