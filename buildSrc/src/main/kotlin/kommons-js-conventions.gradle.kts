@@ -8,6 +8,7 @@ kotlin {
             testTask {
                 testLogging.showStandardStreams = true
                 useKarma {
+                    useChromeHeadless()
                     useFirefoxHeadless()
                     useConfigDirectory(rootDir.resolve("karma.config.d"))
                 }
