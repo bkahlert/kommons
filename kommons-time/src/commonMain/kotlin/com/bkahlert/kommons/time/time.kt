@@ -128,10 +128,12 @@ public fun Instant.toMomentString(descriptive: Boolean = true): String {
  */
 public fun LocalDate.toMomentString(descriptive: Boolean = true): String {
     val diff = this - Today
-    return when (diff.inWholeDays) {
-        -1L -> "yesterday"
-        0L -> "today"
-        +1L -> "tomorrow"
-        else -> diff.toMomentString(descriptive)
+    return when {
+        diff.inWholeDays == -1L -> "yesterday"
+        diff.inWholeDays == 0L -> "today"
+        diff.inWholeDays == +1L -> "tomorrow"
+        diff.absoluteValue < 30.days -> diff.toMomentString(descriptive)
+        // not Now + diff: a different offset on this date shifts that instant into the neighbouring day
+        else -> toLocalDateString()
     }
 }
