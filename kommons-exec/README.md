@@ -8,7 +8,7 @@
 
 This library is hosted on GitHub with releases provided on Maven Central.
 
-* **Gradle** `implementation("com.bkahlert.kommons:kommons-exec:3.0.0") { because("print debugging") }`
+* **Gradle** `implementation("com.bkahlert.kommons:kommons-exec:3.0.0") { because("CommandLine, ShellScript") }`
 
 * **Maven**
   ```xml
