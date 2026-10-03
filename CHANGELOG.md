@@ -17,21 +17,23 @@
 
 Kommons 3.0 moves the build, the dependencies and the publishing to current versions. The library API changes in two
 places, kommons-time's `Instant`/`Clock` and kommons-logging-core's `KotlinLogging` package; everything else is a
-dependency or platform floor change. Consumers on Spring Boot 2.x or on SLF4J 1.7 cannot upgrade without moving
-first; see "Changed".
+dependency, platform floor or output-format change. Consumers on Spring Boot 2.x, SLF4J 1.7 or Ktor 2 cannot upgrade
+without moving first; see "Changed".
 
 ### Changed
 
 - JVM bytecode floors: Java 8 for all libraries, Java 11 for kommons-uri (as before), Java 17 for the Spring stack
   (kommons-logging-logback, kommons-logging-spring-boot, kommons-logging-spring-boot-starter).
-- kommons-time: `Instant` and `Clock` are `kotlin.time.Instant` and `kotlin.time.Clock` (kotlinx-datetime 0.8).
-  `InstantAsEpochMillisecondsSerializer`, `InstantAsEpochSecondsSerializer` and the `Clock.Companion` extensions target
-  them; `dayOfMonth`/`monthNumber` become `day`/`month.number`.
+- kommons-time: `Instant` and `Clock` are `kotlin.time.Instant` and `kotlin.time.Clock` (kotlinx-datetime 0.8, an `api`
+  dependency). `InstantAsEpochMillisecondsSerializer`, `InstantAsEpochSecondsSerializer` and the `Clock.Companion`
+  extensions target them. kotlinx-datetime 0.8 also renames `LocalDate.dayOfMonth`/`monthNumber` to `day`/`month.number`
+  in your own code.
 - kommons-logging-core: the `by KotlinLogging` delegate comes from `io.github.oshai.kotlinlogging` (kotlin-logging 8,
   lambda-only API) instead of `mu`.
-- SLF4J 2.0.20: consumers need an SLF4J 2 provider, that is Logback 1.3 or later. Logback 1.2 binds to the NOP logger,
-  and Spring Boot 2.7 fails on `StaticLoggerBinder`.
-- The Spring stack requires Spring Boot 4.1 (Spring Framework 7) and Java 17. The auto-configuration is registered
+- SLF4J 2.0.20: consumers need an SLF4J 2 provider, for example Logback 1.3 or later (the last Java 8 line). Logback 1.2
+  binds to the NOP logger, and Spring Boot 2.7 fails on `StaticLoggerBinder`.
+- The Spring stack requires Spring Boot 4 (Spring Framework 7; built and tested against 4.1.1) and Java 17. The
+  auto-configuration is registered
   through `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` and the environment
   post-processor through the `org.springframework.boot.EnvironmentPostProcessor` key, so a Spring Boot 2.x application
   gets neither: no error, Boot's default logging instead of the presets and the JSON file.
@@ -44,6 +46,8 @@ first; see "Changed".
   exercised on JUnit 6 by the Spring modules' test suites.
 - kommons-text (native) and kommons-kaomoji: Mordant 3.1 as an `api` dependency (from 2.0.0-beta9). On the JVM Mordant 3
   brings `mordant-jvm-jna` (JNA 5.19.1), `mordant-jvm-ffm` and `mordant-jvm-graal-ffi`.
+- kommons-uri, and kommons-test which exposes it: Ktor 3.6 (`ktor-http`, `ktor-utils`) as an `api` dependency (from
+  2.2.3). Applications on Ktor 2 move to Ktor 3 first; Ktor 2 and Ktor 3 artifacts do not mix on one classpath.
 - kommons-debug: Kotlin 2 compiles lambdas through `invokedynamic`, so un-annotated lambdas render as `Function`.
 - kommons-logging-core on Kotlin/JS: in Firefox a logger delegated inside a method is named `<global>` (Firefox cannot
   name Kotlin 2 methods; V8 still yields the class).
@@ -51,6 +55,8 @@ first; see "Changed".
   published without tests.
 - Publishing: Maven Central through the Central Portal, from one macOS job of the release workflow.
 - Build: Gradle 9.7, Kotlin 2.4.20, Dokka 2.2, JDK 17 toolchain compiling down to the floors above.
+  Consumers need Kotlin 2.4 or later; Kotlin 2.3 reads the artifacts but needs `@OptIn(ExperimentalTime::class)` for
+  `kotlin.time.Instant`.
 - Dependencies: kotlinx-datetime 0.8.0, kotlinx-serialization 1.11.0, Ktor 3.6.0, Mordant 3.1.0, kotlin-logging 8.0.4,
   SLF4J 2.0.20, Logback 1.5.38 (Spring Boot managed), logstash-logback-encoder 9.0, Spring Boot 4.1.1, JUnit 5.14.4,
   Kotest 5.9.1, ICU4J 77.1, plexus-utils 3.6.2, npm xregexp 5.1.3 and @stdlib/string-next-grapheme-cluster-break 0.2.3.
