@@ -45,7 +45,7 @@ public class TestExecutionReporter(
                     append(brightCyan("$duration"))
                     append(": ")
                     listOf<Pair<Long, (String) -> String>>(
-                        failed to { yellow("✘︎ $it failed") },
+                        failed to { yellow("✘ $it failed") },
                         aborted to { red("ϟ $it crashed") },
                         succeeded to { green("✔︎ $it passed") },
                         skipped to { grey("◍ $it ignored") },

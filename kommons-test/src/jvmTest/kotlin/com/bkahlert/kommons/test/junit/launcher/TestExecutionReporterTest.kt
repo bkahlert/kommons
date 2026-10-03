@@ -48,31 +48,31 @@ class TestExecutionReporterTest {
 
     @Test fun failed_tests() = testAll {
         testExecutionReporterOutput(0, 1, 0, 0) shouldMatch """
-            1 test within \d+m?s: ✘︎ all failed
+            1 test within \d+m?s: ✘ all failed
         """.trimIndent()
         testExecutionReporterOutput(0, 2, 0, 0) shouldMatch """
-            2 tests within \d+m?s: ✘︎ all failed
+            2 tests within \d+m?s: ✘ all failed
         """.trimIndent()
         testExecutionReporterOutput(1, 2, 0, 0) shouldMatch """
-            3 tests within \d+m?s: ✘︎ 2 failed, ✔︎ 1 passed
+            3 tests within \d+m?s: ✘ 2 failed, ✔︎ 1 passed
         """.trimIndent()
     }
 
     @Test fun failed_and_failed_tests() = testAll {
         testExecutionReporterOutput(1, 2, 1, 0) shouldMatch """
-            4 tests within \d+m?s: ✘︎ 2 failed, ϟ 1 crashed, ✔︎ 1 passed
+            4 tests within \d+m?s: ✘ 2 failed, ϟ 1 crashed, ✔︎ 1 passed
         """.trimIndent()
         testExecutionReporterOutput(1, 1, 2, 0) shouldMatch """
-            4 tests within \d+m?s: ✘︎ 1 failed, ϟ 2 crashed, ✔︎ 1 passed
+            4 tests within \d+m?s: ✘ 1 failed, ϟ 2 crashed, ✔︎ 1 passed
         """.trimIndent()
     }
 
     @Test fun skipped_tests() = testAll {
         testExecutionReporterOutput(1, 1, 1, 2) shouldMatch """
-            3 tests within \d+m?s: ✘︎ 1 failed, ϟ 1 crashed, ✔︎ 1 passed, ◍ 2 ignored
+            3 tests within \d+m?s: ✘ 1 failed, ϟ 1 crashed, ✔︎ 1 passed, ◍ 2 ignored
         """.trimIndent()
         testExecutionReporterOutput(2, 2, 2, 2) shouldMatch """
-            6 tests within \d+m?s: ✘︎ 2 failed, ϟ 2 crashed, ✔︎ 2 passed, ◍ 2 ignored
+            6 tests within \d+m?s: ✘ 2 failed, ϟ 2 crashed, ✔︎ 2 passed, ◍ 2 ignored
         """.trimIndent()
         testExecutionReporterOutput(2, 0, 0, 2) shouldMatch """
             2 tests within \d+m?s: ✔︎ all passed, ◍ all ignored
