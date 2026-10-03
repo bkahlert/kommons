@@ -37,7 +37,6 @@ This library is hosted on GitHub with releases provided on Maven Central.
       <dependency>
         <groupId>com.bkahlert.kommons</groupId>
         <artifactId>kommons-uri</artifactId>
-          <version>3.0.0</version>
       </dependency>
     </dependencies>
   
