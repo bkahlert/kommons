@@ -8,8 +8,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
 import java.time.Instant
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.jvm.isAccessible
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -50,17 +48,13 @@ public open class Process(
     @Suppress("KDocMissingDocumentation")
     override fun destroy(): Unit = process.destroy()
 
-    /** Native process ID of the process. */
+    /** Native process ID of the process, or `null` if the runtime does not expose it. */
     public val pid: Long? by lazy {
-        kotlin.runCatching {
-            process::class.members.firstOrNull { it.name == "pid" }
-                ?.apply { isAccessible = true }
-                ?.run { call(process).toString().toLong() }
-        }.recoverCatching {
-            process::class.memberFunctions.firstOrNull { it.name == "pid" }
-                ?.apply { isAccessible = true }
-                ?.run { call(process).toString().toLong() }
-        }.getOrNull()
+        // Process.pid() exists since Java 9 and the library compiles against the Java 8 API;
+        // Java 8's UNIXProcess keeps the pid in a private field, Java 8 on Windows has none.
+        runCatching { java.lang.Process::class.java.getMethod("pid").invoke(process) as Long }
+            .recoverCatching { process.javaClass.getDeclaredField("pid").apply { isAccessible = true }.getInt(process).toLong() }
+            .getOrNull()
     }
 
     override fun toString(): String = asString {

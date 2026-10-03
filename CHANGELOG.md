@@ -20,6 +20,8 @@
   offset differs from today's (daylight saving time, historical offset changes); it now formats the date itself.
 - kommons-time: `Instant.toLocalDateString` on the JVM used the default time zone of its first call for the rest of the
   process; it now reads the default time zone on every call.
+- kommons-exec: `Process.pid` was `null` on Java 16 and later, where the JDK denies reflective access to its process
+  implementation; it now calls the public `Process.pid()` and keeps reading Java 8's private field.
 
 
 ## [3.0.0] - 2026-10-03
