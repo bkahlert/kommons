@@ -6,13 +6,14 @@ import com.bkahlert.kommons.test.testAll
 import com.bkahlert.kommons.text.LineSeparators.removeTrailingLineSeparator
 import com.bkahlert.kommons.time.Now
 import com.bkahlert.kommons.time.Timestamp
-import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -91,31 +92,31 @@ class ProcessTest {
 
     @Test fun pid() = testAll {
         val runningProcess = Process.running()
-        shouldNotThrowAny { runningProcess.pid }
+        runningProcess.pid.shouldNotBeNull() shouldBeGreaterThan 0L
         runningProcess.destroy()
 
         val succeededProcess = Process.succeeded()
-        shouldNotThrowAny { succeededProcess.pid }
+        succeededProcess.pid.shouldNotBeNull() shouldBeGreaterThan 0L
 
         val failedProcess = Process.failed()
-        shouldNotThrowAny { failedProcess.pid }
+        failedProcess.pid.shouldNotBeNull() shouldBeGreaterThan 0L
     }
 
     @Test fun to_string() = testAll {
         val runningProcess = Process.running()
         runningProcess.toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
-            Process {* state: "running", commandLine: * }
+            Process { pid: *, state: "running", commandLine: * }
         """.trimIndent()
         runningProcess.destroy()
 
         val succeededProcess = Process.succeeded()
         succeededProcess.toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
-            Process {* state: "succeeded", commandLine: * }
+            Process { pid: *, state: "succeeded", commandLine: * }
         """.trimIndent()
 
         val failedProcess = Process.failed()
         failedProcess.toString().replace('\n', ' ').replace(Regex("\\s+"), " ") shouldMatchGlob """
-            Process {* state: "failed", commandLine: * }
+            Process { pid: *, state: "failed", commandLine: * }
         """.trimIndent()
     }
 

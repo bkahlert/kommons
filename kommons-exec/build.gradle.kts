@@ -13,7 +13,6 @@ kotlin {
             api(project(":kommons-logging:kommons-logging-core"))
             api(project(":kommons-text"))
             implementation(libs.plexus.utils)
-            implementation(kotlin("reflect")) { because("get PID") }
         }
         jvmTest.dependencies {
             implementation(project(":kommons-test"))
