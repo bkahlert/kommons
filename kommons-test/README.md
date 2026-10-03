@@ -26,7 +26,6 @@ JUnit users benefit from:
 
 Furthermore, there are some more [advanced features for the JVM platform](#jvm-features).
 
-
 ## Installation / Setup
 
 This library is hosted on GitHub with releases provided on Maven Central.
@@ -342,14 +341,13 @@ tasks {
 Please consult [Configuration Parameters](https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params)
 for more information.
 
-
 ### Reporting
 
 Test results are printed at the end of a test run
 by [TestExecutionReporter](src/jvmMain/kotlin/com/bkahlert/kommons/test/junit/launcher/TestExecutionReporter.kt) as follows:
 
 ```log
-120 tests within 1.8s: ✘︎ 2 failed, ϟ 3 crashed, ✔︎ 113 passed, 2 ignored
+120 tests within 1.8s: ✘ 2 failed, ϟ 3 crashed, ✔︎ 113 passed, 2 ignored
 ```
 
 Or if all went well:
