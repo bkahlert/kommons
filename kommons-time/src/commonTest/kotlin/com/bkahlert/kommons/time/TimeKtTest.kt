@@ -135,6 +135,10 @@ class TimeKtTest {
         Today.toMomentString() shouldBe "today"
         Tomorrow.toMomentString() shouldBe "tomorrow"
         (Tomorrow + 1.days).toMomentString() shouldBe "in 2d"
+        (Today + 29.days).toMomentString() shouldBe "in 29d"
+        (Today - 29.days).toMomentString() shouldBe "29d ago"
+        (Today + 30.days).toMomentString() shouldBe (Today + 30.days).toLocalDateString()
+        (Today - 30.days).toMomentString() shouldBe (Today - 30.days).toLocalDateString()
         LocalDate.fromEpochDays(0).toMomentString() shouldBe LocalDate.fromEpochDays(0).toLocalDateString()
     }
 
