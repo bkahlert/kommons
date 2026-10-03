@@ -6,7 +6,7 @@ on:
       branch:
         description: "Branch"
         required: true
-        default: 'master'
+        default: 'main'
       os:
         description: "Operating system name"
         required: true
