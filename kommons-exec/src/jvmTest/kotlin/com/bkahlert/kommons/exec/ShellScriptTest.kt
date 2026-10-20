@@ -30,7 +30,7 @@ class ShellScriptTest {
     @Test fun to_command_line() = testAll {
         listOf(
             CommandLine("/bin/sh", "-c", "echo test"),
-            CommandLine("cmd.exe", "/X", "/C", "echo test"),
+            CommandLine("cmd.exe", "/X", "/D", "/C", "echo test"),
         ).shouldContain(shellScript.toCommandLine())
     }
 
