@@ -1,6 +1,6 @@
 [versions]
 dokka = "2.2.0"
-icu = "77.1"
+icu = "78.3"
 kotlin = "2.4.20"
 kotlin-logging = "8.0.4"
 kotlinx-datetime = "0.8.0"
